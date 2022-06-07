@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <StartupObject>SmartIOT.Connector.Runner.Console.Program</StartupObject>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<Authors>Luca Domenichini</Authors>
+	<Title>Console runner for SmartIOT.Connector library</Title>
+	<Description>This package implements a console runner for SmartIOT.Connector library</Description>
+	<PackageProjectUrl>https://github.com/luca-domenichini/SmartIOT.Connector</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/luca-domenichini/SmartIOT.Connector.git</RepositoryUrl>
+	<RepositoryType>git</RepositoryType>
+	<PackageTags>iot;mqtt;scheduler;connector;automation;snap7;s7net;azure;automation;siemens;plc;s7300;s71200;s71500;docker</PackageTags>
+	<AssemblyVersion>0.0.1</AssemblyVersion>
+	<FileVersion>0.0.1</FileVersion>
+	<Version>0.0.$([System.DateTime]::UtcNow.ToString(yyMMddHH))</Version>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<Copyright>Luca Domenichini</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Connectors\SmartIOT.Connector.Mqtt\SmartIOT.Connector.Mqtt.csproj" />
+    <ProjectReference Include="..\..\Core\SmartIOT.Connector.Core\SmartIOT.Connector.Core.csproj" />
+    <ProjectReference Include="..\..\Core\SmartIOT.Connector.Messages\SmartIOT.Connector.Messages.csproj" />
+    <ProjectReference Include="..\..\Core\SmartIOT.Connector.Prometheus\SmartIOT.Connector.Prometheus.csproj" />
+    <ProjectReference Include="..\..\Devices\SmartIOT.Connector.Plc.S7Net\SmartIOT.Connector.Plc.S7Net.csproj" />
+    <ProjectReference Include="..\..\Devices\SmartIOT.Connector.Plc.Snap7\SmartIOT.Connector.Plc.Snap7.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="scheduler-config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

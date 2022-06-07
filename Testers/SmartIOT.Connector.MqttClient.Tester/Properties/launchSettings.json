@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "SmartIOT.Connector.MqttClient.Tester": {
+      "commandName": "Project"
+    }
+  }
+}

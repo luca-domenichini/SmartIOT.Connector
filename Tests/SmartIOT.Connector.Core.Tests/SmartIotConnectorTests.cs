@@ -1,0 +1,202 @@
+﻿using SmartIOT.Connector.Core.Conf;
+using SmartIOT.Connector.Device.Mocks;
+using SmartIOT.Connector.Plc.S7Net;
+using SmartIOT.Connector.Plc.Snap7;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+using Xunit;
+
+namespace SmartIOT.Connector.Core.Tests
+{
+	public class SmartIotConnectorTests
+	{
+		[Fact]
+		public void Serialize_module_configuration_json()
+		{
+			SmartIotConnectorConfiguration d = new SmartIotConnectorConfiguration()
+			{
+				SchedulerConfiguration = new SchedulerConfiguration(),
+				DeviceConfigurations = new List<DeviceConfiguration>()
+				{
+					new DeviceConfiguration("", "1", true, "Test Device", new List<TagConfiguration>()
+					{
+						new TagConfiguration(20, TagType.READ, 0, 100, 1),
+						new TagConfiguration(22, TagType.WRITE, 0, 100, 1),
+					})
+				},
+				ConnectorConnectionStrings = new List<string>()
+				{
+					"fake://fake"
+				}
+			};
+
+			string s = JsonSerializer.Serialize(d, new JsonSerializerOptions());
+			File.WriteAllText("driver_serialized.json", s);
+		}
+
+		[Fact]
+		public void Deserialize_driver_configuration()
+		{
+			var d = SmartIotConnectorConfiguration.FromJson(File.ReadAllText("driver.json"));
+
+			Assert.NotNull(d);
+			Assert.Equal(1, d!.DeviceConfigurations.Count);
+			Assert.Equal(1, d.DeviceConfigurations.Count);
+
+			DeviceConfiguration pc = d.DeviceConfigurations[0];
+			Assert.Equal("1", pc.DeviceId);
+			Assert.Equal(2, pc.Tags.Count);
+			var t0 = pc.Tags[0];
+			var t1 = pc.Tags[1];
+
+			Assert.Equal(20, t0.TagId);
+			Assert.Equal(22, t1.TagId);
+		}
+
+		[Fact]
+		public void Build_driver_module()
+		{
+			var module = new SmartIotConnectorBuilder()
+				.WithAutoDiscoverDeviceDriverFactories()
+				.WithAutoDiscoverConnectorFactories()
+				.WithConfigurationJsonFilePath("driver2.json")
+				.Build();
+
+			var drivers = module.Schedulers;
+			Assert.Equal(2, drivers.Count);
+
+			var d0 = drivers[0];
+			var d1 = drivers[1];
+			Assert.IsType<S7NetDriver>(d0.DeviceDriver);
+			Assert.IsType<Snap7Driver>(d1.DeviceDriver);
+
+			Assert.Equal(1, d0.GetManagedDevices().Count);
+			var p0 = d0.GetManagedDevices()[0];
+
+			Assert.Equal(2, p0.Tags.Count);
+
+			Assert.Single(module.Connectors);
+			Assert.True(module.Connectors[0] is FakeConnector);
+		}
+		
+		[Fact]
+		public void Test_module_connector_tag_write()
+		{
+			var module = new SmartIotConnectorBuilder()
+				.WithAutoDiscoverDeviceDriverFactories()
+				.WithAutoDiscoverConnectorFactories()
+				.WithConfigurationJsonFilePath("test-config.json")
+				.Build();
+
+			MockDeviceDriver driver = (MockDeviceDriver)module.Schedulers[0].DeviceDriver;
+			var device = driver.Device;
+			var tag = device.Tags.Single(x => x.TagId == 22);
+
+			FakeConnector c = (FakeConnector)module.Connectors[0];
+
+			var wasRead = new AutoResetEvent(false);
+			var wasWritten = new AutoResetEvent(false);
+
+			module.TagReadEvent += (s, e) =>
+			{
+				if (e.TagScheduleEvent.Tag.TagId == 22)
+					wasRead.Set();
+			};
+			module.TagWriteEvent += (s, e) =>
+			{
+				if (e.TagScheduleEvent.Tag.TagId == 22)
+					wasWritten.Set();
+			};
+
+			try
+			{
+				module.Start();
+
+				// attendo l'inizializzazione
+				Assert.True(wasRead.WaitOne(TimeSpan.FromSeconds(2)));
+
+				// test di scrittura
+				c.RequestTagWrite("1", 22, 10, new byte[] { 1, 2, 3, 4, 5 });
+
+				Assert.True(wasWritten.WaitOne(TimeSpan.FromSeconds(2)));
+			
+				Assert.Equal(1, c.TagWriteEvents.Count);
+				var write = c.TagWriteEvents[0];
+			
+				Assert.Equal(22, write.Tag.TagId);
+				Assert.Equal(10, write.StartOffset);
+				Assert.Equal(5, write.Data!.Length);
+			}
+			finally
+			{
+				module.Stop();
+			}
+		}
+		
+		[Fact]
+		public void Test_module_connector_aggregating_tag_write_events()
+		{
+			var module = new SmartIotConnectorBuilder()
+				.WithAutoDiscoverDeviceDriverFactories()
+				.WithAutoDiscoverConnectorFactories()
+				.WithConfigurationJsonFilePath("test-config.json")
+				.Build();
+
+			Scheduler.ITagScheduler scheduler = module.Schedulers[0];
+			MockDeviceDriver driver = (MockDeviceDriver)scheduler.DeviceDriver;
+			var device = driver.Device;
+			var tag = device.Tags.Single(x => x.TagId == 22);
+
+			FakeConnector c = (FakeConnector)module.Connectors[0];
+
+			var wasRead = new AutoResetEvent(false);
+			var wasWritten = new AutoResetEvent(false);
+
+			module.TagReadEvent += (s, e) =>
+			{
+				if (e.TagScheduleEvent.Tag.TagId == 22)
+					wasRead.Set();
+			};
+			module.TagWriteEvent += (s, e) =>
+			{
+				if (e.TagScheduleEvent.Tag.TagId == 22)
+					wasWritten.Set();
+			};
+
+			try
+			{
+				module.Start();
+
+				// attendo l'inizializzazione
+				Assert.True(wasRead.WaitOne(TimeSpan.FromSeconds(2)));
+
+				scheduler.IsPaused = true;
+				Thread.Sleep(100);
+
+				// test di scrittura multipli aggregabili
+				c.RequestTagWrite("1", 22, 10, new byte[] { 1, 2, 3, 4, 5 });
+				c.RequestTagWrite("1", 22, 20, new byte[] { 11, 12, 13, 14, 15 });
+
+				scheduler.IsPaused = false;
+
+				Assert.True(wasWritten.WaitOne(TimeSpan.FromSeconds(2)));
+			
+				Assert.Equal(1, c.TagWriteEvents.Count);
+				var write = c.TagWriteEvents[0];
+			
+				Assert.Equal(22, write.Tag.TagId);
+				Assert.Equal(10, write.StartOffset);
+				Assert.Equal(15, write.Data!.Length);
+			}
+			finally
+			{
+				module.Stop();
+			}
+
+		}
+	}
+}

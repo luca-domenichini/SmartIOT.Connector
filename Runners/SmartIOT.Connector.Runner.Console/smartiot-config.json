@@ -1,0 +1,44 @@
+{
+  "Configuration": {
+	"ConnectorConnectionStrings": [
+	  "mqttServer://ServerId=MyMqttServer;Port=1883"
+	],
+	"DeviceConfigurations": [
+	  {
+		"ConnectionString": "snap7://ip=localhost;rack=0;slot=2",
+		"DeviceId": "1",
+		"Enabled": true,
+		"Name": "Test Device",
+		"IsPartialReadsEnabled": false,
+		"IsWriteOptimizationEnabled": true,
+		"Tags": [
+		  {
+			"TagId": 2,
+			"TagType": "READ",
+			"ByteOffset": 0,
+			"Size": 100,
+			"Weight": 1
+		  },
+		  {
+			"TagId": 3,
+			"TagType": "WRITE",
+			"ByteOffset": 0,
+			"Size": 100,
+			"Weight": 1
+		  }
+		]
+	  }
+	],
+	"SchedulerConfiguration": {
+	  "MaxErrorsBeforeReconnection": 10,
+	  "RestartDeviceInErrorTimeoutMillis": 30000,
+	  "WaitTimeAfterErrorMillis": 1000,
+	  "WaitTimeBetweenEveryScheduleMillis": 0,
+	  "WaitTimeBetweenReadSchedulesMillis": 0
+	}
+  },
+  "PrometheusConfiguration": {
+	"HostName": "+",
+	"Port": 0
+  }
+}

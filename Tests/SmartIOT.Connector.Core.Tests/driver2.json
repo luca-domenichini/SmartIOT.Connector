@@ -1,0 +1,66 @@
+{
+  "ConnectorConnectionStrings": [
+	"fake://fake"
+  ],
+  "DeviceConfigurations": [
+	{
+	  "ConnectionString": "snap7://Ip=192.168.0.11;Slot=0;Rack=0;Type=BASIC",
+	  "DeviceId": "1",
+	  "Enabled": true,
+	  "Name": "Test Device",
+	  "IsPartialReadsEnabled": false,
+	  "SinglePDUReadBytes": 0,
+	  "IsWriteOptimizationEnabled": true,
+	  "SinglePDUWriteBytes": 0,
+	  "Tags": [
+		{
+		  "TagId": 20,
+		  "TagType": "READ",
+		  "ByteOffset": 0,
+		  "Size": 100,
+		  "Weight": 1
+		},
+		{
+		  "TagId": 22,
+		  "TagType": "WRITE",
+		  "ByteOffset": 0,
+		  "Size": 100,
+		  "Weight": 1
+		}
+	  ]
+	},
+	{
+	  "ConnectionString": "s7net://Ip=192.168.0.12;Slot=0;Rack=0;CpuType=S71500",
+	  "DeviceId": "2",
+	  "Enabled": true,
+	  "Name": "Test Device",
+	  "IsPartialReadsEnabled": false,
+	  "SinglePDUReadBytes": 0,
+	  "IsWriteOptimizationEnabled": true,
+	  "SinglePDUWriteBytes": 0,
+	  "Tags": [
+		{
+		  "TagId": 20,
+		  "TagType": "READ",
+		  "ByteOffset": 0,
+		  "Size": 100,
+		  "Weight": 1
+		},
+		{
+		  "TagId": 22,
+		  "TagType": "WRITE",
+		  "ByteOffset": 0,
+		  "Size": 100,
+		  "Weight": 1
+		}
+	  ]
+	}
+  ],
+  "SchedulerConfiguration": {
+	"MaxErrorsBeforeReconnection": 10,
+	"RestartDeviceInErrorTimeoutMillis": 30000,
+	"WaitTimeAfterErrorMillis": 1000,
+	"WaitTimeBetweenEveryScheduleMillis": 0,
+	"WaitTimeBetweenReadSchedulesMillis": 0
+  }
+}
