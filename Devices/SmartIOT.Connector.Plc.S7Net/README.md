@@ -17,6 +17,8 @@ The <code>CpuType</code> should be one of the following:
  - S71200: S7 1200 cpu type
  - S71500: S7 1500 cpu type
 
+The <code>TagId</code>s must currently be numbers or be preceded by <code>DB</code>: Currently just Datablocks are supported by this library.
+
 The S7Net library exchanges an important piece of data from the PLC that is the PDU size: by using this information, SmartIOT.Connector is able to maximize the performance of reads and writes, in particular by using the parameters if you enable them in the general device configuration section (see [here](../../Docs/Configuration.md#configuring-the-devices))
 
 <pre>

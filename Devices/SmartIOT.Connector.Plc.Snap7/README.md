@@ -15,6 +15,8 @@ The [<code>Type</code>](S7ConnectionType.cs) parameter must be one of the three:
 
 You should choose the right connection type based on the connection resouce slots defined in Simatic Manager for your PLC. Most of the times, <code>BASIC</code> should work just fine.
 
+The <code>TagId</code>s must currently be numbers or be preceded by <code>DB</code>: Currently just Datablocks are supported by this library.
+
 The Snap7 library exchanges an important piece of data from the PLC that is the PDU size: by using this information, SmartIOT.Connector is able to maximize the performance of reads and writes, in particular by using the parameters if you enable them in the general device configuration section (see [here](../../Docs/Configuration.md#configuring-the-devices))
 
 <pre>
