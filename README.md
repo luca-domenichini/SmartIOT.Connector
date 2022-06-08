@@ -31,14 +31,14 @@ For message formats, read the docs [here for project SmartIOT.Connector.Messages
 			"IsWriteOptimizationEnabled": true,
 			"Tags": [
 				{
-					"TagId": 20,
+					"TagId": "DB20",
 					"TagType": "READ",
 					"ByteOffset": 0,
 					"Size": 100,
 					"Weight": 1
 				},
 				{
-					"TagId": 22,
+					"TagId": "DB22",
 					"TagType": "WRITE",
 					"ByteOffset": 0,
 					"Size": 100,

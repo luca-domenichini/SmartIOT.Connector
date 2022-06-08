@@ -46,14 +46,14 @@ Each device configuration object is composed like this:
         "IsWriteOptimizationEnabled": true,
         "Tags": [
             {
-                "TagId": 20,
+                "TagId": "DB20",
                 "TagType": "READ",
                 "ByteOffset": 0,
                 "Size": 100,
                 "Weight": 1
             },
             {
-                "TagId": 22,
+                "TagId": "DB22",
                 "TagType": "WRITE",
                 "ByteOffset": 0,
                 "Size": 100,
@@ -87,7 +87,7 @@ When this flag is enabled, the scheduler will write to tags just the portion of 
 
 <code>Tags</code><br>
 Each tag is configured is its own section. A Tag can be just for READ or just for WRITE.<br>
-&emsp;<code>TagId</code>: tag idenfier, unique across a single device<br>
+&emsp;<code>TagId</code>: tag identifier, unique across a single device. Can be anything that is interpretable by the device itself.<br>
 &emsp;<code>TagType</code>: READ or WRITE<br>
 &emsp;<code>ByteOffset</code>: Start byte where the Tag begins. This an absolute offset starting from zero.<br>
 &emsp;<code>Size</code>: Size in bytes<br>
