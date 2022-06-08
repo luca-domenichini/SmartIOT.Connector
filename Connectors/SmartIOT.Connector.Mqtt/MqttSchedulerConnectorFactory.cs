@@ -3,6 +3,7 @@ using SmartIOT.Connector.Mqtt.Server;
 using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Factory;
 using SmartIOT.Connector.Core.Util;
+using SmartIOT.Connector.Messages;
 
 namespace SmartIOT.Connector.Mqtt
 {

@@ -23,7 +23,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 	public class TestMqttEventPublishers : EmsDriverBaseTests
 	{
 		[Fact]
-		public void Test_MqttSchedulerConnector_with_mock_publisher()
+		public void Test_MqttConnector_with_mock_publisher()
 		{
 			var publisher = new MockMqttEventPublisher();
 			var connector = new MqttSchedulerConnector(new MqttSchedulerConnectorOptions()
@@ -69,7 +69,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 		[InlineData(true, "protobuf")]
 		[InlineData(false, "json")]
 		[InlineData(false, "protobuf")]
-		public void Test_MqttSchedulerConnector_with_real_mqttServer_publisher(bool isPublishPartialReads, string serializerType)
+		public void Test_MqttConnector_with_real_mqttServer_publisher(bool isPublishPartialReads, string serializerType)
 		{
 			IList<TagEvent> tagEvents = new List<TagEvent>();
 			IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
@@ -208,7 +208,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 		[Theory]
 		[InlineData("json")]
 		[InlineData("protobuf")]
-		public void Test_scheduler_and_MqttSchedulerConnector_with_real_mqttServer_publisher(string serializerType)
+		public void Test_scheduler_and_MqttConnector_with_real_mqttServer_publisher(string serializerType)
 		{
 			IList<TagEvent> tagEvents = new List<TagEvent>();
 			IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
@@ -412,7 +412,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 		[Theory]
 		[InlineData("json")]
 		[InlineData("protobuf")]
-		public void Test_MqttSchedulerConnector_with_real_mqttClient_publisher(string serializerType)
+		public void Test_MqttConnector_with_real_mqttClient_publisher(string serializerType)
 		{
 			IList<TagEvent> tagEvents = new List<TagEvent>();
 			IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();

@@ -1,4 +1,4 @@
-﻿namespace SmartIOT.Connector.Mqtt
+﻿namespace SmartIOT.Connector.Messages
 {
 	public interface IMessageSerializer
 	{

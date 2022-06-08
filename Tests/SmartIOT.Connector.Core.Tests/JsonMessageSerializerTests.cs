@@ -1,7 +1,7 @@
 ﻿using SmartIOT.Connector.Messages;
 using Xunit;
 
-namespace SmartIOT.Connector.Mqtt.Tests
+namespace SmartIOT.Connector.Core.Tests
 {
 	public class JsonMessageSerializerTests
 	{

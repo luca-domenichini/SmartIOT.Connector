@@ -1,6 +1,6 @@
 ﻿using ProtoBuf;
 
-namespace SmartIOT.Connector.Mqtt
+namespace SmartIOT.Connector.Messages
 {
 	public class ProtobufMessageSerializer : IMessageSerializer
 	{

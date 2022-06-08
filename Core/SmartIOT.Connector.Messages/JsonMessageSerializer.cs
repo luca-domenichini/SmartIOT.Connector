@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace SmartIOT.Connector.Mqtt
+namespace SmartIOT.Connector.Messages
 {
 	public class JsonMessageSerializer : IMessageSerializer
 	{
