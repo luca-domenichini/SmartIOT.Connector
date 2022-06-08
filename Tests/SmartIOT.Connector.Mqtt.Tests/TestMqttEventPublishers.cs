@@ -214,6 +214,11 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
 			IList<MqttApplicationMessage> otherMessages = new List<MqttApplicationMessage>();
 
+			var tagEvent = new ManualResetEventSlim();
+			var deviceStatusEvent = new ManualResetEventSlim();
+			var otherMessagesEvent = new ManualResetEventSlim();
+			var connectedEvent = new ManualResetEventSlim();
+
 			tagEvents.Clear();
 			deviceStatusEvents.Clear();
 			otherMessages.Clear();
@@ -279,8 +284,6 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			Assert.Equal(0, tagEvents.Count);
 			Assert.Equal(0, deviceStatusEvents.Count);
 
-			bool connected = false;
-
 			ConnectorInterface i = new ConnectorInterface(
 				(initAction, afterAction) =>
 				{
@@ -299,7 +302,10 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				{
 
 				}
-				, (c, msg) => connected = true
+				, (c, msg) =>
+				{
+					connectedEvent.Set();
+				}
 				, (c, msg) => { });
 
 			var client = new MqttFactory().CreateMqttClient();
@@ -316,21 +322,36 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				client.ApplicationMessageReceivedHandler = new MqttApplicationMessageReceivedHandlerDelegate(eventArgs =>
 				{
 					if (eventArgs.ApplicationMessage.Topic.StartsWith("tagRead/"))
+					{
 						tagEvents.Add(serializer.DeserializeMessage<TagEvent>(eventArgs.ApplicationMessage.Payload)!);
+						tagEvent.Set();
+					}
 					else if (eventArgs.ApplicationMessage.Topic.StartsWith("deviceStatus/"))
+					{
 						deviceStatusEvents.Add(serializer.DeserializeMessage<DeviceEvent>(eventArgs.ApplicationMessage.Payload)!);
+						deviceStatusEvent.Set();
+					}
 					else
+					{
 						otherMessages.Add(eventArgs.ApplicationMessage);
+						otherMessagesEvent.Set();
+					}
 				});
 
 				client.ConnectAsync(mqttClientOptions, CancellationToken.None).Wait();
 
 				Thread.Sleep(100);
 
-				Assert.True(connected);
-				Assert.Equal(0, otherMessages.Count);
+
+				Assert.True(connectedEvent.Wait(1000));
+				Assert.Equal(WaitHandle.WaitTimeout, WaitHandle.WaitAny(new[] { tagEvent.WaitHandle, deviceStatusEvent.WaitHandle }, 1000));
 				Assert.Empty(tagEvents);
 				Assert.Empty(deviceStatusEvents);
+				Assert.Empty(otherMessages);
+
+				tagEvent.Reset();
+				deviceStatusEvent.Reset();
+				otherMessagesEvent.Reset();
 
 
 				client.SubscribeAsync(new MQTTnet.Client.Subscribing.MqttClientSubscribeOptions
@@ -355,7 +376,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 					}
 				}, CancellationToken.None).Wait();
 
-				Thread.Sleep(1000);
+				Assert.True(WaitHandle.WaitAll(new[] { tagEvent.WaitHandle, deviceStatusEvent.WaitHandle }, 2000));
 
 				Assert.Equal(0, otherMessages.Count);
 				Assert.Equal(1, tagEvents.Count); // ho ricevuto un tagEvent
@@ -365,7 +386,9 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
 				engine.ScheduleNextTag(false);
 
-				Thread.Sleep(100);
+				tagEvent.Reset();
+
+				Assert.True(tagEvent.Wait(1000));
 
 				Assert.Equal(0, otherMessages.Count);
 				Assert.Equal(2, tagEvents.Count); // ho ricevuto un altro tagEvent
