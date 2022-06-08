@@ -1,6 +1,7 @@
 ﻿using SmartIOT.Connector.Core.Util;
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Xunit;
 
@@ -46,6 +47,18 @@ namespace SmartIOT.Connector.Core.Tests
 			Assert.False(e.Wait(TimeSpan.FromMilliseconds(100)));
 			Assert.False(e.Wait(TimeSpan.FromMilliseconds(100)));
 			Assert.False(e.Wait(TimeSpan.FromMilliseconds(100)));
+		}
+
+		[Fact]
+		public void Test_regex()
+		{
+			Regex r = new Regex(@"^DB(?<tag>[0-9]+)$");
+			Assert.Matches(r, "DB20");
+
+			Assert.False(r.Match("aDB20").Success);
+			Assert.False(r.Match("DB").Success);
+			Assert.True(r.Match("DB20").Success);
+			Assert.Equal("20", r.Match("DB20").Groups["tag"].Value);
 		}
 	}
 }

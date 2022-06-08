@@ -60,7 +60,7 @@ namespace SmartIOT.Connector.Core.Tests
 			
 		}
 
-		public void RequestTagWrite(string deviceId, int tagId, int startOffset, byte[] data)
+		public void RequestTagWrite(string deviceId, string tagId, int startOffset, byte[] data)
 		{
 			_connectorInterface!.RequestTagWriteDelegate.Invoke(deviceId, tagId, startOffset, data);
 		}

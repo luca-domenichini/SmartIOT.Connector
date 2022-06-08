@@ -14,9 +14,9 @@ namespace SmartIOT.Connector.Core.Tests
 	{
 		private static (TagSchedulerEngine engine, Model.Device device, Tag tag20, Tag? tag21, Tag tag22) SetupSystem(Func<Model.Device, IDeviceDriver> driverFunc, ITimeService timeService, SchedulerConfiguration schedulerConfiguration, bool addTag21ForRead, bool pduWriteOptimizationEnabled, int singlePduReadBytes)
 		{
-			TagConfiguration db20 = new TagConfiguration(20, TagType.READ, 5, 100, 1);
-			TagConfiguration db21 = new TagConfiguration(21, TagType.READ, 5, 100, 1);
-			TagConfiguration db22 = new TagConfiguration(22, TagType.WRITE, 5, 100, 1);
+			TagConfiguration db20 = new TagConfiguration("DB20", TagType.READ, 5, 100, 1);
+			TagConfiguration db21 = new TagConfiguration("DB21", TagType.READ, 5, 100, 1);
+			TagConfiguration db22 = new TagConfiguration("DB22", TagType.WRITE, 5, 100, 1);
 
 			DeviceConfiguration deviceConfiguration = new DeviceConfiguration("", "1", true, "Device1", new List<TagConfiguration>()
 			{
@@ -34,7 +34,7 @@ namespace SmartIOT.Connector.Core.Tests
 
 			var engine = new TagSchedulerEngine(driverFunc(device), timeService, schedulerConfiguration);
 
-			return (engine, device, device.Tags.First(x => x.TagId == 20)!, device.Tags.FirstOrDefault(x => x.TagId == 21), device.Tags.First(x => x.TagId == 22)!);
+			return (engine, device, device.Tags.First(x => x.TagId == "DB20")!, device.Tags.FirstOrDefault(x => x.TagId == "DB21"), device.Tags.First(x => x.TagId == "DB22")!);
 		}
 
 		[Fact]

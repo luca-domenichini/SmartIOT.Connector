@@ -4,7 +4,7 @@ namespace SmartIOT.Connector.Core.Conf
 {
 	public class TagConfiguration
 	{
-		public int TagId { get; set; }
+		public string TagId { get; set; } = string.Empty;
 		[JsonConverter(typeof(JsonStringEnumConverter))] 
 		public TagType TagType { get; set; }
 		public int ByteOffset { get; set; }
@@ -24,7 +24,7 @@ namespace SmartIOT.Connector.Core.Conf
 			Size = configuration.Size;
 			Weight = configuration.Weight;
 		}
-		public TagConfiguration(int tagId, TagType tagType, int byteOffset, int size, int weight)
+		public TagConfiguration(string tagId, TagType tagType, int byteOffset, int size, int weight)
 		{
 			TagId = tagId;
 			TagType = tagType;

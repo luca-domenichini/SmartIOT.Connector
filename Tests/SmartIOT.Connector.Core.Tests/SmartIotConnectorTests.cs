@@ -24,8 +24,8 @@ namespace SmartIOT.Connector.Core.Tests
 				{
 					new DeviceConfiguration("", "1", true, "Test Device", new List<TagConfiguration>()
 					{
-						new TagConfiguration(20, TagType.READ, 0, 100, 1),
-						new TagConfiguration(22, TagType.WRITE, 0, 100, 1),
+						new TagConfiguration("DB20", TagType.READ, 0, 100, 1),
+						new TagConfiguration("DB22", TagType.WRITE, 0, 100, 1),
 					})
 				},
 				ConnectorConnectionStrings = new List<string>()
@@ -53,8 +53,8 @@ namespace SmartIOT.Connector.Core.Tests
 			var t0 = pc.Tags[0];
 			var t1 = pc.Tags[1];
 
-			Assert.Equal(20, t0.TagId);
-			Assert.Equal(22, t1.TagId);
+			Assert.Equal("DB20", t0.TagId);
+			Assert.Equal("DB22", t1.TagId);
 		}
 
 		[Fact]
@@ -94,7 +94,7 @@ namespace SmartIOT.Connector.Core.Tests
 
 			MockDeviceDriver driver = (MockDeviceDriver)module.Schedulers[0].DeviceDriver;
 			var device = driver.Device;
-			var tag = device.Tags.Single(x => x.TagId == 22);
+			var tag = device.Tags.Single(x => x.TagId == "DB22");
 
 			FakeConnector c = (FakeConnector)module.Connectors[0];
 
@@ -103,12 +103,12 @@ namespace SmartIOT.Connector.Core.Tests
 
 			module.TagReadEvent += (s, e) =>
 			{
-				if (e.TagScheduleEvent.Tag.TagId == 22)
+				if (e.TagScheduleEvent.Tag.TagId == "DB22")
 					wasRead.Set();
 			};
 			module.TagWriteEvent += (s, e) =>
 			{
-				if (e.TagScheduleEvent.Tag.TagId == 22)
+				if (e.TagScheduleEvent.Tag.TagId == "DB22")
 					wasWritten.Set();
 			};
 
@@ -120,14 +120,14 @@ namespace SmartIOT.Connector.Core.Tests
 				Assert.True(wasRead.WaitOne(TimeSpan.FromSeconds(2)));
 
 				// test di scrittura
-				c.RequestTagWrite("1", 22, 10, new byte[] { 1, 2, 3, 4, 5 });
+				c.RequestTagWrite("1", "DB22", 10, new byte[] { 1, 2, 3, 4, 5 });
 
 				Assert.True(wasWritten.WaitOne(TimeSpan.FromSeconds(2)));
 			
 				Assert.Equal(1, c.TagWriteEvents.Count);
 				var write = c.TagWriteEvents[0];
 			
-				Assert.Equal(22, write.Tag.TagId);
+				Assert.Equal("DB22", write.Tag.TagId);
 				Assert.Equal(10, write.StartOffset);
 				Assert.Equal(5, write.Data!.Length);
 			}
@@ -149,7 +149,7 @@ namespace SmartIOT.Connector.Core.Tests
 			Scheduler.ITagScheduler scheduler = module.Schedulers[0];
 			MockDeviceDriver driver = (MockDeviceDriver)scheduler.DeviceDriver;
 			var device = driver.Device;
-			var tag = device.Tags.Single(x => x.TagId == 22);
+			var tag = device.Tags.Single(x => x.TagId == "DB22");
 
 			FakeConnector c = (FakeConnector)module.Connectors[0];
 
@@ -158,12 +158,12 @@ namespace SmartIOT.Connector.Core.Tests
 
 			module.TagReadEvent += (s, e) =>
 			{
-				if (e.TagScheduleEvent.Tag.TagId == 22)
+				if (e.TagScheduleEvent.Tag.TagId == "DB22")
 					wasRead.Set();
 			};
 			module.TagWriteEvent += (s, e) =>
 			{
-				if (e.TagScheduleEvent.Tag.TagId == 22)
+				if (e.TagScheduleEvent.Tag.TagId == "DB22")
 					wasWritten.Set();
 			};
 
@@ -178,8 +178,8 @@ namespace SmartIOT.Connector.Core.Tests
 				Thread.Sleep(100);
 
 				// test di scrittura multipli aggregabili
-				c.RequestTagWrite("1", 22, 10, new byte[] { 1, 2, 3, 4, 5 });
-				c.RequestTagWrite("1", 22, 20, new byte[] { 11, 12, 13, 14, 15 });
+				c.RequestTagWrite("1", "DB22", 10, new byte[] { 1, 2, 3, 4, 5 });
+				c.RequestTagWrite("1", "DB22", 20, new byte[] { 11, 12, 13, 14, 15 });
 
 				scheduler.IsPaused = false;
 
@@ -188,7 +188,7 @@ namespace SmartIOT.Connector.Core.Tests
 				Assert.Equal(1, c.TagWriteEvents.Count);
 				var write = c.TagWriteEvents[0];
 			
-				Assert.Equal(22, write.Tag.TagId);
+				Assert.Equal("DB22", write.Tag.TagId);
 				Assert.Equal(10, write.StartOffset);
 				Assert.Equal(15, write.Data!.Length);
 			}

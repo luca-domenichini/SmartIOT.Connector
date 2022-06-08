@@ -33,8 +33,8 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
 			SmartIotConnector module = SetupSmartIotConnector(SetupConfiguration(new DeviceConfiguration("mock://mock", "1", true, "MockDevice", new List<TagConfiguration>()
 			{
-				new TagConfiguration(20, TagType.READ, 10, 100, 1),
-				new TagConfiguration(22, TagType.WRITE, 10, 100, 1)
+				new TagConfiguration("DB20", TagType.READ, 10, 100, 1),
+				new TagConfiguration("DB22", TagType.WRITE, 10, 100, 1)
 			})), connector);
 
 			MockDeviceDriver driver = (MockDeviceDriver)module.Schedulers[0].DeviceDriver;
@@ -46,7 +46,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				Thread.Sleep(1000);
 
 				// richiedo scrittura dati
-				publisher.RequestTagWrite(new TagWriteRequestCommand("1", 22, 20, new byte[] { 1, 2, 3, 4, 5 }));
+				publisher.RequestTagWrite(new TagWriteRequestCommand("1", "DB22", 20, new byte[] { 1, 2, 3, 4, 5 }));
 				Thread.Sleep(1000);
 
 				module.Stop();
@@ -54,9 +54,9 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				publisher.Verify(x => x.Start(It.IsAny<IConnector>(), It.IsAny<ConnectorInterface>()), Times.Once);
 				publisher.Verify(x => x.Stop(), Times.Once);
 				publisher.Verify(x => x.PublishDeviceStatusEvent(It.IsAny<DeviceStatusEvent>()), Times.AtLeastOnce);
-				publisher.Verify(x => x.PublishTagScheduleEvent(It.Is<TagScheduleEvent>(x => x.Tag.TagId == 20)), Times.AtLeastOnce);
-				publisher.Verify(x => x.PublishTagScheduleEvent(It.Is<TagScheduleEvent>(x => x.Tag.TagId == 22)), Times.AtLeastOnce);
-				publisher.Verify(x => x.PublishTagScheduleEvent(It.Is<TagScheduleEvent>(x => x.Tag.TagId == 22 && x.StartOffset == 20 && x.Data!.Length == 5)), Times.Once);
+				publisher.Verify(x => x.PublishTagScheduleEvent(It.Is<TagScheduleEvent>(x => x.Tag.TagId == "DB20")), Times.AtLeastOnce);
+				publisher.Verify(x => x.PublishTagScheduleEvent(It.Is<TagScheduleEvent>(x => x.Tag.TagId == "DB22")), Times.AtLeastOnce);
+				publisher.Verify(x => x.PublishTagScheduleEvent(It.Is<TagScheduleEvent>(x => x.Tag.TagId == "DB22" && x.StartOffset == 20 && x.Data!.Length == 5)), Times.Once);
 			}
 			finally
 			{
@@ -115,8 +115,8 @@ namespace SmartIOT.Connector.Mqtt.Tests
 					new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 						, new List<TagConfiguration>()
 						{
-							new TagConfiguration(20, TagType.READ, 10, 100, 1),
-							new TagConfiguration(22, TagType.WRITE, 10, 100, 1),
+							new TagConfiguration("DB20", TagType.READ, 10, 100, 1),
+							new TagConfiguration("DB22", TagType.WRITE, 10, 100, 1),
 						}
 					)
 				)
@@ -163,14 +163,14 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
 					if (isPublishPartialReads)
 					{
-						IEnumerable<TagEvent> initEvents = tagEvents.Where(x => x.DeviceId == "1" && (x.TagId == 20 || x.TagId == 22) && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100 && x.IsInitializationEvent);
+						IEnumerable<TagEvent> initEvents = tagEvents.Where(x => x.DeviceId == "1" && (x.TagId == "DB20" || x.TagId == "DB22") && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100 && x.IsInitializationEvent);
 						Assert.Equal(2, initEvents.Count()); // 2 eventi di lettura completa (non necessariamente all'inizio dello stream)
-						Assert.All(tagEvents.Except(initEvents), x => Assert.True(x.DeviceId == "1" && x.TagId == 20 && x.StartOffset == 15 && x.Data != null && x.Data.Length == 10)); // N eventi di lettura parziale
+						Assert.All(tagEvents.Except(initEvents), x => Assert.True(x.DeviceId == "1" && x.TagId == "DB20" && x.StartOffset == 15 && x.Data != null && x.Data.Length == 10)); // N eventi di lettura parziale
 					}
 					else
 					{
-						var tag22Events = tagEvents.Where(x => x.TagId == 22);
-						Assert.All(tagEvents.Except(tag22Events), x => Assert.True(x.DeviceId == "1" && x.TagId == 20 && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100)); // N eventi di lettura completa
+						var tag22Events = tagEvents.Where(x => x.TagId == "DB22");
+						Assert.All(tagEvents.Except(tag22Events), x => Assert.True(x.DeviceId == "1" && x.TagId == "DB20" && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100)); // N eventi di lettura completa
 					}
 
 					Assert.True(deviceStatusEvents.Count > 0);
@@ -181,13 +181,13 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				var wasWritten = new AutoResetEvent(false);
 				module.TagWriteEvent += (sender, e) =>
 				{
-					if (e.TagScheduleEvent.Tag.TagId == 22)
+					if (e.TagScheduleEvent.Tag.TagId == "DB22")
 						wasWritten.Set();
 				};
 
 				client.PublishAsync(new MqttApplicationMessageBuilder()
 					.WithTopic("tagWrite")
-					.WithPayload(serializer.SerializeMessage(new TagWriteRequestCommand("1", 22, 20, new byte[] { 1, 2, 3, 4, 5 })))
+					.WithPayload(serializer.SerializeMessage(new TagWriteRequestCommand("1", "DB22", 20, new byte[] { 1, 2, 3, 4, 5 })))
 					.WithAtLeastOnceQoS()
 					.Build(), CancellationToken.None).Wait();
 
@@ -238,7 +238,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			DeviceConfiguration deviceConfiguration = new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 				, new List<TagConfiguration>()
 				{
-					new TagConfiguration(20, TagType.READ, 10, 100, 1)
+					new TagConfiguration("DB20", TagType.READ, 10, 100, 1)
 				}
 			);
 			var configuration = SetupConfiguration(deviceConfiguration);
@@ -380,7 +380,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
 				Assert.Equal(0, otherMessages.Count);
 				Assert.Equal(1, tagEvents.Count); // ho ricevuto un tagEvent
-				Assert.True(tagEvents.All(x => x.DeviceId == "1" && x.TagId == 20 && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100));
+				Assert.True(tagEvents.All(x => x.DeviceId == "1" && x.TagId == "DB20" && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100));
 				Assert.Single(deviceStatusEvents);
 				Assert.True(deviceStatusEvents.All(x => x.DeviceId == "1" && x.DeviceStatus == DeviceStatus.OK && x.ErrorNumber == 0 && string.IsNullOrEmpty(x.Description)));
 
@@ -392,8 +392,8 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
 				Assert.Equal(0, otherMessages.Count);
 				Assert.Equal(2, tagEvents.Count); // ho ricevuto un altro tagEvent
-				Assert.True(tagEvents.Take(1).All(x => x.DeviceId == "1" && x.TagId == 20 && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100));
-				Assert.True(tagEvents.Skip(1).All(x => x.DeviceId == "1" && x.TagId == 20 && x.StartOffset == 15 && x.Data != null && x.Data.Length == 10));
+				Assert.True(tagEvents.Take(1).All(x => x.DeviceId == "1" && x.TagId == "DB20" && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100));
+				Assert.True(tagEvents.Skip(1).All(x => x.DeviceId == "1" && x.TagId == "DB20" && x.StartOffset == 15 && x.Data != null && x.Data.Length == 10));
 				Assert.Single(deviceStatusEvents);
 				Assert.True(deviceStatusEvents.All(x => x.DeviceId == "1" && x.DeviceStatus == DeviceStatus.OK && x.ErrorNumber == 0 && string.IsNullOrEmpty(x.Description)));
 			}
@@ -466,8 +466,8 @@ namespace SmartIOT.Connector.Mqtt.Tests
 					new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 						, new List<TagConfiguration>()
 						{
-							new TagConfiguration(20, TagType.READ, 10, 100, 1),
-							new TagConfiguration(22, TagType.WRITE, 10, 100, 1)
+							new TagConfiguration("DB20", TagType.READ, 10, 100, 1),
+							new TagConfiguration("DB22", TagType.WRITE, 10, 100, 1)
 						}
 					)
 				)
@@ -496,7 +496,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
 				Assert.Equal(0, otherMessages.Count);
 				Assert.True(tagEvents.Count > 0);
-				Assert.All(tagEvents, x => Assert.True(x.DeviceId == "1" && (x.TagId == 20 || x.TagId == 22) && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100)); // N eventi di lettura completa (MqttEventPublisher publica sempre tutto il tag)
+				Assert.All(tagEvents, x => Assert.True(x.DeviceId == "1" && (x.TagId == "DB20" || x.TagId == "DB22") && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100)); // N eventi di lettura completa (MqttEventPublisher publica sempre tutto il tag)
 				Assert.True(deviceStatusEvents.Count > 0);
 				Assert.True(deviceStatusEvents.All(x => x.DeviceId == "1" && x.DeviceStatus == DeviceStatus.OK && x.ErrorNumber == 0 && string.IsNullOrEmpty(x.Description)));
 
@@ -504,14 +504,14 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				var wasWritten = new AutoResetEvent(false);
 				module.TagWriteEvent += (sender, e) =>
 				{
-					if (e.TagScheduleEvent.Tag.TagId == 22)
+					if (e.TagScheduleEvent.Tag.TagId == "DB22")
 						wasWritten.Set();
 				};
 
 				server.PublishAsync(b => b
 					.WithAtLeastOnceQoS()
 					.WithTopic("tagWrite")
-					.WithPayload(serializer.SerializeMessage(new TagWriteRequestCommand("1", 22, 20, new byte[] { 1, 2, 3, 4, 5 })))
+					.WithPayload(serializer.SerializeMessage(new TagWriteRequestCommand("1", "DB22", 20, new byte[] { 1, 2, 3, 4, 5 })))
 				).Wait();
 
 				Assert.True(wasWritten.WaitOne(TimeSpan.FromSeconds(2)));

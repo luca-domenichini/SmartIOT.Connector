@@ -43,9 +43,9 @@
 				return topic.StartsWith(TagScheduleEventsTopicPattern);
 			}
 		}
-		public string GetTagScheduleEventsTopic(string deviceId, int tagId)
+		public string GetTagScheduleEventsTopic(string deviceId, string tagId)
 		{
-			return TagScheduleEventsTopicPattern.Replace("${DeviceId}", deviceId.ToString()).Replace("${TagId}", tagId.ToString());
+			return TagScheduleEventsTopicPattern.Replace("${DeviceId}", deviceId).Replace("${TagId}", tagId);
 		}
 
 	}

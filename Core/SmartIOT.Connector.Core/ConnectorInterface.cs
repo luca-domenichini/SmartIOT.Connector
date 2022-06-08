@@ -14,7 +14,7 @@ namespace SmartIOT.Connector.Core
 	/// Questa delegate rappresenta la funzione che deve essere invocata nel momento in cui il connector dello scheduler
 	/// intende scrivere dati su un certo tag.
 	/// </summary>
-	public delegate void RequestTagWriteDelegate(string deviceId, int tagId, int startOffset, byte[] data);
+	public delegate void RequestTagWriteDelegate(string deviceId, string tagId, int startOffset, byte[] data);
 
 	public delegate void ConnectorConnectedDelegate(IConnector connector, string info);
 

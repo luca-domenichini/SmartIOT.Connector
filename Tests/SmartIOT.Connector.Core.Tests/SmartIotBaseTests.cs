@@ -44,13 +44,13 @@ namespace SmartIOT.Connector.Core.Tests
 				{
 					new DeviceConfiguration("snap7://Ip=192.168.0.11;SlotNo=0;RackNo=0;Type=BASIC", "1", true, "Snap7Plc", new List<TagConfiguration>()
 					{
-						new TagConfiguration(20, TagType.READ, 10, 100, 1),
-						new TagConfiguration(22, TagType.WRITE, 10, 100, 1),
+						new TagConfiguration("DB20", TagType.READ, 10, 100, 1),
+						new TagConfiguration("DB22", TagType.WRITE, 10, 100, 1),
 					}),
 					new DeviceConfiguration("s7net://Ip=192.168.0.12;SlotNo=0;RackNo=0;Type=BASIC", "2", true, "S7Net7Plc", new List<TagConfiguration>()
 					{
-						new TagConfiguration(20, TagType.READ, 10, 100, 1),
-						new TagConfiguration(22, TagType.WRITE, 10, 100, 1),
+						new TagConfiguration("DB20", TagType.READ, 10, 100, 1),
+						new TagConfiguration("DB22", TagType.WRITE, 10, 100, 1),
 					}),
 				}
 			);

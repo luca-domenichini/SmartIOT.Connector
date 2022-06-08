@@ -8,7 +8,7 @@ namespace SmartIOT.Connector.Core.Tests
 		[Fact]
 		public void Test_jsonSerializer_tagEvent()
 		{
-			TagEvent e = TagEvent.CreateTagDataEvent("1", 20, 10, new byte[] { 1, 2, 3, 4, 5 });
+			TagEvent e = TagEvent.CreateTagDataEvent("1", "DB20", 10, new byte[] { 1, 2, 3, 4, 5 });
 
 			var serializer = new JsonMessageSerializer();
 			var bytes = serializer.SerializeMessage(e);
@@ -17,7 +17,7 @@ namespace SmartIOT.Connector.Core.Tests
 
 			Assert.NotNull(e2);
 			Assert.Equal("1", e2!.DeviceId);
-			Assert.Equal(20, e2.TagId);
+			Assert.Equal("DB20", e2.TagId);
 			Assert.Equal(10, e2.StartOffset);
 			Assert.Equal(5, e2.Data!.Length);
 			Assert.Equal(1, e2.Data[0]);

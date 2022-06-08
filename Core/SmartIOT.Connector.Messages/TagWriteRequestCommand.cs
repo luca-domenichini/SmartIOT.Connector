@@ -8,7 +8,7 @@ namespace SmartIOT.Connector.Messages
 		[ProtoMember(1)]
 		public string DeviceId { get; set; } = string.Empty;
 		[ProtoMember(2)]
-		public int TagId { get; set; }
+		public string TagId { get; set; } = string.Empty;
 		[ProtoMember(3)]
 		public int StartOffset { get; set; }
 		[ProtoMember(4)]
@@ -19,7 +19,7 @@ namespace SmartIOT.Connector.Messages
 			
 		}
 
-		public TagWriteRequestCommand(string deviceId, int tagId, int startOffset, byte[] data)
+		public TagWriteRequestCommand(string deviceId, string tagId, int startOffset, byte[] data)
 		{
 			DeviceId = deviceId;
 			TagId = tagId;

@@ -11,14 +11,14 @@
 	  "SinglePDUWriteBytes": 0,
 	  "Tags": [
 		{
-		  "TagId": 20,
+		  "TagId": "DB20",
 		  "TagType": "READ",
 		  "ByteOffset": 0,
 		  "Size": 100,
 		  "Weight": 1
 		},
 		{
-		  "TagId": 22,
+		  "TagId": "DB22",
 		  "TagType": "WRITE",
 		  "ByteOffset": 0,
 		  "Size": 100,

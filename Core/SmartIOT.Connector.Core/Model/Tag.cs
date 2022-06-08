@@ -5,7 +5,7 @@ namespace SmartIOT.Connector.Core.Model
 	public class Tag
 	{
 		public TagConfiguration TagConfiguration { get; }
-		public int TagId => TagConfiguration.TagId;
+		public string TagId => TagConfiguration.TagId;
 		public TagType TagType => TagConfiguration.TagType;
 		public int ByteOffset => TagConfiguration.ByteOffset;
 		public int Size => TagConfiguration.Size;

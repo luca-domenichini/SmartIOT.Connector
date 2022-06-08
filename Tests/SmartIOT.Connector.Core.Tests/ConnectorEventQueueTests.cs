@@ -11,7 +11,7 @@ namespace SmartIOT.Connector.Core.Tests
 		public void Test_aggregating_tagStatus()
 		{
 			Model.Device device = new Model.Device(new Conf.DeviceConfiguration());
-			Model.Tag t20 = new Model.Tag(new Conf.TagConfiguration(20, Conf.TagType.READ, 10, 100, 1));
+			Model.Tag t20 = new Model.Tag(new Conf.TagConfiguration("DB20", Conf.TagType.READ, 10, 100, 1));
 
 			var driver = new MockDeviceDriver(device);
 
@@ -36,8 +36,8 @@ namespace SmartIOT.Connector.Core.Tests
 		public void Test_not_aggregating_tagStatus()
 		{
 			Model.Device device = new Model.Device(new Conf.DeviceConfiguration());
-			Model.Tag t20 = new Model.Tag(new Conf.TagConfiguration(20, Conf.TagType.READ, 10, 100, 1));
-			Model.Tag t22 = new Model.Tag(new Conf.TagConfiguration(20, Conf.TagType.READ, 10, 100, 1));
+			Model.Tag t20 = new Model.Tag(new Conf.TagConfiguration("DB20", Conf.TagType.READ, 10, 100, 1));
+			Model.Tag t22 = new Model.Tag(new Conf.TagConfiguration("DB20", Conf.TagType.READ, 10, 100, 1));
 
 			var driver = new MockDeviceDriver(device);
 
@@ -69,7 +69,7 @@ namespace SmartIOT.Connector.Core.Tests
 		public void Test_aggregating_tagRead_data2_on_data1()
 		{
 			Model.Device device = new Model.Device(new Conf.DeviceConfiguration());
-			Model.Tag t20 = new Model.Tag(new Conf.TagConfiguration(20, Conf.TagType.READ, 10, 100, 1));
+			Model.Tag t20 = new Model.Tag(new Conf.TagConfiguration("DB20", Conf.TagType.READ, 10, 100, 1));
 
 			var driver = new MockDeviceDriver(device);
 
@@ -101,7 +101,7 @@ namespace SmartIOT.Connector.Core.Tests
 		public void Test_aggregating_tagRead_data1_on_data2()
 		{
 			Model.Device device = new Model.Device(new Conf.DeviceConfiguration());
-			Model.Tag t20 = new Model.Tag(new Conf.TagConfiguration(20, Conf.TagType.READ, 10, 100, 1));
+			Model.Tag t20 = new Model.Tag(new Conf.TagConfiguration("DB20", Conf.TagType.READ, 10, 100, 1));
 
 			var driver = new MockDeviceDriver(device);
 
@@ -133,8 +133,8 @@ namespace SmartIOT.Connector.Core.Tests
 		public void Test_not_aggregating_tagRead()
 		{
 			Model.Device device = new Model.Device(new Conf.DeviceConfiguration());
-			Model.Tag t20 = new Model.Tag(new Conf.TagConfiguration(20, Conf.TagType.READ, 10, 100, 1));
-			Model.Tag t22 = new Model.Tag(new Conf.TagConfiguration(22, Conf.TagType.READ, 10, 100, 1));
+			Model.Tag t20 = new Model.Tag(new Conf.TagConfiguration("DB20", Conf.TagType.READ, 10, 100, 1));
+			Model.Tag t22 = new Model.Tag(new Conf.TagConfiguration("DB22", Conf.TagType.READ, 10, 100, 1));
 
 			var driver = new MockDeviceDriver(device);
 

@@ -175,14 +175,14 @@ namespace SmartIOT.Connector.Core
 			Started?.Invoke(this, new EventArgs());
 		}
 
-		private void RequestDataWrite(string deviceId, int tagId, int startOffset, byte[] data)
+		private void RequestDataWrite(string deviceId, string tagId, int startOffset, byte[] data)
 		{
 			foreach (var scheduler in Schedulers)
 			{
 				var devices = scheduler.DeviceDriver.GetDevices(true);
 				var tags = devices.Where(x => x.DeviceId == deviceId)
 					.SelectMany(x => x.Tags)
-					.Where(x => x.TagId == tagId && x.TagType == Conf.TagType.WRITE);
+					.Where(x => string.Equals(x.TagId, tagId, StringComparison.InvariantCultureIgnoreCase) && x.TagType == Conf.TagType.WRITE);
 
 				foreach (var tag in tags)
 				{

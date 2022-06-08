@@ -13,14 +13,14 @@
 		"IsWriteOptimizationEnabled": true,
 		"Tags": [
 		  {
-			"TagId": 2,
+			"TagId": "DB2",
 			"TagType": "READ",
 			"ByteOffset": 0,
 			"Size": 100,
 			"Weight": 1
 		  },
 		  {
-			"TagId": 3,
+			"TagId": "DB3",
 			"TagType": "WRITE",
 			"ByteOffset": 0,
 			"Size": 100,

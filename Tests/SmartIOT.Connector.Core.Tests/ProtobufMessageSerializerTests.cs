@@ -8,7 +8,7 @@ namespace SmartIOT.Connector.Core.Tests
 		[Fact]
 		public void Test_parser()
 		{
-			TagEvent e = TagEvent.CreateTagDataEvent("1", 20, 0, new byte[] { 1, 2, 3, 4, 5 });
+			TagEvent e = TagEvent.CreateTagDataEvent("1", "DB20", 0, new byte[] { 1, 2, 3, 4, 5 });
 
 			var serializer = new ProtobufMessageSerializer();
 

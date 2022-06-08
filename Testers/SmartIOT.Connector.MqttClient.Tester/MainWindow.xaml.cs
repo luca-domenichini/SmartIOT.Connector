@@ -186,7 +186,7 @@ namespace SmartIOT.Connector.MqttClient.Tester
 			}
 		}
 
-		private void DoWriteData(string deviceId, int tagId, string topic, int offset, byte[] data)
+		private void DoWriteData(string deviceId, string tagId, string topic, int offset, byte[] data)
 		{
 			TagWriteRequestCommand msg = new TagWriteRequestCommand(deviceId, tagId, offset, data);
 
@@ -209,7 +209,7 @@ namespace SmartIOT.Connector.MqttClient.Tester
 				}
 
 				string deviceId = TxtDeviceId.Text;
-				int tagId = int.Parse(TxtTagId.Text);
+				string tagId = TxtTagId.Text;
 				var topic = txtTagWriteTopic.Text;
 				if (topic.Contains('/'))
 					topic = topic[..topic.IndexOf('/')];

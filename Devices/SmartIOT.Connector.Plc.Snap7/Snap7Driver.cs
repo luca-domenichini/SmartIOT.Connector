@@ -3,11 +3,14 @@ using SmartIOT.Connector.Core.Model;
 using Sharp7;
 using System.Text;
 using static Sharp7.S7Client;
+using System.Text.RegularExpressions;
 
 namespace SmartIOT.Connector.Plc.Snap7
 {
 	public class Snap7Driver : IDeviceDriver
 	{
+		private static readonly Regex RegexDB = new Regex(@"^DB(?<tag>[0-9]*)$");
+
 		public string Name => $"{nameof(Snap7Driver)}.{Plc.Name}";
 		public Snap7Plc Plc { get; }
 		private readonly IList<Snap7Plc> _plcs = new List<Snap7Plc>();
@@ -78,12 +81,25 @@ namespace SmartIOT.Connector.Plc.Snap7
 			return _plcs.Where(x => !enabledOnly || Plc.DeviceStatus != DeviceStatus.DISABLED).Cast<Core.Model.Device>().ToList();
 		}
 
-		public int ReadTag(Core.Model.Device plc, Tag tag, byte[] data, int startOffset, int length)
+		public int ReadTag(Device plc, Tag tag, byte[] data, int startOffset, int length)
 		{
-			lock (plc)
+			Snap7Plc p = (Snap7Plc)plc;
+
+			if (int.TryParse(tag.TagId, out int t))
 			{
-				Snap7Plc p = (Snap7Plc)plc;
-				return p.ReadBytes(tag.TagId, startOffset, data);
+				return p.ReadBytes(t, startOffset, data);
+			}
+			else
+			{
+				var match = RegexDB.Match(tag.TagId);
+				if (match.Success)
+				{
+					t = int.Parse(match.Groups["tag"].Value);
+					return p.ReadBytes(t, startOffset, data);
+				}
+
+				// other tag types can be supported here..
+				throw new ArgumentException($"TagId {tag.TagId} not handled. TagId must be in the form \"DB<number>\"");
 			}
 		}
 
@@ -97,15 +113,28 @@ namespace SmartIOT.Connector.Plc.Snap7
 			return 0;
 		}
 
-		public int WriteTag(Core.Model.Device plc, Tag tag, byte[] data, int startOffset, int length)
+		public int WriteTag(Device plc, Tag tag, byte[] data, int startOffset, int length)
 		{
-			lock (plc)
-			{
-				byte[] bytes = new byte[length];
-				Array.Copy(data, startOffset - tag.ByteOffset, bytes, 0, length);
+			byte[] bytes = new byte[length];
+			Array.Copy(data, startOffset - tag.ByteOffset, bytes, 0, length);
 
-				Snap7Plc p = (Snap7Plc)plc;
-				return p.WriteBytes(tag.TagId, startOffset, bytes);
+			Snap7Plc p = (Snap7Plc)plc;
+
+			if (int.TryParse(tag.TagId, out int t))
+			{
+				return p.WriteBytes(t, startOffset, bytes);
+			}
+			else
+			{
+				var match = RegexDB.Match(tag.TagId);
+				if (match.Success)
+				{
+					t = int.Parse(match.Groups["tag"].Value);
+					return p.WriteBytes(t, startOffset, bytes);
+				}
+
+				// other tag types can be supported here..
+				throw new ArgumentException($"TagId {tag.TagId} not handled. TagId must be in the form \"DB<number>\"");
 			}
 		}
 	}
