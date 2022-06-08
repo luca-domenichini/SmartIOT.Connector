@@ -82,10 +82,13 @@ You can even jump to section specific guides:
 	- [Snap7 PLC configuration guide](./Devices/SmartIOT.Connector.Plc.Snap7/README.md)
 	- [S7Net PLC configuration guide](./Devices/SmartIOT.Connector.Plc.S7Net/README.md)
 
- ## SmartIOT.Connector.Runner.Console and Docker integration
+## SmartIOT.Connector.Runner.Console and Docker integration
 
 If you want to run SmartIOT.Connector as a standalone application or as a Docker container, see project [SmartIOT.Connector.Runner.Console](./Runners/SmartIOT.Connector.Runner.Console/README.md) for further details.
 
+## Nuget packages
+
+You can find SmartIOT.Connector packages on nuget.org site and on Visual Studio Package Manager
 
 ## Credits
 
@@ -100,7 +103,7 @@ Currently Siemens PLCs support is provided by Snap7 library (http://snap7.source
  - GRPC Server Connector
  - Protobuf on TCP Server Connector
  - Protobuf on TCP Client Connector
- - Nuget packages on nuget.org
+ - [OK] Nuget packages on nuget.org
  - [OK] Docker runner image on dockerhub https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-runner-console
  - Runners
    - [OK] Run SmartIOT.Connector as a console app

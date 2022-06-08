@@ -395,6 +395,9 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
 			IList<MqttApplicationMessage> otherMessages = new List<MqttApplicationMessage>();
 
+			var tagEvent = new ManualResetEventSlim();
+			var deviceStatusEvent = new ManualResetEventSlim();
+
 			tagEvents.Clear();
 			deviceStatusEvents.Clear();
 			otherMessages.Clear();
@@ -419,9 +422,15 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			server.ApplicationMessageReceivedHandler = new MqttApplicationMessageReceivedHandlerDelegate(eventArgs =>
 			{
 				if (eventArgs.ApplicationMessage.Topic.StartsWith("tagRead/"))
+				{
 					tagEvents.Add(serializer.DeserializeMessage<TagEvent>(eventArgs.ApplicationMessage.Payload)!);
+					tagEvent.Set();
+				}
 				else if (eventArgs.ApplicationMessage.Topic.StartsWith("deviceStatus/"))
+				{
 					deviceStatusEvents.Add(serializer.DeserializeMessage<DeviceEvent>(eventArgs.ApplicationMessage.Payload)!);
+					deviceStatusEvent.Set();
+				}
 				else
 					otherMessages.Add(eventArgs.ApplicationMessage);
 			});
@@ -455,7 +464,12 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				server.SubscribeAsync("TestServer", "deviceStatus/#");
 				server.SubscribeAsync("TestServer", "tagRead/#");
 
-				Thread.Sleep(1000);
+				if (!tagEvent.Wait(2000))
+					throw new Exception("No tagReadEvent has been received");
+				else if (!deviceStatusEvent.Wait(2000))
+					throw new Exception("No deviceStatusEvent has been received");
+				else
+					Thread.Sleep(2000); // wait 2 sec for otherMessages
 
 				Assert.Equal(0, otherMessages.Count);
 				Assert.True(tagEvents.Count > 0);
