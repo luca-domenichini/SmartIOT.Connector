@@ -88,7 +88,8 @@ If you want to run SmartIOT.Connector as a standalone application or as a Docker
 
 ## Nuget packages
 
-You can find SmartIOT.Connector packages on nuget.org site and on Visual Studio Package Manager
+You can find SmartIOT.Connector packages on nuget.org site and on Visual Studio Package Manager:
+https://www.nuget.org/packages?q=SmartIOT.Connector
 
 ## Credits
 
@@ -99,24 +100,24 @@ Currently Siemens PLCs support is provided by Snap7 library (http://snap7.source
 
 ## Features TODO list:
 
- - REST Api Connector
- - GRPC Server Connector
- - Protobuf on TCP Server Connector
- - Protobuf on TCP Client Connector
- - [OK] Nuget packages on nuget.org
- - [OK] Docker runner image on dockerhub https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-runner-console
+ - [ ] REST Api Connector
+ - [ ] GRPC Server Connector
+ - [ ] Protobuf on TCP Server Connector
+ - [ ] Protobuf on TCP Client Connector
+ - [X] Nuget packages on nuget.org - https://www.nuget.org/packages/SmartIOT.Connector.Runner.Console/
+ - [X] Docker runner image on dockerhub - https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-runner-console
  - Runners
-   - [OK] Run SmartIOT.Connector as a console app
-   - [OK] Run SmartIOT.Connector as a Docker image
-   - Run SmartIOT.Connector as a WPF app
-   - Run SmartIOT.Connector as a WinService
+   - [X] Run SmartIOT.Connector as a console app
+   - [X] Run SmartIOT.Connector as a Docker image
+   - [ ] Run SmartIOT.Connector as a WPF app
+   - [ ] Run SmartIOT.Connector as a WinService
  - Testers: connector counterpart as WPF app
-   - REST Api Client
-   - GRPC Client
-   - TCP client
-   - TCP server
+   - [ ] REST Api Client
+   - [ ] GRPC Client
+   - [ ] TCP client
+   - [ ] TCP server
 
 ## Technical TODO list
 
- - Leverage the async pattern for Connectors
- - The proto files should be part of SmartIOT.Connector.Messages project
+ - [ ] Leverage the async pattern for Connectors
+ - [ ] The proto files should be part of SmartIOT.Connector.Messages project
