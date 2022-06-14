@@ -1,4 +1,5 @@
 ﻿using SmartIOT.Connector.Core;
+using SmartIOT.Connector.Core.Connector;
 using SmartIOT.Connector.Core.Events;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SmartIOT.Connector.Tcp.Server
 {
-	public class TcpServerEventPublisher : ITcpEventPublisher
+	public class TcpServerEventPublisher : IConnectorEventPublisher
 	{
 
 
@@ -27,7 +28,7 @@ namespace SmartIOT.Connector.Tcp.Server
 			throw new NotImplementedException();
 		}
 
-		public void Start(TcpConnector connector, ConnectorInterface connectorInterface)
+		public void Start(IConnector connector, ConnectorInterface connectorInterface)
 		{
 			throw new NotImplementedException();
 		}

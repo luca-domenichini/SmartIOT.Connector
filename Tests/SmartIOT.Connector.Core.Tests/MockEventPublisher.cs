@@ -1,16 +1,16 @@
 ﻿using Moq;
-using SmartIOT.Connector.Core;
+using SmartIOT.Connector.Core.Connector;
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Messages;
 using System;
 
-namespace SmartIOT.Connector.Mqtt.Tests
+namespace SmartIOT.Connector.Core.Tests
 {
-	internal class MockMqttEventPublisher : Mock<IMqttEventPublisher>, IMqttEventPublisher
+	public class MockEventPublisher : Mock<IConnectorEventPublisher>, IConnectorEventPublisher
 	{
 		private ConnectorInterface? _connectorInterface;
 
-		public void Start(MqttConnector connector, ConnectorInterface connectorInterface)
+		public void Start(IConnector connector, ConnectorInterface connectorInterface)
 		{
 			_connectorInterface = connectorInterface;
 			Object.Start(connector, connectorInterface);

@@ -2,20 +2,21 @@
 using MQTTnet.Extensions.ManagedClient;
 using MQTTnet.Server;
 using SmartIOT.Connector.Core;
+using SmartIOT.Connector.Core.Connector;
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Messages;
 using SmartIOT.Connector.Messages.Serializers;
 
 namespace SmartIOT.Connector.Mqtt.Server
 {
-	public class MqttServerEventPublisher : IMqttEventPublisher
+	public class MqttServerEventPublisher : IConnectorEventPublisher
 	{
 		private readonly MqttServerEventPublisherOptions _options;
 		private readonly IMqttServerOptions _mqttOptions;
 		private readonly IMqttServer _mqttServer;
 		private readonly ISingleMessageSerializer _messageSerializer;
 		private bool _started;
-		private MqttConnector? _connector;
+		private IConnector? _connector;
 		private ConnectorInterface? _connectorInterface;
 
 		public MqttServerEventPublisher(ISingleMessageSerializer messageSerializer, MqttServerEventPublisherOptions options)
@@ -53,7 +54,7 @@ namespace SmartIOT.Connector.Mqtt.Server
 			}
 		}
 
-		public void Start(MqttConnector connector, ConnectorInterface connectorInterface)
+		public void Start(IConnector connector, ConnectorInterface connectorInterface)
 		{
 			_connector = connector;
 			_connectorInterface = connectorInterface;

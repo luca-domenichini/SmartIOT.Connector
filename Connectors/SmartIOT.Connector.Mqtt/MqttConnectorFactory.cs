@@ -5,6 +5,7 @@ using SmartIOT.Connector.Core.Factory;
 using SmartIOT.Connector.Core.Util;
 using SmartIOT.Connector.Messages;
 using SmartIOT.Connector.Messages.Serializers;
+using SmartIOT.Connector.Core.Connector;
 
 namespace SmartIOT.Connector.Mqtt
 {
@@ -45,9 +46,9 @@ namespace SmartIOT.Connector.Mqtt
 			return null;
 		}
 
-		private MqttConnectorOptions ParseConnectorOptions(IDictionary<string, string> tokens)
+		private ConnectorOptions ParseConnectorOptions(IDictionary<string, string> tokens)
 		{
-			return new MqttConnectorOptions()
+			return new ConnectorOptions()
 			{
 				IsPublishWriteEvents = "true".Equals(tokens.GetOrDefault(PublishWriteEventsKey), StringComparison.InvariantCultureIgnoreCase)
 			};

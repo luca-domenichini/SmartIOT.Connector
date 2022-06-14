@@ -5,6 +5,7 @@ using MQTTnet.Client.Receiving;
 using MQTTnet.Server;
 using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Conf;
+using SmartIOT.Connector.Core.Connector;
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Core.Scheduler;
 using SmartIOT.Connector.Core.Tests;
@@ -26,8 +27,8 @@ namespace SmartIOT.Connector.Mqtt.Tests
 		[Fact]
 		public void Test_MqttConnector_with_mock_publisher()
 		{
-			var publisher = new MockMqttEventPublisher();
-			var connector = new MqttConnector(new MqttConnectorOptions()
+			var publisher = new MockEventPublisher();
+			var connector = new MqttConnector(new ConnectorOptions()
 			{
 				IsPublishWriteEvents = true
 			}, publisher);
@@ -109,7 +110,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			});
 
 			var publisher = new MqttServerEventPublisher(serializer, new MqttServerEventPublisherOptions(Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", isPublishPartialReads));
-			var connector = new MqttConnector(new MqttConnectorOptions(), publisher);
+			var connector = new MqttConnector(new ConnectorOptions(), publisher);
 
 			SmartIotConnector module = SetupSmartIotConnector(
 				SetupConfiguration(
@@ -234,7 +235,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
 
 			var publisher = new MqttServerEventPublisher(serializer, new MqttServerEventPublisherOptions(Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", true));
-			var connector = new MqttConnector(new MqttConnectorOptions(), publisher);
+			var connector = new MqttConnector(new ConnectorOptions(), publisher);
 
 			DeviceConfiguration deviceConfiguration = new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 				, new List<TagConfiguration>()
@@ -460,7 +461,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			});
 
 			var publisher = new MqttClientEventPublisher(serializer, new MqttClientEventPublisherOptions(Guid.NewGuid().ToString("N"), "localhost", 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", "", ""));
-			var connector = new MqttConnector(new MqttConnectorOptions(), publisher);
+			var connector = new MqttConnector(new ConnectorOptions(), publisher);
 
 			SmartIotConnector module = SetupSmartIotConnector(
 				SetupConfiguration(

@@ -1,5 +1,6 @@
 using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Conf;
+using SmartIOT.Connector.Core.Connector;
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Core.Scheduler;
 using SmartIOT.Connector.Core.Tests;
@@ -42,7 +43,7 @@ namespace SmartIOT.Connector.Tcp.Tests
 
 
 			var publisher = new TcpClientEventPublisher(serializer, new TcpClientEventPublisherOptions("localhost", 1883));
-			var connector = new TcpConnector(new TcpConnectorOptions(), publisher);
+			var connector = new TcpConnector(new ConnectorOptions(), publisher);
 
 			DeviceConfiguration deviceConfiguration = new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 				, new List<TagConfiguration>()

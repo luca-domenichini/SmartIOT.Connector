@@ -116,12 +116,12 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
    - [ ] How to create and plug a custom connector
  - [X] Nuget packages on nuget.org - https://www.nuget.org/packages?q=SmartIOT.Connector
  - [X] Docker runner image on dockerhub - https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-runner-console
- - Runners
+ - [ ] Runners
    - [X] Run SmartIOT.Connector as a console app
    - [X] Run SmartIOT.Connector as a Docker image
    - [ ] Run SmartIOT.Connector as a WPF app
    - [ ] Run SmartIOT.Connector as a WinService
- - Testers: connector counterpart as WPF app
+ - [ ] Testers: connector counterpart as WPF app
    - [ ] REST Api Client
    - [ ] GRPC Client
    - [ ] TCP client
@@ -132,4 +132,4 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
  - [ ] Leverage the async pattern for Connectors
  - [ ] The proto files should be part of SmartIOT.Connector.Messages project
  - [ ] Introduce tag free parameters string in TagConfiguration
- - [ ] Have a base connector to reuse by just implementing publishers
+

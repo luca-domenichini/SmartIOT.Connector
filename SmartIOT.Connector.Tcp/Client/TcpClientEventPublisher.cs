@@ -1,4 +1,5 @@
 ﻿using SmartIOT.Connector.Core;
+using SmartIOT.Connector.Core.Connector;
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Messages;
 using SmartIOT.Connector.Messages.Serializers;
@@ -6,7 +7,7 @@ using System.Net.Sockets;
 
 namespace SmartIOT.Connector.Tcp.Client
 {
-	public class TcpClientEventPublisher : ITcpEventPublisher
+	public class TcpClientEventPublisher : IConnectorEventPublisher
 	{
 		private TcpClient? TcpClient { get; set; }
 
@@ -74,7 +75,7 @@ namespace SmartIOT.Connector.Tcp.Client
 			}
 		}
 
-		public void Start(TcpConnector connector, ConnectorInterface connectorInterface)
+		public void Start(IConnector connector, ConnectorInterface connectorInterface)
 		{
 			_connectorInteface = connectorInterface;
 

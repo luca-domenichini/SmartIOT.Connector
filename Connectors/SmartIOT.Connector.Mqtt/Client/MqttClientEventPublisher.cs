@@ -4,20 +4,21 @@ using MQTTnet.Client.Disconnecting;
 using MQTTnet.Client.Options;
 using MQTTnet.Extensions.ManagedClient;
 using SmartIOT.Connector.Core;
+using SmartIOT.Connector.Core.Connector;
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Messages;
 using SmartIOT.Connector.Messages.Serializers;
 
 namespace SmartIOT.Connector.Mqtt.Client
 {
-	public class MqttClientEventPublisher : IMqttEventPublisher
+	public class MqttClientEventPublisher : IConnectorEventPublisher
 	{
 		private readonly MqttClientEventPublisherOptions _options;
 		private readonly ManagedMqttClientOptions _mqttOptions;
 		private readonly IManagedMqttClient _mqttClient;
 		private readonly ISingleMessageSerializer _messageSerializer;
 		private bool _connected;
-		private MqttConnector? _connector;
+		private IConnector? _connector;
 		private ConnectorInterface? _connectorInterface;
 
 		public event EventHandler<ManagedProcessFailedEventArgs>? ConnectionFailed;
@@ -49,7 +50,7 @@ namespace SmartIOT.Connector.Mqtt.Client
 			_mqttClient.UseApplicationMessageReceivedHandler(e => OnApplicationMessageReceived(e));
 		}
 
-		public void Start(MqttConnector connector, ConnectorInterface connectorInterface)
+		public void Start(IConnector connector, ConnectorInterface connectorInterface)
 		{
 			_connector = connector;
 			_connectorInterface = connectorInterface;
