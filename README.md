@@ -1,3 +1,5 @@
+[![.NET](https://github.com/luca-domenichini/SmartIOT.Connector/actions/workflows/dotnet.yml/badge.svg?branch=master)](https://github.com/luca-domenichini/SmartIOT.Connector/actions/workflows/dotnet.yml)
+
 # SmartIOT.Connector - Cloud Connector for IOT devices and industrial PLCs
 
 This project aims at creating a simple connector and scheduler for automation devices, like industrial PLCs, publishing data to the cloud and more.
