@@ -18,7 +18,7 @@ namespace SmartIOT.Connector.Core.Scheduler
 		void Start();
 		void Stop();
 		void AddConnector(IConnector connector);
-		void RemoveSchedulerConnector(IConnector connector);
+		void RemoveConnector(IConnector connector);
 		IList<Device> GetManagedDevices();
 
 		/// <summary>

@@ -1,16 +1,17 @@
 ﻿using SmartIOT.Connector.Messages;
+using SmartIOT.Connector.Messages.Serializers;
 using Xunit;
 
 namespace SmartIOT.Connector.Core.Tests
 {
-	public class ProtobufMessageSerializerTests
+	public class ProtobufSingleMessageSerializerTests
 	{
 		[Fact]
-		public void Test_parser()
+		public void Test_serializer()
 		{
 			TagEvent e = TagEvent.CreateTagDataEvent("1", "DB20", 0, new byte[] { 1, 2, 3, 4, 5 });
 
-			var serializer = new ProtobufMessageSerializer();
+			var serializer = new ProtobufSingleMessageSerializer();
 
 			byte[] bytes = serializer.SerializeMessage(e);
 			TagEvent? e2 = serializer.DeserializeMessage<TagEvent>(bytes);

@@ -209,7 +209,7 @@ namespace SmartIOT.Connector.Core.Scheduler
 			DeviceStatusEvent += connector.OnDeviceStatusEvent;
 			ExceptionHandler += connector.OnException;
 		}
-		public void RemoveSchedulerConnector(IConnector connector)
+		public void RemoveConnector(IConnector connector)
 		{
 			TagReadEvent -= connector.OnTagReadEvent;
 			TagWriteEvent -= connector.OnTagWriteEvent;

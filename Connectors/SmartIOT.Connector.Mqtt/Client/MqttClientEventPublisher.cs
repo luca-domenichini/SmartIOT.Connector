@@ -6,6 +6,7 @@ using MQTTnet.Extensions.ManagedClient;
 using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Messages;
+using SmartIOT.Connector.Messages.Serializers;
 
 namespace SmartIOT.Connector.Mqtt.Client
 {
@@ -14,16 +15,16 @@ namespace SmartIOT.Connector.Mqtt.Client
 		private readonly MqttClientEventPublisherOptions _options;
 		private readonly ManagedMqttClientOptions _mqttOptions;
 		private readonly IManagedMqttClient _mqttClient;
-		private readonly IMessageSerializer _messageSerializer;
+		private readonly ISingleMessageSerializer _messageSerializer;
 		private bool _connected;
-		private IConnector? _schedulerConnector;
+		private MqttConnector? _connector;
 		private ConnectorInterface? _connectorInterface;
 
 		public event EventHandler<ManagedProcessFailedEventArgs>? ConnectionFailed;
 		public event EventHandler<MqttClientDisconnectedEventArgs>? Disconnected;
 		public event EventHandler<MqttClientConnectedEventArgs>? Connected;
 
-		public MqttClientEventPublisher(IMessageSerializer messageSerializer, MqttClientEventPublisherOptions options)
+		public MqttClientEventPublisher(ISingleMessageSerializer messageSerializer, MqttClientEventPublisherOptions options)
 		{
 			_messageSerializer = messageSerializer;
 			_options = options;
@@ -48,9 +49,9 @@ namespace SmartIOT.Connector.Mqtt.Client
 			_mqttClient.UseApplicationMessageReceivedHandler(e => OnApplicationMessageReceived(e));
 		}
 
-		public void Start(IConnector schedulerConnector, ConnectorInterface connectorInterface)
+		public void Start(MqttConnector connector, ConnectorInterface connectorInterface)
 		{
-			_schedulerConnector = schedulerConnector;
+			_connector = connector;
 			_connectorInterface = connectorInterface;
 			_mqttClient.StartAsync(_mqttOptions);
 		}
@@ -70,7 +71,7 @@ namespace SmartIOT.Connector.Mqtt.Client
 			_connected = false;
 			Disconnected?.Invoke(this, e);
 
-			_connectorInterface?.DisconnectedDelegate.Invoke(_schedulerConnector!, $"ClientId {_options.ClientId} disconnected from server {_options.ServerAddress}:{_options.ServerPort}");
+			_connectorInterface?.DisconnectedDelegate.Invoke(_connector!, $"ClientId {_options.ClientId} disconnected from server {_options.ServerAddress}:{_options.ServerPort}");
 		}
 
 		private void OnApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs e)
@@ -106,7 +107,7 @@ namespace SmartIOT.Connector.Mqtt.Client
 
 			Connected?.Invoke(this, e);
 
-			_connectorInterface?.ConnectedDelegate.Invoke(_schedulerConnector!, $"ClientId {_options.ClientId} connected to server {_options.ServerAddress}:{_options.ServerPort}");
+			_connectorInterface?.ConnectedDelegate.Invoke(_connector!, $"ClientId {_options.ClientId} connected to server {_options.ServerAddress}:{_options.ServerPort}");
 		}
 
 		public void PublishException(Exception exception)
@@ -142,16 +143,15 @@ namespace SmartIOT.Connector.Mqtt.Client
 		{
 			PublishTagScheduleEvent(e, false);
 		}
-		public void PublishTagScheduleEvent(TagScheduleEvent e, bool isInitializationEvent)
+		public void PublishTagScheduleEvent(TagScheduleEvent e, bool isInitializationData)
 		{
-			if (_connected || isInitializationEvent)
+			if (_connected || isInitializationData)
 			{
 				// il client Mqtt deve trasmettere per forza ogni volta tutto il tag con il flag di retain
 				// in modo che il server lo ripubblichi ai client connessi.
 				var evt = e.Data != null ? TagScheduleEvent.BuildTagData(e.Device, e.Tag, e.IsErrorNumberChanged) : e;
 
-				var message = EventExtensions.ToEventMessage(evt);
-				message.IsInitializationEvent = isInitializationEvent;
+				var message = evt.ToEventMessage(isInitializationData);
 
 				_mqttClient.PublishAsync(b => b
 					.WithTopic(_options.GetTagScheduleEventsTopic(e.Device.DeviceId, e.Tag.TagId))

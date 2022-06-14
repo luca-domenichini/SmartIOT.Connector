@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace SmartIOT.Connector.Core.Tests
 {
-	public class EmsDriverBaseTests
+	public class SmartIOTBaseTests
 	{
 		protected virtual SmartIotConnector SetupSmartIotConnector(SmartIotConnectorConfiguration configuration, ISchedulerFactory schedulerFactory, ITimeService timeService, IConnector connector)
 		{

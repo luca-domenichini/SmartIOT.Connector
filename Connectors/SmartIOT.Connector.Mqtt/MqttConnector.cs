@@ -1,51 +1,51 @@
 ﻿using SmartIOT.Connector.Core;
+using SmartIOT.Connector.Core.Connector;
 using SmartIOT.Connector.Core.Events;
-using SmartIOT.Connector.Core.Queue;
 
 namespace SmartIOT.Connector.Mqtt
 {
-	public class MqttSchedulerConnector : AbstractBufferedConnector
+	public class MqttConnector : AbstractBufferedAggregatingConnector
 	{
-		public MqttSchedulerConnectorOptions Options { get; }
-		public IMqttEventPublisher MqttEventPublisher { get; }
+		public MqttConnectorOptions Options { get; }
+		public IMqttEventPublisher EventPublisher { get; }
 
-		public MqttSchedulerConnector(MqttSchedulerConnectorOptions options, IMqttEventPublisher mqttEventPublisher)
+		public MqttConnector(MqttConnectorOptions options, IMqttEventPublisher eventPublisher)
 		{
 			Options = options;
-			MqttEventPublisher = mqttEventPublisher;
+			EventPublisher = eventPublisher;
 		}
 
 		public override void Start(ConnectorInterface connectorInterface)
 		{
 			base.Start(connectorInterface);
 
-			MqttEventPublisher.Start(this, connectorInterface);
+			EventPublisher.Start(this, connectorInterface);
 		}
 		public override void Stop()
 		{
 			base.Stop();
 
-			MqttEventPublisher.Stop();
+			EventPublisher.Stop();
 		}
 
 		protected override void HandleOnException(object? sender, ExceptionEventArgs args)
 		{
-			MqttEventPublisher.PublishException(args.Exception);
+			EventPublisher.PublishException(args.Exception);
 		}
 
 		protected override void HandleOnDeviceStatusEvent(object? sender, DeviceStatusEventArgs args)
 		{
-			MqttEventPublisher.PublishDeviceStatusEvent(args.DeviceStatusEvent);
+			EventPublisher.PublishDeviceStatusEvent(args.DeviceStatusEvent);
 		}
 
 		protected override void HandleOnTagReadEvent(object? sender, TagScheduleEventArgs args)
 		{
-			MqttEventPublisher.PublishTagScheduleEvent(args.TagScheduleEvent);
+			EventPublisher.PublishTagScheduleEvent(args.TagScheduleEvent);
 		}
 		protected override void HandleOnTagWriteEvent(object? sender, TagScheduleEventArgs args)
 		{
 			if (Options.IsPublishWriteEvents)
-				MqttEventPublisher.PublishTagScheduleEvent(args.TagScheduleEvent);
+				EventPublisher.PublishTagScheduleEvent(args.TagScheduleEvent);
 		}
 	}
 }

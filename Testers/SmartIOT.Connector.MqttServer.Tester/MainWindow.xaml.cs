@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using SmartIOT.Connector.Messages.Serializers;
 
 namespace SmartIOT.Connector.MqttServer.Tester
 {
@@ -18,7 +19,7 @@ namespace SmartIOT.Connector.MqttServer.Tester
 	public partial class MainWindow : Window
 	{
 		private IMqttServer? _mqttServer;
-		private IMessageSerializer? _messageSerializer;
+		private ISingleMessageSerializer? _messageSerializer;
 		private string? _deviceStatusTopic;
 		private string? _tagReadTopic;
 		private string? _tagWriteTopic;
@@ -40,9 +41,9 @@ namespace SmartIOT.Connector.MqttServer.Tester
 				try
 				{
 					if (rdJsonSerializer.IsChecked == true)
-						_messageSerializer = new JsonMessageSerializer();
+						_messageSerializer = new JsonSingleMessageSerializer();
 					else
-						_messageSerializer = new ProtobufMessageSerializer();
+						_messageSerializer = new ProtobufSingleMessageSerializer();
 
 					MqttServerOptionsBuilder serverOptions = new MqttServerOptionsBuilder()
 						.WithClientId("TestServer")

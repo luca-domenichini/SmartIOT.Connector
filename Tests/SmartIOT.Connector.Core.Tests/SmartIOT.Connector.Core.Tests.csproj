@@ -33,6 +33,9 @@
     <None Update="driver.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="protobuf.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="test-config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

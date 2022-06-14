@@ -1,21 +1,21 @@
 ﻿using SmartIOT.Connector.Core.Events;
 
-namespace SmartIOT.Connector.Core.Queue
+namespace SmartIOT.Connector.Core.Connector
 {
-	public abstract class AbstractBufferedConnector : IConnector
+	public abstract class AbstractBufferedAggregatingConnector : IConnector
 	{
-		private readonly ConnectorEventQueue _eventQueue = new ConnectorEventQueue();
+		private readonly AggregatingConnectorEventQueue _eventQueue = new AggregatingConnectorEventQueue();
 		private readonly Thread? _thread;
 		private readonly CancellationTokenSource _stopToken = new CancellationTokenSource();
 
 
 		public event EventHandler<ExceptionEventArgs>? ExceptionEvent;
 
-		public AbstractBufferedConnector()
+		public AbstractBufferedAggregatingConnector()
 		{
 			_thread = new Thread(RunInnerThread)
 			{
-				Name = nameof(AbstractBufferedConnector),
+				Name = GetType().Name,
 			};
 		}
 

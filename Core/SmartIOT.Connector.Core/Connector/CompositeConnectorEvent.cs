@@ -1,6 +1,6 @@
 ﻿using SmartIOT.Connector.Core.Events;
 
-namespace SmartIOT.Connector.Core.Queue
+namespace SmartIOT.Connector.Core.Connector
 {
 	public class CompositeConnectorEvent
 	{

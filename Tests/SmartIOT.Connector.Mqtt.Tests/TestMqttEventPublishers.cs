@@ -10,6 +10,7 @@ using SmartIOT.Connector.Core.Scheduler;
 using SmartIOT.Connector.Core.Tests;
 using SmartIOT.Connector.Device.Mocks;
 using SmartIOT.Connector.Messages;
+using SmartIOT.Connector.Messages.Serializers;
 using SmartIOT.Connector.Mqtt.Client;
 using SmartIOT.Connector.Mqtt.Server;
 using System;
@@ -20,13 +21,13 @@ using Xunit;
 
 namespace SmartIOT.Connector.Mqtt.Tests
 {
-	public class TestMqttEventPublishers : EmsDriverBaseTests
+	public class TestMqttEventPublishers : SmartIOTBaseTests
 	{
 		[Fact]
 		public void Test_MqttConnector_with_mock_publisher()
 		{
 			var publisher = new MockMqttEventPublisher();
-			var connector = new MqttSchedulerConnector(new MqttSchedulerConnectorOptions()
+			var connector = new MqttConnector(new MqttConnectorOptions()
 			{
 				IsPublishWriteEvents = true
 			}, publisher);
@@ -51,7 +52,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
 				module.Stop();
 
-				publisher.Verify(x => x.Start(It.IsAny<IConnector>(), It.IsAny<ConnectorInterface>()), Times.Once);
+				publisher.Verify(x => x.Start(It.IsAny<MqttConnector>(), It.IsAny<ConnectorInterface>()), Times.Once);
 				publisher.Verify(x => x.Stop(), Times.Once);
 				publisher.Verify(x => x.PublishDeviceStatusEvent(It.IsAny<DeviceStatusEvent>()), Times.AtLeastOnce);
 				publisher.Verify(x => x.PublishTagScheduleEvent(It.Is<TagScheduleEvent>(x => x.Tag.TagId == "DB20")), Times.AtLeastOnce);
@@ -79,11 +80,11 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			deviceStatusEvents.Clear();
 			otherMessages.Clear();
 
-			IMessageSerializer serializer;
+			ISingleMessageSerializer serializer;
 			if (serializerType == "json")
-				serializer = new JsonMessageSerializer();
+				serializer = new JsonSingleMessageSerializer();
 			else if (serializerType == "protobuf")
-				serializer = new ProtobufMessageSerializer();
+				serializer = new ProtobufSingleMessageSerializer();
 			else
 				throw new InvalidOperationException("serializer not valid");
 
@@ -108,7 +109,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			});
 
 			var publisher = new MqttServerEventPublisher(serializer, new MqttServerEventPublisherOptions(Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", isPublishPartialReads));
-			var connector = new MqttSchedulerConnector(new MqttSchedulerConnectorOptions(), publisher);
+			var connector = new MqttConnector(new MqttConnectorOptions(), publisher);
 
 			SmartIotConnector module = SetupSmartIotConnector(
 				SetupConfiguration(
@@ -223,17 +224,17 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			deviceStatusEvents.Clear();
 			otherMessages.Clear();
 
-			IMessageSerializer serializer;
+			ISingleMessageSerializer serializer;
 			if (serializerType == "json")
-				serializer = new JsonMessageSerializer();
+				serializer = new JsonSingleMessageSerializer();
 			else if (serializerType == "protobuf")
-				serializer = new ProtobufMessageSerializer();
+				serializer = new ProtobufSingleMessageSerializer();
 			else
 				throw new InvalidOperationException("serializer not valid");
 
 
 			var publisher = new MqttServerEventPublisher(serializer, new MqttServerEventPublisherOptions(Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", true));
-			var connector = new MqttSchedulerConnector(new MqttSchedulerConnectorOptions(), publisher);
+			var connector = new MqttConnector(new MqttConnectorOptions(), publisher);
 
 			DeviceConfiguration deviceConfiguration = new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 				, new List<TagConfiguration>()
@@ -433,11 +434,11 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				.WithClientId("TestServer")
 				.Build();
 
-			IMessageSerializer serializer;
+			ISingleMessageSerializer serializer;
 			if (serializerType == "json")
-				serializer = new JsonMessageSerializer();
+				serializer = new JsonSingleMessageSerializer();
 			else if (serializerType == "protobuf")
-				serializer = new ProtobufMessageSerializer();
+				serializer = new ProtobufSingleMessageSerializer();
 			else
 				throw new InvalidOperationException("serializer not valid");
 
@@ -459,7 +460,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			});
 
 			var publisher = new MqttClientEventPublisher(serializer, new MqttClientEventPublisherOptions(Guid.NewGuid().ToString("N"), "localhost", 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", "", ""));
-			var connector = new MqttSchedulerConnector(new MqttSchedulerConnectorOptions(), publisher);
+			var connector = new MqttConnector(new MqttConnectorOptions(), publisher);
 
 			SmartIotConnector module = SetupSmartIotConnector(
 				SetupConfiguration(

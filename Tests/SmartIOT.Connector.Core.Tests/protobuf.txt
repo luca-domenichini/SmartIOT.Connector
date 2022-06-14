@@ -1,0 +1,2 @@
+1{"DeviceId":"1","TagId":"DB20","StartOffset":0,"Data":"AQIDBAU = ","IsInitializationEvent":false,"ErrorNumber":0,"Description":null}
+2{"DeviceId":"1","DeviceStatus":1,"ErrorNumber":0,"Description":"Test"}

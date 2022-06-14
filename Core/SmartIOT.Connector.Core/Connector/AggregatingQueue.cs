@@ -1,4 +1,4 @@
-﻿namespace SmartIOT.Connector.Core.Queue
+﻿namespace SmartIOT.Connector.Core.Connector
 {
 	public abstract class AggregatingQueue<T> where T : class
 	{
@@ -10,11 +10,8 @@
 
 		}
 
-		public bool IsAggregationEnabled { get; protected init; } = true;
-
 		/// <summary>
-		/// Se gli argomenti sono aggregabili, il metodo deve ritornare l'elemento aggregato.
-		/// Se gli argomenti non sono aggregabili, il metodo può ritorna null.
+		/// This method must return an aggregated item if possible, or default if the 2 items are not aggregable.
 		/// </summary>
 		protected abstract T? Aggregate(T item1, T item2);
 
@@ -43,51 +40,34 @@
 
 		public T? PopOrDefault()
 		{
-			if (IsAggregationEnabled)
+			lock (_queue)
 			{
-				lock (_queue)
-				{
-					T? item = default;
+				T? item = default;
 
-					while (_queue.Any())
+				while (_queue.Any())
+				{
+					if (item == default)
 					{
-						if (item == default)
+						item = _queue.Dequeue();
+					}
+					else
+					{
+						var t = _queue.Peek();
+						var aggregate = Aggregate(item, t);
+						if (aggregate != default)
 						{
-							item = _queue.Dequeue();
+							item = aggregate;
+							_queue.Dequeue();
 						}
 						else
-						{
-							var t = _queue.Peek();
-							var aggregate = Aggregate(item, t);
-							if (aggregate != default)
-							{
-								item = aggregate;
-								_queue.Dequeue();
-							}
-							else
-								break;
-						}
+							break;
 					}
-
-					if (_queue.Count == 0)
-						_eventAvailable.Reset();
-
-					return item;
 				}
-			}
-			else
-			{
-				lock (_queue)
-				{
-					if (_queue.Any())
-					{
-						return _queue.Dequeue();
-					}
 
+				if (_queue.Count == 0)
 					_eventAvailable.Reset();
 
-					return default;
-				}
+				return item;
 			}
 		}
 	}

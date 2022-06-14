@@ -1,5 +1,5 @@
-﻿using SmartIOT.Connector.Core.Events;
-using SmartIOT.Connector.Core.Queue;
+﻿using SmartIOT.Connector.Core.Connector;
+using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Device.Mocks;
 using Xunit;
 
@@ -15,7 +15,7 @@ namespace SmartIOT.Connector.Core.Tests
 
 			var driver = new MockDeviceDriver(device);
 
-			var queue = new ConnectorEventQueue();
+			var queue = new AggregatingConnectorEventQueue();
 
 			Assert.Null(queue.PopOrDefault());
 
@@ -41,7 +41,7 @@ namespace SmartIOT.Connector.Core.Tests
 
 			var driver = new MockDeviceDriver(device);
 
-			var queue = new ConnectorEventQueue();
+			var queue = new AggregatingConnectorEventQueue();
 
 			Assert.Null(queue.PopOrDefault());
 
@@ -73,7 +73,7 @@ namespace SmartIOT.Connector.Core.Tests
 
 			var driver = new MockDeviceDriver(device);
 
-			var queue = new ConnectorEventQueue();
+			var queue = new AggregatingConnectorEventQueue();
 
 			Assert.Null(queue.PopOrDefault());
 
@@ -105,7 +105,7 @@ namespace SmartIOT.Connector.Core.Tests
 
 			var driver = new MockDeviceDriver(device);
 
-			var queue = new ConnectorEventQueue();
+			var queue = new AggregatingConnectorEventQueue();
 
 			Assert.Null(queue.PopOrDefault());
 
@@ -138,7 +138,7 @@ namespace SmartIOT.Connector.Core.Tests
 
 			var driver = new MockDeviceDriver(device);
 
-			var queue = new ConnectorEventQueue();
+			var queue = new AggregatingConnectorEventQueue();
 
 			Assert.Null(queue.PopOrDefault());
 

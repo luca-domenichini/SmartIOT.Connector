@@ -1,8 +1,8 @@
 ﻿using ProtoBuf;
 
-namespace SmartIOT.Connector.Messages
+namespace SmartIOT.Connector.Messages.Serializers
 {
-	public class ProtobufMessageSerializer : IMessageSerializer
+	public class ProtobufSingleMessageSerializer : ISingleMessageSerializer
 	{
 		public T? DeserializeMessage<T>(byte[] bytes)
 		{

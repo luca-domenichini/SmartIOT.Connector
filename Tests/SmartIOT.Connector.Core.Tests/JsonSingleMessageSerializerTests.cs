@@ -1,16 +1,17 @@
 ﻿using SmartIOT.Connector.Messages;
+using SmartIOT.Connector.Messages.Serializers;
 using Xunit;
 
 namespace SmartIOT.Connector.Core.Tests
 {
-	public class JsonMessageSerializerTests
+	public class JsonSingleMessageSerializerTests
 	{
 		[Fact]
-		public void Test_jsonSerializer_tagEvent()
+		public void Test_serializer_tagEvent()
 		{
 			TagEvent e = TagEvent.CreateTagDataEvent("1", "DB20", 10, new byte[] { 1, 2, 3, 4, 5 });
 
-			var serializer = new JsonMessageSerializer();
+			var serializer = new JsonSingleMessageSerializer();
 			var bytes = serializer.SerializeMessage(e);
 
 			var e2 = serializer.DeserializeMessage<TagEvent>(bytes);
@@ -28,11 +29,11 @@ namespace SmartIOT.Connector.Core.Tests
 		}
 
 		[Fact]
-		public void Test_jsonSerializer_DeviceEvent()
+		public void Test_serializer_DeviceEvent()
 		{
 			DeviceEvent e = new DeviceEvent("1", DeviceStatus.OK, 10, "Test");
 
-			var serializer = new JsonMessageSerializer();
+			var serializer = new JsonSingleMessageSerializer();
 			var bytes = serializer.SerializeMessage(e);
 
 			var e2 = serializer.DeserializeMessage<DeviceEvent>(bytes);

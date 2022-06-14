@@ -10,10 +10,10 @@ namespace SmartIOT.Connector.Mqtt.Tests
 	{
 		private ConnectorInterface? _connectorInterface;
 
-		public void Start(IConnector schedulerConnector, ConnectorInterface connectorInterface)
+		public void Start(MqttConnector connector, ConnectorInterface connectorInterface)
 		{
 			_connectorInterface = connectorInterface;
-			Object.Start(schedulerConnector, connectorInterface);
+			Object.Start(connector, connectorInterface);
 		}
 
 		public void Stop()

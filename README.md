@@ -86,6 +86,8 @@ You can even jump to section specific guides:
 
 If you want to run SmartIOT.Connector as a standalone application or as a Docker container, see project [SmartIOT.Connector.Runner.Console](./Runners/SmartIOT.Connector.Runner.Console/README.md) for further details.
 
+Here is a quick link to the Docker image repository: https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-runner-console
+
 ## Nuget packages
 
 You can find SmartIOT.Connector packages on nuget.org site and on Visual Studio Package Manager:
@@ -95,16 +97,24 @@ https://www.nuget.org/packages?q=SmartIOT.Connector
 
 Currently Siemens PLCs support is provided by Snap7 library (http://snap7.sourceforge.net/) and S7Net library (https://github.com/S7NetPlus/s7netplus), so the same PLCs families supported by those libraries are also supported here.
 
+## Disclaimer
 
-**currently Siemens PLCs is the only supported device
+As of version 0.0.x, interfaces and implementation details are subject to change without notice.
+I will do my best to keep the interfaces stable, but there are possibilities to incur in such breaking changes.
 
-## Features TODO list:
+**currently Siemens PLCs are the only supported devices
 
- - [ ] REST Api Connector
+## Roadmap - Features TODO list:
+
+ - [ ] REST Api Connector (included in default Runner project)
  - [ ] GRPC Server Connector
- - [ ] Protobuf on TCP Server Connector
- - [ ] Protobuf on TCP Client Connector
- - [X] Nuget packages on nuget.org - https://www.nuget.org/packages/SmartIOT.Connector.Runner.Console/
+ - [ ] TCP Server Connector
+ - [X] TCP Client Connector
+ - [ ] Web app Connector with monitoring capabilities (included in default Runner project)
+ - [ ] Extensibility docs
+   - [ ] How to create and plug a custom device
+   - [ ] How to create and plug a custom connector
+ - [X] Nuget packages on nuget.org - https://www.nuget.org/packages?q=SmartIOT.Connector
  - [X] Docker runner image on dockerhub - https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-runner-console
  - Runners
    - [X] Run SmartIOT.Connector as a console app
@@ -121,3 +131,5 @@ Currently Siemens PLCs support is provided by Snap7 library (http://snap7.source
 
  - [ ] Leverage the async pattern for Connectors
  - [ ] The proto files should be part of SmartIOT.Connector.Messages project
+ - [ ] Introduce tag free parameters string in TagConfiguration
+ - [ ] Have a base connector to reuse by just implementing publishers

@@ -42,6 +42,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.MqttClie
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.MqttServer.Tester", "Testers\SmartIOT.Connector.MqttServer.Tester\SmartIOT.Connector.MqttServer.Tester.csproj", "{0CE1DA57-B923-4037-9E09-46C107FAFA03}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Tcp", "SmartIOT.Connector.Tcp\SmartIOT.Connector.Tcp.csproj", "{A583AA3E-D01E-4CC3-90D1-2771210B6B70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartIOT.Connector.Tcp.Tests", "SmartIOT.Connector.Tcp.Tests\SmartIOT.Connector.Tcp.Tests.csproj", "{8C5343FD-E786-4C58-AB8B-4FE2E67A76CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -100,6 +104,14 @@ Global
 		{0CE1DA57-B923-4037-9E09-46C107FAFA03}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0CE1DA57-B923-4037-9E09-46C107FAFA03}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0CE1DA57-B923-4037-9E09-46C107FAFA03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A583AA3E-D01E-4CC3-90D1-2771210B6B70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A583AA3E-D01E-4CC3-90D1-2771210B6B70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A583AA3E-D01E-4CC3-90D1-2771210B6B70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A583AA3E-D01E-4CC3-90D1-2771210B6B70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C5343FD-E786-4C58-AB8B-4FE2E67A76CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C5343FD-E786-4C58-AB8B-4FE2E67A76CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C5343FD-E786-4C58-AB8B-4FE2E67A76CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C5343FD-E786-4C58-AB8B-4FE2E67A76CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -111,6 +123,7 @@ Global
 		{43537DFE-3544-4FD7-97AA-0C986900EA9F} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
 		{8D6F4801-783E-426C-BDDD-0B2629B64192} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
 		{0CE1DA57-B923-4037-9E09-46C107FAFA03} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
+		{8C5343FD-E786-4C58-AB8B-4FE2E67A76CD} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {72862639-80E2-4903-910B-7FC4EC818672}

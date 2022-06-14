@@ -1,12 +1,12 @@
 ﻿using System.Text.Json;
 
-namespace SmartIOT.Connector.Messages
+namespace SmartIOT.Connector.Messages.Serializers
 {
-	public class JsonMessageSerializer : IMessageSerializer
+	public class JsonSingleMessageSerializer : ISingleMessageSerializer
 	{
 		private readonly JsonSerializerOptions _options;
 
-		public JsonMessageSerializer()
+		public JsonSingleMessageSerializer()
 			: this(CreateDefaultSerializerOptions())
 		{
 
@@ -21,7 +21,7 @@ namespace SmartIOT.Connector.Messages
 			return options;
 		}
 
-		public JsonMessageSerializer(JsonSerializerOptions options)
+		public JsonSingleMessageSerializer(JsonSerializerOptions options)
 		{
 			_options = options;
 		}

@@ -30,12 +30,12 @@ namespace SmartIOT.Connector.Core.Events
 			return DeviceStatus.UNINITIALIZED;
 		}
 
-		public static TagEvent ToEventMessage(this TagScheduleEvent e)
+		public static TagEvent ToEventMessage(this TagScheduleEvent e, bool isInitializationData = false)
 		{
 			if (e.Data == null)
 				return TagEvent.CreateTagStatusEvent(e.Device.DeviceId, e.Tag.TagId, e.ErrorNumber, e.Description ?? string.Empty);
 
-			return TagEvent.CreateTagDataEvent(e.Device.DeviceId, e.Tag.TagId, e.StartOffset, e.Data);
+			return TagEvent.CreateTagDataEvent(e.Device.DeviceId, e.Tag.TagId, e.StartOffset, e.Data, isInitializationData);
 		}
 	}
 }

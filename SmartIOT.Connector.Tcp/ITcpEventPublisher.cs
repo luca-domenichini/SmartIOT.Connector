@@ -1,11 +1,11 @@
 ﻿using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Events;
 
-namespace SmartIOT.Connector.Mqtt
+namespace SmartIOT.Connector.Tcp
 {
-	public interface IMqttEventPublisher
+	public interface ITcpEventPublisher
 	{
-		void Start(MqttConnector connector, ConnectorInterface connectorInterface);
+		void Start(TcpConnector connector, ConnectorInterface connectorInterface);
 		void Stop();
 
 		void PublishTagScheduleEvent(TagScheduleEvent e);

@@ -4,10 +4,11 @@ using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Factory;
 using SmartIOT.Connector.Core.Util;
 using SmartIOT.Connector.Messages;
+using SmartIOT.Connector.Messages.Serializers;
 
 namespace SmartIOT.Connector.Mqtt
 {
-	public class MqttSchedulerConnectorFactory : IConnectorFactory
+	public class MqttConnectorFactory : IConnectorFactory
 	{
 		private const string DefaultExceptionTopicPattern = "exceptions";
 		private const string DefaultDeviceStatusEventsTopicPattern = "deviceStatus/device${DeviceId}";
@@ -34,32 +35,32 @@ namespace SmartIOT.Connector.Mqtt
 
 			if (connectionString.ToLower().StartsWith("mqttclient://", StringComparison.InvariantCultureIgnoreCase))
 			{
-				return new MqttSchedulerConnector(ParseConnectorOptions(tokens), new MqttClientEventPublisher(ParseMessageSerializer(tokens), ParseMqttClientEventPublisherOptions(tokens)));
+				return new MqttConnector(ParseConnectorOptions(tokens), new MqttClientEventPublisher(ParseMessageSerializer(tokens), ParseMqttClientEventPublisherOptions(tokens)));
 			}
 			if (connectionString.ToLower().StartsWith("mqttserver://", StringComparison.InvariantCultureIgnoreCase))
 			{
-				return new MqttSchedulerConnector(ParseConnectorOptions(tokens), new MqttServerEventPublisher(ParseMessageSerializer(tokens), ParseMqttServerEventPublisherOptions(tokens)));
+				return new MqttConnector(ParseConnectorOptions(tokens), new MqttServerEventPublisher(ParseMessageSerializer(tokens), ParseMqttServerEventPublisherOptions(tokens)));
 			}
 
 			return null;
 		}
 
-		private MqttSchedulerConnectorOptions ParseConnectorOptions(IDictionary<string, string> tokens)
+		private MqttConnectorOptions ParseConnectorOptions(IDictionary<string, string> tokens)
 		{
-			return new MqttSchedulerConnectorOptions()
+			return new MqttConnectorOptions()
 			{
 				IsPublishWriteEvents = "true".Equals(tokens.GetOrDefault(PublishWriteEventsKey), StringComparison.InvariantCultureIgnoreCase)
 			};
 		}
 
-		private IMessageSerializer ParseMessageSerializer(IDictionary<string, string> tokens)
+		private ISingleMessageSerializer ParseMessageSerializer(IDictionary<string, string> tokens)
 		{
 			var s = tokens.GetOrDefault("serializer");
 
 			if ("protobuf".Equals(s, StringComparison.InvariantCultureIgnoreCase))
-				return new ProtobufMessageSerializer();
+				return new ProtobufSingleMessageSerializer();
 
-			return new JsonMessageSerializer();
+			return new JsonSingleMessageSerializer();
 		}
 
 		private MqttClientEventPublisherOptions ParseMqttClientEventPublisherOptions(IDictionary<string, string> tokens)
