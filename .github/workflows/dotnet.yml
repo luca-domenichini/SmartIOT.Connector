@@ -20,6 +20,18 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore SmartIOT.Connector.sln
     - name: Build
-      run: dotnet build --no-restore SmartIOT.Connector.sln
+      run: dotnet build -c Release --no-restore /p:version=0.0.${{ github.run_number }} SmartIOT.Connector.sln
     - name: Test
-      run: dotnet test --no-build --verbosity normal SmartIOT.Connector.sln
+      run: dotnet test -c Release --no-build --verbosity normal SmartIOT.Connector.sln
+    - name: Pack
+      run: dotnet pack -c Release /p:version=0.0.${{ github.run_number }} SmartIOT.Connector.sln
+    - name: NugetPublish
+      run: |
+        dotnet nuget push Connectors\SmartIOT.Connector.Mqtt\bin\Release\SmartIOT.Connector.Mqtt.0.0.${{ github.run_number }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        dotnet nuget push Core\SmartIOT.Connector.Messages\bin\Release\SmartIOT.Connector.Messages.0.0.${{ github.run_number }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        dotnet nuget push Core\SmartIOT.Connector.Prometheus\bin\Release\SmartIOT.Connector.Prometheus.0.0.${{ github.run_number }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        dotnet nuget push Core\SmartIOT.Connector.Core\bin\Release\SmartIOT.Connector.Core.0.0.${{ github.run_number }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        dotnet nuget push Devices\SmartIOT.Connector.Plc.S7Net\bin\Release\SmartIOT.Connector.Plc.S7Net.0.0.${{ github.run_number }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        dotnet nuget push Devices\SmartIOT.Connector.Plc.Snap7\bin\Release\SmartIOT.Connector.Plc.Snap7.0.0.${{ github.run_number }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        dotnet nuget push Runners\SmartIOT.Connector.Runner.Console\bin\Release\SmartIOT.Connector.Runner.Console.0.0.${{ github.run_number }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        
