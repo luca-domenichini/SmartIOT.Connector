@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\SmartIOT.Connector.Core\SmartIOT.Connector.Core.csproj" />
-    <ProjectReference Include="..\Core\SmartIOT.Connector.Messages\SmartIOT.Connector.Messages.csproj" />
+    <ProjectReference Include="..\..\Core\SmartIOT.Connector.Core\SmartIOT.Connector.Core.csproj" />
+    <ProjectReference Include="..\..\Core\SmartIOT.Connector.Messages\SmartIOT.Connector.Messages.csproj" />
   </ItemGroup>
 
 </Project>

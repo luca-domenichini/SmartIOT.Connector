@@ -22,9 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SmartIOT.Connector.Tcp\SmartIOT.Connector.Tcp.csproj" />
-    <ProjectReference Include="..\Tests\SmartIOT.Connector.Core.Tests\SmartIOT.Connector.Core.Tests.csproj" />
-    <ProjectReference Include="..\Tests\SmartIOT.Connector.Device.Mocks\SmartIOT.Connector.Device.Mocks.csproj" />
+    <ProjectReference Include="..\..\Connectors\SmartIOT.Connector.Tcp\SmartIOT.Connector.Tcp.csproj" />
+    <ProjectReference Include="..\..\Core\SmartIOT.Connector.Core\SmartIOT.Connector.Core.csproj" />
+    <ProjectReference Include="..\SmartIOT.Connector.Core.Tests\SmartIOT.Connector.Core.Tests.csproj" />
   </ItemGroup>
 
 </Project>
