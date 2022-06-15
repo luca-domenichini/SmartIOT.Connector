@@ -20,7 +20,7 @@ jobs:
       run: echo "::set-output name=date::$(date +'%y%m%d%H')"
     - name: Set Version variable
       id: version
-      run: echo "::set-output name=VERSION::0.1.${{ steps.date.outputs.date }}.${{ github.run_number }}$VERSION_SUFFIX"
+      run: echo "::set-output name=VERSION::0.1.${{ steps.date.outputs.date }}.${{ github.run_number }}${{ env.VERSION_SUFFIX }}"
     - uses: actions/checkout@v3
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
