@@ -102,7 +102,7 @@ Currently Siemens PLCs support is provided by Snap7 library (http://snap7.source
 
 ## Disclaimer
 
-As of version 0.0.x, interfaces and implementation details are subject to change without notice.
+As of version 0.x, interfaces and implementation details are subject to change without notice.
 I will do my best to keep the interfaces stable, but there are possibilities to incur in such breaking changes.
 
 **currently Siemens PLCs are the only supported devices
@@ -113,6 +113,7 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
  - [ ] GRPC Server Connector
  - [ ] TCP Server Connector
  - [X] TCP Client Connector
+   - [ ] TCP Client docs missing!
  - [ ] Web app Connector with monitoring capabilities (included in default Runner project)
  - [ ] Extensibility docs
    - [ ] How to create and plug a custom device
