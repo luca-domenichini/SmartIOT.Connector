@@ -1,12 +1,14 @@
 ﻿namespace SmartIOT.Connector.Core.Factory
 {
+	/// <summary>
+	/// This interface represents a connector factory used to create the connector to communicate with external systems.
+	/// </summary>
 	public interface IConnectorFactory
 	{
 		/// <summary>
-		/// Questa interfaccia rappresenta una factory dei connector con il quale avviene la comunicazione
-		/// con sitemi esterni da parte del modulo driver.
+		/// Method used to create the IConnector for a given connectionString.
 		/// </summary>
-		/// <returns>Il metodo ritorna un IConnector oppure null se non è in grado di manipolare la connectionString indicata.</returns>
+		/// <returns>The method returns an IConnector or null if this factory is not able to create an IConnector for the provided connectionString</returns>
 		public IConnector? CreateConnector(string connectionString);
 	}
 }

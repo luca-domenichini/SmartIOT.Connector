@@ -63,7 +63,11 @@ namespace SmartIOT.Connector.Tcp.Client
 			{
 				try
 				{
-					_messageSerializer.SerializeMessage(tcpClient.GetStream(), message);
+					// locking on tcpClient to handle concurrency on message events vs initialization
+					lock (tcpClient)
+					{
+						_messageSerializer.SerializeMessage(tcpClient.GetStream(), message);
+					}
 				}
 				catch (Exception ex)
 				{
@@ -117,27 +121,31 @@ namespace SmartIOT.Connector.Tcp.Client
 								{
 									try
 									{
-										// send initialization events
-										connectorInterface.InitializationActionDelegate.Invoke((deviceStatusEvents, tagEvents) =>
+										// locking on tcpClient to handle concurrency on message events vs initialization
+										lock (tcpClient)
 										{
-											foreach (var e in deviceStatusEvents)
+											TcpClient = tcpClient;
+
+											// send initialization events
+											connectorInterface.InitializationActionDelegate.Invoke((deviceStatusEvents, tagEvents) =>
 											{
-												PublishDeviceStatusEvent(e, tcpClient);
+												foreach (var e in deviceStatusEvents)
+												{
+													PublishDeviceStatusEvent(e, tcpClient);
+												}
+												foreach (var e in tagEvents)
+												{
+													PublishTagScheduleEvent(e, tcpClient, true);
+												}
 											}
-											foreach (var e in tagEvents)
-											{
-												PublishTagScheduleEvent(e, tcpClient, true);
-											}
+											, () => { });
+
+											Connected?.Invoke(this, new TcpClientConnectedEventArgs(_options.ServerAddress, _options.ServerPort));
+
+											connectorInterface.ConnectedDelegate.Invoke(connector, $"TcpClient Connector connected to server {_options.ServerAddress}:{_options.ServerPort}");
+
+											StartReadMessagesTask(tcpClient);
 										}
-										, () => { });
-
-										Connected?.Invoke(this, new TcpClientConnectedEventArgs(_options.ServerAddress, _options.ServerPort));
-
-										connectorInterface.ConnectedDelegate.Invoke(connector, $"TcpClient Connector connected to server {_options.ServerAddress}:{_options.ServerPort}");
-
-										StartReadMessagesTask(tcpClient);
-
-										TcpClient = tcpClient;
 									}
 									catch (Exception ex)
 									{

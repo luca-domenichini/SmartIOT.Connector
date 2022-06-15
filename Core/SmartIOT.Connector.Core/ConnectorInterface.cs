@@ -18,21 +18,29 @@ namespace SmartIOT.Connector.Core
 
 	public delegate void ConnectorConnectedDelegate(IConnector connector, string info);
 
+	public delegate void ConnectorConnectionFailedDelegate(IConnector connector, string info, Exception exception);
+
 	public delegate void ConnectorDisconnectedDelegate(IConnector connector, string info);
+
+	public delegate void ConnectorExceptionDelegate(IConnector connector, Exception exception);
 
 	public class ConnectorInterface
 	{
 		public InitializationActionDelegate InitializationActionDelegate { get; }
 		public RequestTagWriteDelegate RequestTagWriteDelegate { get; }
 		public ConnectorConnectedDelegate ConnectedDelegate { get; }
+		public ConnectorConnectionFailedDelegate ConnectionFailedDelegate { get; }
 		public ConnectorDisconnectedDelegate DisconnectedDelegate { get; }
+		public ConnectorExceptionDelegate ConnectorExceptionDelegate { get; }
 
-		public ConnectorInterface(InitializationActionDelegate initializationActionDelegate, RequestTagWriteDelegate requestDataWriteDelegate, ConnectorConnectedDelegate connectedDelegate, ConnectorDisconnectedDelegate disconnectedDelegate)
+		public ConnectorInterface(InitializationActionDelegate initializationActionDelegate, RequestTagWriteDelegate requestDataWriteDelegate, ConnectorConnectedDelegate connectedDelegate, ConnectorConnectionFailedDelegate connectionFailedDelegate, ConnectorDisconnectedDelegate disconnectedDelegate, ConnectorExceptionDelegate connectorExceptionDelegate)
 		{
 			InitializationActionDelegate = initializationActionDelegate;
 			RequestTagWriteDelegate = requestDataWriteDelegate;
 			ConnectedDelegate = connectedDelegate;
+			ConnectionFailedDelegate = connectionFailedDelegate;
 			DisconnectedDelegate = disconnectedDelegate;
+			ConnectorExceptionDelegate = connectorExceptionDelegate;
 		}
 	}
 }

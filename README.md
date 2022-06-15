@@ -133,7 +133,13 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 
 ## Technical TODO list
 
- - [ ] Leverage the async pattern for Connectors
+ - [ ] Leverage the async pattern for Connectors and Devices:
+	   introduce <code>IAsyncDeviceDriver</code> and <code>IAsyncConnector</code> and add support to autodiscover and run them
  - [ ] The proto files should be part of SmartIOT.Connector.Messages project
  - [ ] Introduce tag free parameters string in TagConfiguration
+ - [ ] Events raised from IConnectorEventPublisher should be forwarded to IConnector, and then?
+       Maybe it could be useful to have an event listener defined in json configuration file to be able to notify the exceptions caught?
+       Should this mechanism be used extensively for all events?
+ - [ ] ConnectorInterface should be refactored to a real interface, implemented by SmartIOTConnector class
+ - [ ] Plug ConnectorStartedEvent,  ConnectorStoppedEvent, ConnectorConnectedEvent, ConnectorDisconnectedEvent, ConnectorConnectionFailedEvent
 

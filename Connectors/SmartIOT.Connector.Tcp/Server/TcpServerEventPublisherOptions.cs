@@ -1,4 +1,4 @@
-﻿namespace SmartIOT.Connector.Mqtt.Server
+﻿namespace SmartIOT.Connector.Tcp.Server
 {
 	public class TcpServerEventPublisherOptions
 	{

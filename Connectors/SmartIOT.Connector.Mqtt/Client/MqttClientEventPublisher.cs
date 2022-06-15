@@ -21,6 +21,7 @@ namespace SmartIOT.Connector.Mqtt.Client
 		private IConnector? _connector;
 		private ConnectorInterface? _connectorInterface;
 
+		manca l'evento onException?
 		public event EventHandler<ManagedProcessFailedEventArgs>? ConnectionFailed;
 		public event EventHandler<MqttClientDisconnectedEventArgs>? Disconnected;
 		public event EventHandler<MqttClientConnectedEventArgs>? Connected;

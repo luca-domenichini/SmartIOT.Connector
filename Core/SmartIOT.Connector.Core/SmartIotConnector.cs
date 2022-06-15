@@ -16,6 +16,8 @@ namespace SmartIOT.Connector.Core
 		public event EventHandler<EventArgs>? Started;
 		public event EventHandler<EventArgs>? Stopping;
 		public event EventHandler<EventArgs>? Stopped;
+		add connector specifif exception event
+		add connectionFailed event
 		public event EventHandler<ConnectorConnectedEventArgs>? ConnectorConnected;
 		public event EventHandler<ConnectorDisconnectedEventArgs>? ConnectorDisconnected;
 

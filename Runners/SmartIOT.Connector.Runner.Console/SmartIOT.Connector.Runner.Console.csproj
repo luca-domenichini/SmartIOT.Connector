@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Connectors\SmartIOT.Connector.Mqtt\SmartIOT.Connector.Mqtt.csproj" />
+    <ProjectReference Include="..\..\Connectors\SmartIOT.Connector.Tcp\SmartIOT.Connector.Tcp.csproj" />
     <ProjectReference Include="..\..\Core\SmartIOT.Connector.Core\SmartIOT.Connector.Core.csproj" />
     <ProjectReference Include="..\..\Core\SmartIOT.Connector.Messages\SmartIOT.Connector.Messages.csproj" />
     <ProjectReference Include="..\..\Core\SmartIOT.Connector.Prometheus\SmartIOT.Connector.Prometheus.csproj" />
