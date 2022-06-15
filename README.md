@@ -16,10 +16,10 @@ SmartIOT.Connector is a good fit for industrial and automation needs, where deve
 The following quick start creates an SmartIOT.Connector instance that connects to a device (namely a Siemens PLC) and reads 100 bytes from Tag 20.<br/>
 Whenever a change is detected in the tag, a message is published to the Mqtt Server specified in the connection string below.<br/>
 It also listens for incoming messages in topic <code>tagWrite</code> and tries to write data to tag 22.<br/>
-For message formats, read the docs [here for project SmartIOT.Connector.Messages](./Core/SmartIOT.Connector.Messages/README.md). [JSON serializer](./Connectors/SmartIOT.Connector.Mqtt/JsonMessageSerializer.cs) is used by default, but [Protobuf](./Connectors/SmartIOT.Connector.Mqtt/ProtobufMessageSerializer.cs) can also be used, or even your own serializer.
+For message formats, read the docs [here for project SmartIOT.Connector.Messages](./Core/SmartIOT.Connector.Messages/README.md). JSON serializer is used by default, but Protobuf can also be used, or even your own serializer.
 
 1. Create a configuration json file (see [this file](./Docs/Configuration.md) for configuration reference):
-```
+```json
 {
 	"ConnectorConnectionStrings": [
 		"mqttClient://Server=<IpAddress or hostname>;ClientId=MyClient;Port=1883"
@@ -62,7 +62,7 @@ For message formats, read the docs [here for project SmartIOT.Connector.Messages
 
 2. Use SmartIotConnectorBuilder to create the connector and run it:
 
-```
+```csharp
 // Build SmartIOT.Connector and bind it to your DI container or wherever you can do this:
 var smartiot = new SmartIOT.Connector.Core.SmartIotConnectorBuilder()
 	.WithAutoDiscoverDeviceDriverFactories()

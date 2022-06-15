@@ -446,18 +446,21 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
 			server.ApplicationMessageReceivedHandler = new MqttApplicationMessageReceivedHandlerDelegate(eventArgs =>
 			{
-				if (eventArgs.ApplicationMessage.Topic.StartsWith("tagRead/"))
+				lock (this) // lock to do asserts safely
 				{
-					tagEvents.Add(serializer.DeserializeMessage<TagEvent>(eventArgs.ApplicationMessage.Payload)!);
-					tagEvent.Set();
+					if (eventArgs.ApplicationMessage.Topic.StartsWith("tagRead/"))
+					{
+						tagEvents.Add(serializer.DeserializeMessage<TagEvent>(eventArgs.ApplicationMessage.Payload)!);
+						tagEvent.Set();
+					}
+					else if (eventArgs.ApplicationMessage.Topic.StartsWith("deviceStatus/"))
+					{
+						deviceStatusEvents.Add(serializer.DeserializeMessage<DeviceEvent>(eventArgs.ApplicationMessage.Payload)!);
+						deviceStatusEvent.Set();
+					}
+					else
+						otherMessages.Add(eventArgs.ApplicationMessage);
 				}
-				else if (eventArgs.ApplicationMessage.Topic.StartsWith("deviceStatus/"))
-				{
-					deviceStatusEvents.Add(serializer.DeserializeMessage<DeviceEvent>(eventArgs.ApplicationMessage.Payload)!);
-					deviceStatusEvent.Set();
-				}
-				else
-					otherMessages.Add(eventArgs.ApplicationMessage);
 			});
 
 			var publisher = new MqttClientEventPublisher(serializer, new MqttClientEventPublisherOptions(Guid.NewGuid().ToString("N"), "localhost", 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", "", ""));
@@ -496,11 +499,14 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				else
 					Thread.Sleep(2000); // wait 2 sec for otherMessages
 
-				Assert.Equal(0, otherMessages.Count);
-				Assert.True(tagEvents.Count > 0);
-				Assert.All(tagEvents, x => Assert.True(x.DeviceId == "1" && (x.TagId == "DB20" || x.TagId == "DB22") && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100)); // N eventi di lettura completa (MqttEventPublisher publica sempre tutto il tag)
-				Assert.True(deviceStatusEvents.Count > 0);
-				Assert.True(deviceStatusEvents.All(x => x.DeviceId == "1" && x.DeviceStatus == DeviceStatus.OK && x.ErrorNumber == 0 && string.IsNullOrEmpty(x.Description)));
+				lock (this)
+				{
+					Assert.Equal(0, otherMessages.Count);
+					Assert.True(tagEvents.Count > 0);
+					Assert.All(tagEvents, x => Assert.True(x.DeviceId == "1" && (x.TagId == "DB20" || x.TagId == "DB22") && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100)); // N eventi di lettura completa (MqttEventPublisher publica sempre tutto il tag)
+					Assert.True(deviceStatusEvents.Count > 0);
+					Assert.True(deviceStatusEvents.All(x => x.DeviceId == "1" && x.DeviceStatus == DeviceStatus.OK && x.ErrorNumber == 0 && string.IsNullOrEmpty(x.Description)));
+				}
 
 				// test scrittura dati
 				var wasWritten = new AutoResetEvent(false);
