@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "develop" ]
 
+env:
+  VERSION_SUFFIX: -beta
+
 jobs:
   build:
 
@@ -17,7 +20,7 @@ jobs:
       run: echo "::set-output name=date::$(date +'%y%m%d%H')"
     - name: Set Version variable
       id: version
-      run: echo "::set-output name=VERSION::0.1.${{ steps.date.outputs.date }}-beta"
+      run: echo "::set-output name=VERSION::0.1.${{ steps.date.outputs.date }}.${{ github.run_id }}$VERSION_SUFFIX"
     - uses: actions/checkout@v3
     - name: Setup .NET
       uses: actions/setup-dotnet@v2

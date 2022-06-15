@@ -8,6 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		docker-build-runner-console.bat = docker-build-runner-console.bat
 		docker-run-runner-console.bat = docker-run-runner-console.bat
+		dotnet-build-and-push.bat = dotnet-build-and-push.bat
 		.github\workflows\dotnet-develop.yml = .github\workflows\dotnet-develop.yml
 		LICENSE = LICENSE
 		.github\workflows\dotnet-master.yml = .github\workflows\dotnet-master.yml
