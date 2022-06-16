@@ -3,11 +3,10 @@ using SmartIOT.Connector.Core.Scheduler;
 
 namespace SmartIOT.Connector.Core
 {
-	public class SmartIotConnector
+	public class SmartIotConnector : ISmartIOTConnectorInterface
 	{
 		private readonly List<ITagScheduler> _schedulers;
 		private readonly List<IConnector> _connectors;
-		private readonly ConnectorInterface _connectorInterface;
 
 		public IReadOnlyList<ITagScheduler> Schedulers => _schedulers;
 		public IReadOnlyList<IConnector> Connectors => _connectors;
@@ -16,10 +15,10 @@ namespace SmartIOT.Connector.Core
 		public event EventHandler<EventArgs>? Started;
 		public event EventHandler<EventArgs>? Stopping;
 		public event EventHandler<EventArgs>? Stopped;
-		add connector specifif exception event
-		add connectionFailed event
 		public event EventHandler<ConnectorConnectedEventArgs>? ConnectorConnected;
+		public event EventHandler<ConnectorConnectionFailedEventArgs>? ConnectorConnectionFailed;
 		public event EventHandler<ConnectorDisconnectedEventArgs>? ConnectorDisconnected;
+		public event EventHandler<ConnectorExceptionEventArgs>? ConnectorException;
 
 		public event EventHandler<DeviceDriverRestartingEventArgs>? SchedulerRestarting
 		{
@@ -149,13 +148,6 @@ namespace SmartIOT.Connector.Core
 		}
 		public SmartIotConnector(IList<ITagScheduler> schedulers, IList<IConnector> connectors)
 		{
-			_connectorInterface = new ConnectorInterface(
-				RunInitializationAction
-				, RequestDataWrite
-				, (connector, info) => ConnectorConnected?.Invoke(this, new ConnectorConnectedEventArgs(new ConnectorConnectedEvent(connector, info)))
-				, (connector, info) => ConnectorDisconnected?.Invoke(this, new ConnectorDisconnectedEventArgs(new ConnectorDisconnectedEvent(connector, info)))
-			);
-
 			_schedulers = new List<ITagScheduler>(schedulers);
 			_connectors = new List<IConnector>(connectors);
 		}
@@ -166,7 +158,7 @@ namespace SmartIOT.Connector.Core
 
 			foreach (var connector in _connectors)
 			{
-				connector.Start(_connectorInterface);
+				connector.Start(this);
 			}
 
 			foreach (var scheduler in _schedulers)
@@ -177,7 +169,7 @@ namespace SmartIOT.Connector.Core
 			Started?.Invoke(this, new EventArgs());
 		}
 
-		private void RequestDataWrite(string deviceId, string tagId, int startOffset, byte[] data)
+		public void RequestTagWrite(string deviceId, string tagId, int startOffset, byte[] data)
 		{
 			foreach (var scheduler in Schedulers)
 			{
@@ -223,14 +215,12 @@ namespace SmartIOT.Connector.Core
 			return somethingChanged;
 		}
 
-		private void RunInitializationAction(Action<IList<DeviceStatusEvent>, IList<TagScheduleEvent>> initAction, Action afterInitAction)
+		public void RunInitializationAction(Action<IList<DeviceStatusEvent>, IList<TagScheduleEvent>> initAction)
 		{
 			foreach (var scheduler in _schedulers)
 			{
 				scheduler.RunInitializationAction(initAction);
 			}
-
-			afterInitAction.Invoke();
 		}
 
 		public void Stop()
@@ -250,5 +240,24 @@ namespace SmartIOT.Connector.Core
 			Stopped?.Invoke(this, new EventArgs());
 		}
 
+		public void OnConnectorConnected(ConnectorConnectedEventArgs args)
+		{
+			ConnectorConnected?.Invoke(this, args);
+		}
+
+		public void OnConnectorConnectionFailed(ConnectorConnectionFailedEventArgs args)
+		{
+			ConnectorConnectionFailed?.Invoke(this, args);
+		}
+
+		public void OnConnectorDisconnected(ConnectorDisconnectedEventArgs args)
+		{
+			ConnectorDisconnected?.Invoke(this, args);
+		}
+
+		public void OnConnectorException(ConnectorExceptionEventArgs args)
+		{
+			ConnectorException?.Invoke(this, args);
+		}
 	}
 }

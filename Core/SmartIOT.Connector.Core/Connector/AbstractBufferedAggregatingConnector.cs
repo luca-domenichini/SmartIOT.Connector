@@ -72,7 +72,7 @@ namespace SmartIOT.Connector.Core.Connector
 				|| tagScheduleEvent.TagScheduleEvent.IsErrorNumberChanged;
 		}
 
-		public virtual void Start(ConnectorInterface connectorInterface)
+		public virtual void Start(ISmartIOTConnectorInterface connectorInterface)
 		{
 			_thread?.Start();
 		}

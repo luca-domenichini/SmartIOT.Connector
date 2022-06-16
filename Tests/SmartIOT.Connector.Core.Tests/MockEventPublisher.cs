@@ -8,9 +8,9 @@ namespace SmartIOT.Connector.Core.Tests
 {
 	public class MockEventPublisher : Mock<IConnectorEventPublisher>, IConnectorEventPublisher
 	{
-		private ConnectorInterface? _connectorInterface;
+		private ISmartIOTConnectorInterface? _connectorInterface;
 
-		public void Start(IConnector connector, ConnectorInterface connectorInterface)
+		public void Start(IConnector connector, ISmartIOTConnectorInterface connectorInterface)
 		{
 			_connectorInterface = connectorInterface;
 			Object.Start(connector, connectorInterface);
@@ -38,7 +38,7 @@ namespace SmartIOT.Connector.Core.Tests
 
 		public void RequestTagWrite(TagWriteRequestCommand command)
 		{
-			_connectorInterface?.RequestTagWriteDelegate.Invoke(command.DeviceId, command.TagId, command.StartOffset, command.Data);
+			_connectorInterface!.RequestTagWrite(command.DeviceId, command.TagId, command.StartOffset, command.Data);
 		}
 	}
 }

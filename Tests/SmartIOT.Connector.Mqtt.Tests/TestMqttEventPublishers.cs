@@ -53,7 +53,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
 				module.Stop();
 
-				publisher.Verify(x => x.Start(It.IsAny<MqttConnector>(), It.IsAny<ConnectorInterface>()), Times.Once);
+				publisher.Verify(x => x.Start(It.IsAny<MqttConnector>(), It.IsAny<ISmartIOTConnectorInterface>()), Times.Once);
 				publisher.Verify(x => x.Stop(), Times.Once);
 				publisher.Verify(x => x.PublishDeviceStatusEvent(It.IsAny<DeviceStatusEvent>()), Times.AtLeastOnce);
 				publisher.Verify(x => x.PublishTagScheduleEvent(It.Is<TagScheduleEvent>(x => x.Tag.TagId == "DB20")), Times.AtLeastOnce);
@@ -286,8 +286,10 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			Assert.Equal(0, tagEvents.Count);
 			Assert.Equal(0, deviceStatusEvents.Count);
 
-			ConnectorInterface i = new ConnectorInterface(
-				(initAction, afterAction) =>
+			var connectorInterface = new Mock<ISmartIOTConnectorInterface>();
+
+			connectorInterface.Setup(x => x.RunInitializationAction(It.IsAny<Action<IList<DeviceStatusEvent>, IList<TagScheduleEvent>>>()))
+				.Callback((Action<IList<DeviceStatusEvent>, IList<TagScheduleEvent>> initAction) =>
 				{
 					var listDeviceEvents = new List<DeviceStatusEvent>();
 					var listTagEvents = new List<TagScheduleEvent>();
@@ -298,23 +300,19 @@ namespace SmartIOT.Connector.Mqtt.Tests
 					listTagEvents.Add(TagScheduleEvent.BuildTagData(device, tag, false));
 
 					initAction.Invoke(listDeviceEvents, listTagEvents);
-					afterAction.Invoke();
-				}
-				, (deviceId, tagId, data, startOffset) =>
-				{
+				});
 
-				}
-				, (c, msg) =>
+			connectorInterface.Setup(x => x.OnConnectorConnected(It.IsAny<ConnectorConnectedEventArgs>()))
+				.Callback((ConnectorConnectedEventArgs e) =>
 				{
 					connectedEvent.Set();
-				}
-				, (c, msg) => { });
+				});
 
 			var client = new MqttFactory().CreateMqttClient();
 
 			try
 			{
-				connector.Start(i);
+				connector.Start(connectorInterface.Object);
 
 				var mqttClientOptions = new MqttClientOptionsBuilder()
 					.WithTcpServer("localhost", 1883)

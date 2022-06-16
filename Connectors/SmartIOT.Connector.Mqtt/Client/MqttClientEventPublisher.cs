@@ -19,12 +19,7 @@ namespace SmartIOT.Connector.Mqtt.Client
 		private readonly ISingleMessageSerializer _messageSerializer;
 		private bool _connected;
 		private IConnector? _connector;
-		private ConnectorInterface? _connectorInterface;
-
-		manca l'evento onException?
-		public event EventHandler<ManagedProcessFailedEventArgs>? ConnectionFailed;
-		public event EventHandler<MqttClientDisconnectedEventArgs>? Disconnected;
-		public event EventHandler<MqttClientConnectedEventArgs>? Connected;
+		private ISmartIOTConnectorInterface? _connectorInterface;
 
 		public MqttClientEventPublisher(ISingleMessageSerializer messageSerializer, MqttClientEventPublisherOptions options)
 		{
@@ -51,7 +46,7 @@ namespace SmartIOT.Connector.Mqtt.Client
 			_mqttClient.UseApplicationMessageReceivedHandler(e => OnApplicationMessageReceived(e));
 		}
 
-		public void Start(IConnector connector, ConnectorInterface connectorInterface)
+		public void Start(IConnector connector, ISmartIOTConnectorInterface connectorInterface)
 		{
 			_connector = connector;
 			_connectorInterface = connectorInterface;
@@ -65,15 +60,13 @@ namespace SmartIOT.Connector.Mqtt.Client
 
 		private void OnConnectionFailed(ManagedProcessFailedEventArgs e)
 		{
-			ConnectionFailed?.Invoke(this, e);
+			_connectorInterface!.OnConnectorConnectionFailed(new ConnectorConnectionFailedEventArgs(_connector!, $"MqttClient Connector {_options.ClientId} connection failed to host {_options.ServerAddress}:{_options.ServerPort}: {e.Exception.Message}", e.Exception));
 		}
 
 		private void OnDisconnected(MqttClientDisconnectedEventArgs e)
 		{
 			_connected = false;
-			Disconnected?.Invoke(this, e);
-
-			_connectorInterface?.DisconnectedDelegate.Invoke(_connector!, $"ClientId {_options.ClientId} disconnected from server {_options.ServerAddress}:{_options.ServerPort}");
+			_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"ClientId {_options.ClientId} disconnected from server {_options.ServerAddress}:{_options.ServerPort}: {e.ConnectResult.ReasonString}", e.Exception));
 		}
 
 		private void OnApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs e)
@@ -82,7 +75,7 @@ namespace SmartIOT.Connector.Mqtt.Client
 			{
 				var command = _messageSerializer.DeserializeMessage<TagWriteRequestCommand>(e.ApplicationMessage.Payload);
 				if (command != null)
-					_connectorInterface?.RequestTagWriteDelegate.Invoke(command.DeviceId, command.TagId, command.StartOffset, command.Data);
+					_connectorInterface!.RequestTagWrite(command.DeviceId, command.TagId, command.StartOffset, command.Data);
 			}
 		}
 
@@ -90,7 +83,7 @@ namespace SmartIOT.Connector.Mqtt.Client
 		{
 			_mqttClient.SubscribeAsync(_options.TagWriteRequestCommandsTopicRoot, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce).Wait();
 
-			_connectorInterface?.InitializationActionDelegate.Invoke(
+			_connectorInterface!.RunInitializationAction(
 				initAction: (deviceEvents, tagEvents) =>
 				{
 					foreach (var deviceEvent in deviceEvents)
@@ -101,15 +94,10 @@ namespace SmartIOT.Connector.Mqtt.Client
 					{
 						PublishTagScheduleEvent(tagEvent, true);
 					}
-				},
-				afterInitAction: () =>
-				{
-					_connected = true; // una volta che ho inviato lo stato attuale, posso settare il publisher come OK
 				});
 
-			Connected?.Invoke(this, e);
-
-			_connectorInterface?.ConnectedDelegate.Invoke(_connector!, $"ClientId {_options.ClientId} connected to server {_options.ServerAddress}:{_options.ServerPort}");
+			_connected = true; // once initialized the publisher is OK
+			_connectorInterface!.OnConnectorConnected(new ConnectorConnectedEventArgs(_connector!, $"ClientId {_options.ClientId} connected to server {_options.ServerAddress}:{_options.ServerPort}"));
 		}
 
 		public void PublishException(Exception exception)

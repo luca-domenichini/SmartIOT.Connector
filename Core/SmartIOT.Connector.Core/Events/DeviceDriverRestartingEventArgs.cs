@@ -2,11 +2,11 @@
 {
 	public class DeviceDriverRestartingEventArgs : EventArgs
 	{
-		public DeviceDriverRestartingEvent Event { get; }
+		public IDeviceDriver DeviceDriver { get; }
 
-		public DeviceDriverRestartingEventArgs(DeviceDriverRestartingEvent @event)
+		public DeviceDriverRestartingEventArgs(IDeviceDriver deviceDriver)
 		{
-			Event = @event;
+			DeviceDriver = deviceDriver;
 		}
 	}
 }

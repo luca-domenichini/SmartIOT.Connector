@@ -2,11 +2,13 @@
 {
 	public class ConnectorStartedEventArgs : EventArgs
 	{
-		public ConnectorStartedEvent Event { get; }
+		public IConnector Connector { get; }
+		public string Info { get; }
 
-		public ConnectorStartedEventArgs(ConnectorStartedEvent @event)
+		public ConnectorStartedEventArgs(IConnector connector, string info)
 		{
-			Event = @event;
+			Connector = connector;
+			Info = info;
 		}
 	}
 }

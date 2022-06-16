@@ -4,7 +4,7 @@ namespace SmartIOT.Connector.Core.Connector
 {
 	public interface IConnectorEventPublisher
 	{
-		void Start(IConnector connector, ConnectorInterface connectorInterface);
+		void Start(IConnector connector, ISmartIOTConnectorInterface connectorInterface);
 		void Stop();
 
 		void PublishTagScheduleEvent(TagScheduleEvent e);

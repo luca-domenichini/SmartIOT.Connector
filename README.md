@@ -142,4 +142,6 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
        Should this mechanism be used extensively for all events?
  - [ ] ConnectorInterface should be refactored to a real interface, implemented by SmartIOTConnector class
  - [ ] Plug ConnectorStartedEvent,  ConnectorStoppedEvent, ConnectorConnectedEvent, ConnectorDisconnectedEvent, ConnectorConnectionFailedEvent
+ - [ ] Review all events whether they are used
+ - [ ] Review Info messages on events
 

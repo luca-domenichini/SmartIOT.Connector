@@ -1,3 +1,4 @@
+using Moq;
 using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Conf;
 using SmartIOT.Connector.Core.Connector;
@@ -94,8 +95,10 @@ namespace SmartIOT.Connector.Tcp.Tests
 			Assert.Equal(0, tagEvents.Count);
 			Assert.Equal(0, deviceStatusEvents.Count);
 
-			ConnectorInterface i = new ConnectorInterface(
-				(initAction, afterAction) =>
+			var connectorInterface = new Mock<ISmartIOTConnectorInterface>();
+
+			connectorInterface.Setup(x => x.RunInitializationAction(It.IsAny<Action<IList<DeviceStatusEvent>, IList<TagScheduleEvent>>>()))
+				.Callback((Action<IList<DeviceStatusEvent>, IList<TagScheduleEvent>> initAction) =>
 				{
 					var listDeviceEvents = new List<DeviceStatusEvent>();
 					var listTagEvents = new List<TagScheduleEvent>();
@@ -106,17 +109,13 @@ namespace SmartIOT.Connector.Tcp.Tests
 					listTagEvents.Add(TagScheduleEvent.BuildTagData(device, tag, false));
 
 					initAction.Invoke(listDeviceEvents, listTagEvents);
-					afterAction.Invoke();
-				}
-				, (deviceId, tagId, data, startOffset) =>
-				{
+				});
 
-				}
-				, (c, msg) =>
+			connectorInterface.Setup(x => x.OnConnectorConnected(It.IsAny<ConnectorConnectedEventArgs>()))
+				.Callback((ConnectorConnectedEventArgs e) =>
 				{
 					connectedEvent.Set();
-				}
-				, (c, msg) => { });
+				});
 
 			var server = new TcpListener(IPAddress.Loopback, 1883);
 
@@ -125,7 +124,7 @@ namespace SmartIOT.Connector.Tcp.Tests
 
 			try
 			{
-				connector.Start(i);
+				connector.Start(connectorInterface.Object);
 				server.Start();
 
 				TcpClient clientHandler = server.AcceptTcpClient();

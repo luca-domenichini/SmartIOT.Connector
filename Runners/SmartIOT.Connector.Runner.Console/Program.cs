@@ -69,18 +69,18 @@ namespace SmartIOT.Connector.Runner.Console
 				, onSchedulerRestarting: (s, e) => WriteInfo("Scheduler restarting")
 				, onSchedulerRestarted: (s, e) =>
 				{
-					if (e.Event.IsSuccess)
+					if (e.IsSuccess)
 						WriteInfo($"Scheduler restarted successfully");
 					else
-						WriteError($"Error during scheduler restart: {e.Event.ErrorDescription}");
+						WriteError($"Error during scheduler restart: {e.ErrorDescription}");
 				}
 				, onConnectorConnectedHandler: (s, e) =>
 				{
-					WriteInfo($"{e.Event.Info}");
+					WriteInfo($"{e.Info}");
 				}
 				, onConnectorDisconnectedHandler: (s, e) =>
 				{
-					WriteInfo($"{e.Event.Info}");
+					WriteInfo($"{e.Info}");
 				});
 		}
 

@@ -12,13 +12,10 @@ namespace SmartIOT.Connector.Tcp.Server
 		private readonly IStreamMessageSerializer _messageSerializer;
 		private readonly TcpServerEventPublisherOptions _options;
 		private readonly TcpListener _tcpListener;
-		private ConnectorInterface? _connectorInterface;
+		private IConnector? _connector;
+		private ISmartIOTConnectorInterface? _connectorInterface;
 		private readonly CancellationTokenSource _stopToken = new CancellationTokenSource();
 		private readonly TcpServerClientCollection _clients = new TcpServerClientCollection();
-
-		public event EventHandler<ExceptionEventArgs>? OnException;
-		public event EventHandler<TcpServerClientConnectedEventArgs>? Connected;
-		public event EventHandler<TcpServerClientDisconnectedEventArgs>? Disconnected;
 
 		public TcpServerEventPublisher(IStreamMessageSerializer messageSerializer, TcpServerEventPublisherOptions options)
 		{
@@ -54,7 +51,7 @@ namespace SmartIOT.Connector.Tcp.Server
 				{
 					CloseTcpClientQuietly(tcpClient);
 
-					Disconnected?.Invoke(this, new TcpServerClientDisconnectedEventArgs(tcpClient, ex));
+					_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"Client disconnected from TcpServer Connector: {ex.Message}", ex));
 				}
 			}
 		}
@@ -68,8 +65,9 @@ namespace SmartIOT.Connector.Tcp.Server
 			}
 		}
 
-		public void Start(IConnector connector, ConnectorInterface connectorInterface)
+		public void Start(IConnector connector, ISmartIOTConnectorInterface connectorInterface)
 		{
+			_connector = connector;
 			_connectorInterface = connectorInterface;
 
 			_tcpListener.Start();
@@ -83,7 +81,7 @@ namespace SmartIOT.Connector.Tcp.Server
 					{
 						var tcpClient = await _tcpListener.AcceptTcpClientAsync(_stopToken.Token);
 
-						StartTcpClientHandlerTask(tcpClient);
+						StartTcpClientHandlerThread(tcpClient);
 					}
 					catch (OperationCanceledException)
 					{
@@ -93,7 +91,7 @@ namespace SmartIOT.Connector.Tcp.Server
 					{
 						try
 						{
-							OnException?.Invoke(this, new ExceptionEventArgs(ex));
+							connectorInterface.OnConnectorException(new ConnectorExceptionEventArgs(connector, ex));
 						}
 						catch
 						{
@@ -104,10 +102,10 @@ namespace SmartIOT.Connector.Tcp.Server
 			});
 		}
 
-		private void StartTcpClientHandlerTask(TcpClient tcpClient)
+		private void StartTcpClientHandlerThread(TcpClient tcpClient)
 		{
 			// start a new task to handle the communication with a specific client
-			Task.Factory.StartNew(() =>
+			new Thread(() =>
 			{
 				try
 				{
@@ -116,7 +114,7 @@ namespace SmartIOT.Connector.Tcp.Server
 					{
 						_clients.Add(tcpClient);
 
-						_connectorInterface!.InitializationActionDelegate.Invoke((deviceStatusEvents, tagScheduleEvents) =>
+						_connectorInterface!.RunInitializationAction((deviceStatusEvents, tagScheduleEvents) =>
 						{
 							foreach (var deviceStatusEvent in deviceStatusEvents)
 							{
@@ -126,8 +124,7 @@ namespace SmartIOT.Connector.Tcp.Server
 							{
 								SendSingleMessage(tcpClient, tagScheduleEvent.ToEventMessage(true));
 							}
-						}
-						, () => { });
+						});
 					}
 
 					// reading messages
@@ -139,14 +136,9 @@ namespace SmartIOT.Connector.Tcp.Server
 							if (message == null)
 								break;
 
-							if (message is TagWriteRequestCommand c)
-							{
-								_connectorInterface!.RequestTagWriteDelegate.Invoke(c.DeviceId, c.TagId, c.StartOffset, c.Data);
-							}
-							else
-								throw new NotImplementedException($"Message type {message.GetType().FullName} not handled");
+							HandleMessage(message);
 						}
-						catch (OperationCanceledException)
+						catch (Exception ex) when (ex is OperationCanceledException || ex is ObjectDisposedException)
 						{
 							break;
 						}
@@ -156,7 +148,7 @@ namespace SmartIOT.Connector.Tcp.Server
 				{
 					try
 					{
-						Disconnected?.Invoke(this, new TcpServerClientDisconnectedEventArgs(tcpClient, ex));
+						_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"TcpServer Connector: unexpected exception occurred with a client: {ex.Message}", ex));
 					}
 					catch
 					{
@@ -167,7 +159,28 @@ namespace SmartIOT.Connector.Tcp.Server
 				{
 					CloseTcpClientQuietly(tcpClient);
 				}
-			});
+			})
+			{
+				IsBackground = true,
+				Name = "TcpServer.ClientHandler"
+			}.Start();
+		}
+
+		private void HandleMessage(object message)
+		{
+			switch (message)
+			{
+				case TagWriteRequestCommand c:
+					HandleTagWriteRequestCommand(c);
+					break;
+				default:
+					throw new InvalidOperationException($"Message type {message.GetType().FullName} not managed");
+			}
+		}
+
+		private void HandleTagWriteRequestCommand(TagWriteRequestCommand c)
+		{
+			_connectorInterface!.RequestTagWrite(c.DeviceId, c.TagId, c.StartOffset, c.Data);
 		}
 
 		private void CloseTcpClientQuietly(TcpClient tcpClient)

@@ -16,12 +16,8 @@ namespace SmartIOT.Connector.Tcp.Client
 		private readonly CancellationTokenSource _stopToken = new CancellationTokenSource();
 		private readonly ManualResetEventSlim _reconnectTaskTerminated = new ManualResetEventSlim();
 		private readonly CountdownLatch _readers = new CountdownLatch();
-		private ConnectorInterface? _connectorInteface;
-
-		public event EventHandler<ExceptionEventArgs>? OnException;
-		public event EventHandler<TcpClientConnectionFailedEventArgs>? ConnectionFailed;
-		public event EventHandler<TcpClientDisconnectedEventArgs>? Disconnected;
-		public event EventHandler<TcpClientConnectedEventArgs>? Connected;
+		private IConnector? _connector;
+		private ISmartIOTConnectorInterface? _connectorInterface;
 
 		public TcpClientEventPublisher(IStreamMessageSerializer messageSerializer, TcpClientEventPublisherOptions options)
 		{
@@ -71,17 +67,16 @@ namespace SmartIOT.Connector.Tcp.Client
 				}
 				catch (Exception ex)
 				{
-					Disconnected?.Invoke(this, new TcpClientDisconnectedEventArgs(_options.ServerAddress, _options.ServerPort, ex));
 					tcpClient.Close();
-
-					throw;
+					_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"TcpClient disconnected from host {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
 				}
 			}
 		}
 
-		public void Start(IConnector connector, ConnectorInterface connectorInterface)
+		public void Start(IConnector connector, ISmartIOTConnectorInterface connectorInterface)
 		{
-			_connectorInteface = connectorInterface;
+			_connector = connector;
+			_connectorInterface = connectorInterface;
 
 			Task.Factory.StartNew(async () =>
 			{
@@ -114,7 +109,7 @@ namespace SmartIOT.Connector.Tcp.Client
 									tcpClient = null;
 
 									if (ex is not OperationCanceledException)
-										ConnectionFailed?.Invoke(this, new TcpClientConnectionFailedEventArgs(_options.ServerAddress, _options.ServerPort, ex));
+										connectorInterface.OnConnectorConnectionFailed(new ConnectorConnectionFailedEventArgs(connector, $"TcpClient Connector failed to connect to host {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
 								}
 
 								if (tcpClient != null && tcpClient.Connected)
@@ -127,7 +122,7 @@ namespace SmartIOT.Connector.Tcp.Client
 											TcpClient = tcpClient;
 
 											// send initialization events
-											connectorInterface.InitializationActionDelegate.Invoke((deviceStatusEvents, tagEvents) =>
+											connectorInterface.RunInitializationAction((deviceStatusEvents, tagEvents) =>
 											{
 												foreach (var e in deviceStatusEvents)
 												{
@@ -137,12 +132,9 @@ namespace SmartIOT.Connector.Tcp.Client
 												{
 													PublishTagScheduleEvent(e, tcpClient, true);
 												}
-											}
-											, () => { });
+											});
 
-											Connected?.Invoke(this, new TcpClientConnectedEventArgs(_options.ServerAddress, _options.ServerPort));
-
-											connectorInterface.ConnectedDelegate.Invoke(connector, $"TcpClient Connector connected to server {_options.ServerAddress}:{_options.ServerPort}");
+											connectorInterface.OnConnectorConnected(new ConnectorConnectedEventArgs(connector, $"TcpClient Connector connected to server {_options.ServerAddress}:{_options.ServerPort}"));
 
 											StartReadMessagesTask(tcpClient);
 										}
@@ -152,7 +144,7 @@ namespace SmartIOT.Connector.Tcp.Client
 										tcpClient.Close();
 										tcpClient = null;
 
-										Disconnected?.Invoke(this, new TcpClientDisconnectedEventArgs(_options.ServerAddress, _options.ServerPort, ex));
+										_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(connector, $"TcpClient Connector disconnected from host {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
 									}
 								}
 							}
@@ -163,10 +155,10 @@ namespace SmartIOT.Connector.Tcp.Client
 						}
 						catch (Exception ex)
 						{
-							// unhandled exception: signal via event
+							// unhandled exception: signal via interface
 							try
 							{
-								OnException?.Invoke(this, new ExceptionEventArgs(ex));
+								_connectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(connector, ex));
 							}
 							catch
 							{
@@ -206,7 +198,7 @@ namespace SmartIOT.Connector.Tcp.Client
 					{
 						tcpClient.Close();
 
-						Disconnected?.Invoke(this, new TcpClientDisconnectedEventArgs(_options.ServerAddress, _options.ServerPort, ex));
+						_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"TcpClient Connector disconnected from host {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
 					}
 				}
 				finally
@@ -230,7 +222,7 @@ namespace SmartIOT.Connector.Tcp.Client
 
 		private void HandleTagWriteRequestCommand(TagWriteRequestCommand c)
 		{
-			_connectorInteface?.RequestTagWriteDelegate.Invoke(c.DeviceId, c.TagId, c.StartOffset, c.Data);
+			_connectorInterface!.RequestTagWrite(c.DeviceId, c.TagId, c.StartOffset, c.Data);
 		}
 
 		private void ConfigureTcpClient(TcpClient tcpClient)

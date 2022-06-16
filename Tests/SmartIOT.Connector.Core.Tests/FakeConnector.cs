@@ -6,7 +6,7 @@ namespace SmartIOT.Connector.Core.Tests
 {
 	internal class FakeConnector : IConnector
 	{
-		private ConnectorInterface? _connectorInterface;
+		private ISmartIOTConnectorInterface? _connectorInterface;
 
 		public IList<TagScheduleEvent> TagReadEvents { get; } = new List<TagScheduleEvent>();
 		public IList<TagScheduleEvent> TagWriteEvents { get; } = new List<TagScheduleEvent>();
@@ -41,7 +41,7 @@ namespace SmartIOT.Connector.Core.Tests
 			ExceptionEvents.Clear();
 		}
 
-		public void Start(ConnectorInterface connectorInterface)
+		public void Start(ISmartIOTConnectorInterface connectorInterface)
 		{
 			_connectorInterface = connectorInterface;
 		}
@@ -62,7 +62,7 @@ namespace SmartIOT.Connector.Core.Tests
 
 		public void RequestTagWrite(string deviceId, string tagId, int startOffset, byte[] data)
 		{
-			_connectorInterface!.RequestTagWriteDelegate.Invoke(deviceId, tagId, startOffset, data);
+			_connectorInterface!.RequestTagWrite(deviceId, tagId, startOffset, data);
 		}
 	}
 }

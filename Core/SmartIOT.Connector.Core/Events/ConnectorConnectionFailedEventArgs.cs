@@ -2,11 +2,15 @@
 {
 	public class ConnectorConnectionFailedEventArgs : EventArgs
 	{
-		public ConnectorConnectionFailedEvent Event { get; }
+		public IConnector Connector { get; }
+		public string Info { get; }
+		public Exception Exception { get; }
 
-		public ConnectorConnectionFailedEventArgs(ConnectorConnectionFailedEvent @event)
+		public ConnectorConnectionFailedEventArgs(IConnector connector, string info, Exception exception)
 		{
-			Event = @event;
+			Connector = connector;
+			Info = info;
+			Exception = exception;
 		}
 	}
 }

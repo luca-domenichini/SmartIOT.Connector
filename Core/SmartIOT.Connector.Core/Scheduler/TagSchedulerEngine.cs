@@ -578,7 +578,7 @@ namespace SmartIOT.Connector.Core.Scheduler
 			if (!IsRestartNeeded())
 				return;
 
-			OnRestartingDeviceDriverEvent(new DeviceDriverRestartingEvent(DeviceDriver));
+			OnRestartingDeviceDriverEvent(new DeviceDriverRestartingEventArgs(DeviceDriver));
 			bool success = true;
 			string message = string.Empty;
 
@@ -686,14 +686,14 @@ namespace SmartIOT.Connector.Core.Scheduler
 				_lastRestartInstant = _timeService.Now;
 			}
 
-			OnRestartedDeviceDriverEvent(new DeviceDriverRestartedEvent(DeviceDriver, success, message));
+			OnRestartedDeviceDriverEvent(new DeviceDriverRestartedEventArgs(DeviceDriver, success, message));
 		}
 
-		private void OnRestartingDeviceDriverEvent(DeviceDriverRestartingEvent restartingEvent)
+		private void OnRestartingDeviceDriverEvent(DeviceDriverRestartingEventArgs args)
 		{
 			try
 			{
-				RestartingEvent?.Invoke(this, new DeviceDriverRestartingEventArgs(restartingEvent));
+				RestartingEvent?.Invoke(this, args);
 			}
 			catch (Exception ex)
 			{
@@ -706,11 +706,11 @@ namespace SmartIOT.Connector.Core.Scheduler
 				}
 			}
 		}
-		private void OnRestartedDeviceDriverEvent(DeviceDriverRestartedEvent restartedEvent)
+		private void OnRestartedDeviceDriverEvent(DeviceDriverRestartedEventArgs args)
 		{
 			try
 			{
-				RestartedEvent?.Invoke(this, new DeviceDriverRestartedEventArgs(restartedEvent));
+				RestartedEvent?.Invoke(this, args);
 			}
 			catch (Exception ex)
 			{

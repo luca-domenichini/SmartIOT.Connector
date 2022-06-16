@@ -2,11 +2,15 @@
 {
 	public class DeviceDriverRestartedEventArgs : EventArgs
 	{
-		public DeviceDriverRestartedEvent Event { get; }
+		public IDeviceDriver DeviceDriver { get; }
+		public bool IsSuccess { get; }
+		public string ErrorDescription { get; }
 
-		public DeviceDriverRestartedEventArgs(DeviceDriverRestartedEvent @event)
+		public DeviceDriverRestartedEventArgs(IDeviceDriver deviceDriver, bool isSuccess, string errorDescription)
 		{
-			Event = @event;
+			DeviceDriver = deviceDriver;
+			IsSuccess = isSuccess;
+			ErrorDescription = errorDescription;
 		}
 	}
 }

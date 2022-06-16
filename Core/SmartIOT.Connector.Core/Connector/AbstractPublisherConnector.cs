@@ -13,7 +13,7 @@ namespace SmartIOT.Connector.Core.Connector
 			EventPublisher = eventPublisher;
 		}
 
-		public override void Start(ConnectorInterface connectorInterface)
+		public override void Start(ISmartIOTConnectorInterface connectorInterface)
 		{
 			base.Start(connectorInterface);
 

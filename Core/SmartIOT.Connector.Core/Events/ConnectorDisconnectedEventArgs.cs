@@ -2,11 +2,20 @@
 {
 	public class ConnectorDisconnectedEventArgs : EventArgs
 	{
-		public ConnectorDisconnectedEvent Event { get; }
+		public IConnector Connector { get; }
+		public string Info { get; }
+		public Exception? Exception { get; }
 
-		public ConnectorDisconnectedEventArgs(ConnectorDisconnectedEvent @event)
+		public ConnectorDisconnectedEventArgs(IConnector connector, string info)
+			: this(connector, info, null)
 		{
-			Event = @event;
+
+		}
+		public ConnectorDisconnectedEventArgs(IConnector connector, string info, Exception? exception)
+		{
+			Connector = connector;
+			Info = info;
+			Exception = exception;
 		}
 	}
 }
