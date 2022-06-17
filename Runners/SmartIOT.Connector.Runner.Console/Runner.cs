@@ -37,8 +37,12 @@ namespace SmartIOT.Connector.Runner.Console
 			, EventHandler<TagScheduleEventArgs>? onTagWrite = null
 			, EventHandler<DeviceDriverRestartingEventArgs>? onSchedulerRestarting = null
 			, EventHandler<DeviceDriverRestartedEventArgs>? onSchedulerRestarted = null
+			, EventHandler<ConnectorStartedEventArgs>? onConnectorStartedHandler = null
+			, EventHandler<ConnectorStoppedEventArgs>? onConnectorStoppedHandler = null
 			, EventHandler<ConnectorConnectedEventArgs>? onConnectorConnectedHandler = null
-			, EventHandler<ConnectorDisconnectedEventArgs>? onConnectorDisconnectedHandler = null)
+			, EventHandler<ConnectorDisconnectedEventArgs>? onConnectorDisconnectedHandler = null
+			, EventHandler<ConnectorExceptionEventArgs>? onConnectorExceptionHandler = null
+			)
 		{
 			System.Console.CancelKeyPress += (s, e) =>
 			{
@@ -55,8 +59,11 @@ namespace SmartIOT.Connector.Runner.Console
 			SmartIotConnector.Started += onStartedHandler;
 			SmartIotConnector.Stopping += onStoppingHandler;
 			SmartIotConnector.Stopped += onStoppedHandler;
+			SmartIotConnector.ConnectorStarted += onConnectorStartedHandler;
+			SmartIotConnector.ConnectorStopped += onConnectorStoppedHandler;
 			SmartIotConnector.ConnectorConnected += onConnectorConnectedHandler;
 			SmartIotConnector.ConnectorDisconnected += onConnectorDisconnectedHandler;
+			SmartIotConnector.ConnectorException += onConnectorExceptionHandler;
 
 			SmartIotConnector.Start();
 		}
@@ -70,8 +77,12 @@ namespace SmartIOT.Connector.Runner.Console
 			, EventHandler<TagScheduleEventArgs>? onTagWrite = null
 			, EventHandler<DeviceDriverRestartingEventArgs>? onSchedulerRestarting = null
 			, EventHandler<DeviceDriverRestartedEventArgs>? onSchedulerRestarted = null
+			, EventHandler<ConnectorStartedEventArgs>? onConnectorStartedHandler = null
+			, EventHandler<ConnectorStoppedEventArgs>? onConnectorStoppedHandler = null
 			, EventHandler<ConnectorConnectedEventArgs>? onConnectorConnectedHandler = null
-			, EventHandler<ConnectorDisconnectedEventArgs>? onConnectorDisconnectedHandler = null)
+			, EventHandler<ConnectorDisconnectedEventArgs>? onConnectorDisconnectedHandler = null
+			, EventHandler<ConnectorExceptionEventArgs>? onConnectorExceptionHandler = null
+			)
 		{
 			Run(onStartingHandler
 				, onStartedHandler
@@ -82,8 +93,12 @@ namespace SmartIOT.Connector.Runner.Console
 				, onTagWrite
 				, onSchedulerRestarting
 				, onSchedulerRestarted
+				, onConnectorStartedHandler
+				, onConnectorStoppedHandler
 				, onConnectorConnectedHandler
-				, onConnectorDisconnectedHandler);
+				, onConnectorDisconnectedHandler
+				, onConnectorExceptionHandler
+				);
 
 			WaitForShutdown();
 		}

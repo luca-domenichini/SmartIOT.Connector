@@ -22,6 +22,16 @@ namespace SmartIOT.Connector.Core
 		public void RequestTagWrite(string deviceId, string tagId, int startOffset, byte[] data);
 
 		/// <summary>
+		/// Method to be called when a Connector starts
+		/// </summary>
+		public void OnConnectorStarted(ConnectorStartedEventArgs args);
+
+		/// <summary>
+		/// Method to be called when a Connector stops
+		/// </summary>
+		public void OnConnectorStopped(ConnectorStoppedEventArgs args);
+
+		/// <summary>
 		/// Method to be called when a Connector connects to an external system
 		/// </summary>
 		public void OnConnectorConnected(ConnectorConnectedEventArgs args);

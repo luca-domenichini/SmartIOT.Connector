@@ -60,7 +60,7 @@ namespace SmartIOT.Connector.Mqtt.Client
 
 		private void OnConnectionFailed(ManagedProcessFailedEventArgs e)
 		{
-			_connectorInterface!.OnConnectorConnectionFailed(new ConnectorConnectionFailedEventArgs(_connector!, $"MqttClient Connector {_options.ClientId} connection failed to host {_options.ServerAddress}:{_options.ServerPort}: {e.Exception.Message}", e.Exception));
+			_connectorInterface!.OnConnectorConnectionFailed(new ConnectorConnectionFailedEventArgs(_connector!, $"ClientId {_options.ClientId} failed connection to server {_options.ServerAddress}:{_options.ServerPort}: {e.Exception.Message}", e.Exception));
 		}
 
 		private void OnDisconnected(MqttClientDisconnectedEventArgs e)

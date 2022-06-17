@@ -10,8 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker-run-runner-console.bat = docker-run-runner-console.bat
 		dotnet-build-and-push.bat = dotnet-build-and-push.bat
 		.github\workflows\dotnet-master.yml = .github\workflows\dotnet-master.yml
-		LICENSE = LICENSE
 		.github\workflows\dotnet-prerelese.yml = .github\workflows\dotnet-prerelese.yml
+		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -48,6 +48,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Tcp.Tests", "Tests\SmartIOT.Connector.Tcp.Tests\SmartIOT.Connector.Tcp.Tests.csproj", "{58E07F42-929C-40B0-A61B-C9AC8B88855C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Tcp", "Connectors\SmartIOT.Connector.Tcp\SmartIOT.Connector.Tcp.csproj", "{5E9D195E-AF4E-4D09-B45E-675549981D50}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.TcpClient.Tester", "Testers\SmartIOT.Connector.TcpClient.Tester\SmartIOT.Connector.TcpClient.Tester.csproj", "{57778892-A6E7-410D-86C8-5CF061F40DF6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.TcpServer.Tester", "Testers\SmartIOT.Connector.TcpServer.Tester\SmartIOT.Connector.TcpServer.Tester.csproj", "{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -115,6 +119,14 @@ Global
 		{5E9D195E-AF4E-4D09-B45E-675549981D50}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E9D195E-AF4E-4D09-B45E-675549981D50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E9D195E-AF4E-4D09-B45E-675549981D50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57778892-A6E7-410D-86C8-5CF061F40DF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57778892-A6E7-410D-86C8-5CF061F40DF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57778892-A6E7-410D-86C8-5CF061F40DF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57778892-A6E7-410D-86C8-5CF061F40DF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,6 +139,8 @@ Global
 		{8D6F4801-783E-426C-BDDD-0B2629B64192} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
 		{0CE1DA57-B923-4037-9E09-46C107FAFA03} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
 		{58E07F42-929C-40B0-A61B-C9AC8B88855C} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
+		{57778892-A6E7-410D-86C8-5CF061F40DF6} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
+		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {72862639-80E2-4903-910B-7FC4EC818672}

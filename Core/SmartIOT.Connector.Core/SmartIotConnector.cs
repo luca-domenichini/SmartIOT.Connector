@@ -15,6 +15,8 @@ namespace SmartIOT.Connector.Core
 		public event EventHandler<EventArgs>? Started;
 		public event EventHandler<EventArgs>? Stopping;
 		public event EventHandler<EventArgs>? Stopped;
+		public event EventHandler<ConnectorStartedEventArgs>? ConnectorStarted;
+		public event EventHandler<ConnectorStoppedEventArgs>? ConnectorStopped;
 		public event EventHandler<ConnectorConnectedEventArgs>? ConnectorConnected;
 		public event EventHandler<ConnectorConnectionFailedEventArgs>? ConnectorConnectionFailed;
 		public event EventHandler<ConnectorDisconnectedEventArgs>? ConnectorDisconnected;
@@ -238,6 +240,18 @@ namespace SmartIOT.Connector.Core
 			}
 
 			Stopped?.Invoke(this, new EventArgs());
+		}
+
+
+
+		public void OnConnectorStarted(ConnectorStartedEventArgs args)
+		{
+			ConnectorStarted?.Invoke(this, args);
+		}
+
+		public void OnConnectorStopped(ConnectorStoppedEventArgs args)
+		{
+			ConnectorStopped?.Invoke(this, args);
 		}
 
 		public void OnConnectorConnected(ConnectorConnectedEventArgs args)

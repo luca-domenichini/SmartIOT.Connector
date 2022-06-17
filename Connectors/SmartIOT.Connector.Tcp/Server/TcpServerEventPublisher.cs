@@ -51,7 +51,7 @@ namespace SmartIOT.Connector.Tcp.Server
 				{
 					CloseTcpClientQuietly(tcpClient);
 
-					_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"Client disconnected from TcpServer Connector: {ex.Message}", ex));
+					_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"Client disconnected: {ex.Message}", ex));
 				}
 			}
 		}
@@ -148,7 +148,7 @@ namespace SmartIOT.Connector.Tcp.Server
 				{
 					try
 					{
-						_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"TcpServer Connector: unexpected exception occurred with a client: {ex.Message}", ex));
+						_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"Unexpected exception occurred with a client: {ex.Message}", ex));
 					}
 					catch
 					{

@@ -68,7 +68,7 @@ namespace SmartIOT.Connector.Tcp.Client
 				catch (Exception ex)
 				{
 					tcpClient.Close();
-					_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"TcpClient disconnected from host {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
+					_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"Disconnected from server {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
 				}
 			}
 		}
@@ -134,7 +134,7 @@ namespace SmartIOT.Connector.Tcp.Client
 												}
 											});
 
-											connectorInterface.OnConnectorConnected(new ConnectorConnectedEventArgs(connector, $"TcpClient Connector connected to server {_options.ServerAddress}:{_options.ServerPort}"));
+											connectorInterface.OnConnectorConnected(new ConnectorConnectedEventArgs(connector, $"Connected to server {_options.ServerAddress}:{_options.ServerPort}"));
 
 											StartReadMessagesTask(tcpClient);
 										}
@@ -144,7 +144,7 @@ namespace SmartIOT.Connector.Tcp.Client
 										tcpClient.Close();
 										tcpClient = null;
 
-										_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(connector, $"TcpClient Connector disconnected from host {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
+										_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(connector, $"Disconnected from server {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
 									}
 								}
 							}
@@ -198,7 +198,7 @@ namespace SmartIOT.Connector.Tcp.Client
 					{
 						tcpClient.Close();
 
-						_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"TcpClient Connector disconnected from host {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
+						_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"Disconnected from server {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
 					}
 				}
 				finally

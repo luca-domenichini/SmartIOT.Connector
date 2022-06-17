@@ -7,9 +7,7 @@ namespace SmartIOT.Connector.Core.Connector
 		private readonly AggregatingConnectorEventQueue _eventQueue = new AggregatingConnectorEventQueue();
 		private readonly Thread? _thread;
 		private readonly CancellationTokenSource _stopToken = new CancellationTokenSource();
-
-
-		public event EventHandler<ExceptionEventArgs>? ExceptionEvent;
+		public ISmartIOTConnectorInterface? ConnectorInterface { get; private set; }
 
 		public AbstractBufferedAggregatingConnector()
 		{
@@ -53,7 +51,7 @@ namespace SmartIOT.Connector.Core.Connector
 				{
 					try
 					{
-						ExceptionEvent?.Invoke(this, new ExceptionEventArgs(ex));
+						ConnectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
 					}
 					catch
 					{
@@ -74,7 +72,10 @@ namespace SmartIOT.Connector.Core.Connector
 
 		public virtual void Start(ISmartIOTConnectorInterface connectorInterface)
 		{
-			_thread?.Start();
+			ConnectorInterface = connectorInterface;
+			ConnectorInterface.OnConnectorStarted(new ConnectorStartedEventArgs(this, $"Connector started"));
+
+			_thread!.Start();
 		}
 
 		public virtual void Stop()
@@ -83,12 +84,14 @@ namespace SmartIOT.Connector.Core.Connector
 
 			try
 			{
-				_thread?.Join();
+				_thread!.Join();
 			}
 			catch (Exception ex) when (ex is ThreadInterruptedException || ex is ThreadStateException)
 			{
 				// ignore
 			}
+
+			ConnectorInterface!.OnConnectorStopped(new ConnectorStoppedEventArgs(this, $"Connector stopped"));
 		}
 
 

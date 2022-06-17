@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json;
 
 namespace SmartIOT.Connector.Runner.Console
@@ -7,7 +8,11 @@ namespace SmartIOT.Connector.Runner.Console
 	{
 		public static void Main(string[] args)
 		{
-			WriteInfo($"SmartIotConnector v{Assembly.GetExecutingAssembly().GetName().Version}");
+			Assembly assembly = Assembly.GetExecutingAssembly();
+			FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+			var version = fileVersionInfo.ProductVersion ?? "Unkwown";
+
+			WriteInfo($"SmartIOT.Connector v{version}");
 
 			if (args.Length == 0)
 				args = new[] { "smartiot-config.json" };
@@ -34,7 +39,7 @@ namespace SmartIOT.Connector.Runner.Console
 			var runner = new Runner(configuration
 				, onExceptionDuringDiscovery: exceptions =>
 				{
-					WriteError($"Warning: error autodiscoverying dll: [\r\n{string.Join("\r\n\t", exceptions.Select(x => x.Message))}\r\n]");
+					WriteError($"Warning: error autodiscoverying dll: [{Environment.NewLine}{string.Join($"{Environment.NewLine}\t", exceptions.Select(x => x.Message))}{Environment.NewLine}]");
 				});
 
 			runner.RunAndWaitForShutdown(
@@ -42,46 +47,54 @@ namespace SmartIOT.Connector.Runner.Console
 				, onStartedHandler: (s, e) => WriteInfo("SmartIotConnector started. Press Ctrl-C for graceful stop.")
 				, onStoppingHandler: (s, e) => WriteInfo("SmartIotConnector stopping..")
 				, onStoppedHandler: (s, e) => WriteInfo("SmartIotConnector stopped")
-				, onExceptionHandler: (s, e) => WriteError($"Exception caught: {e.Exception.Message}\r\n{e.Exception}")
+				, onExceptionHandler: (s, e) => WriteError($"Exception caught: {e.Exception.Message}{Environment.NewLine}{e.Exception}")
 				, onTagRead: (s, e) =>
 				{
 					if (e.TagScheduleEvent.Data != null)
 					{
 						// data event
 						if (e.TagScheduleEvent.Data.Length > 0)
-							WriteInfo($"Device {e.TagScheduleEvent.Device.DeviceId}, Tag {e.TagScheduleEvent.Tag.TagId}: received data[{e.TagScheduleEvent.Data.Length}]");
+							WriteInfo($"{e.DeviceDriver.Name}: Device {e.TagScheduleEvent.Device.DeviceId}, Tag {e.TagScheduleEvent.Tag.TagId}: received data[{e.TagScheduleEvent.Data.Length}]");
 					}
-					else if (e.TagScheduleEvent.ErrorNumber == 0)
+					else if (e.TagScheduleEvent.IsErrorNumberChanged)
 					{
-						// status OK event
-						WriteInfo($"Device {e.TagScheduleEvent.Device.DeviceId}, Tag {e.TagScheduleEvent.Tag.TagId}: received status {e.TagScheduleEvent.ErrorNumber} {e.TagScheduleEvent.Description}");
-					}
-					else
-					{
-						// statu KO event
-						WriteInfo($"Device {e.TagScheduleEvent.Device.DeviceId}, Tag {e.TagScheduleEvent.Tag.TagId}: received status {e.TagScheduleEvent.ErrorNumber} {e.TagScheduleEvent.Description}");
+						// status changed
+						WriteInfo($"{e.DeviceDriver.Name}: Device {e.TagScheduleEvent.Device.DeviceId}, Tag {e.TagScheduleEvent.Tag.TagId}: status changed {e.TagScheduleEvent.ErrorNumber} {e.TagScheduleEvent.Description}");
 					}
 				}
 				, onTagWrite: (s, e) =>
 				{
 
 				}
-				, onSchedulerRestarting: (s, e) => WriteInfo("Scheduler restarting")
+				, onSchedulerRestarting: (s, e) => WriteInfo($"{e.DeviceDriver.Name}: Scheduler restarting")
 				, onSchedulerRestarted: (s, e) =>
 				{
 					if (e.IsSuccess)
-						WriteInfo($"Scheduler restarted successfully");
+						WriteInfo($"{e.DeviceDriver.Name}: Scheduler restarted successfully");
 					else
-						WriteError($"Error during scheduler restart: {e.ErrorDescription}");
+						WriteError($"{e.DeviceDriver.Name}: Error during scheduler restart: {e.ErrorDescription}");
+				}
+				, onConnectorStartedHandler: (s, e) =>
+				{
+					WriteInfo($"{e.Connector.GetType().Name}: {e.Info}");
+				}
+				, onConnectorStoppedHandler: (s, e) =>
+				{
+					WriteInfo($"{e.Connector.GetType().Name}: {e.Info}");
 				}
 				, onConnectorConnectedHandler: (s, e) =>
 				{
-					WriteInfo($"{e.Info}");
+					WriteInfo($"{e.Connector.GetType().Name}: {e.Info}");
 				}
 				, onConnectorDisconnectedHandler: (s, e) =>
 				{
-					WriteInfo($"{e.Info}");
-				});
+					WriteInfo($"{e.Connector.GetType().Name}: {e.Info}");
+				}
+				, onConnectorExceptionHandler: (s, e) =>
+				{
+					WriteError($"{e.Connector.GetType().Name}: Unexpected exception: {e.Exception.Message}{Environment.NewLine}{e.Exception}");
+				}
+				);
 		}
 
 		public static void WriteInfo(string message)

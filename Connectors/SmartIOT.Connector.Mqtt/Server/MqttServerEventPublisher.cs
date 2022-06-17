@@ -88,7 +88,7 @@ namespace SmartIOT.Connector.Mqtt.Server
 
 		private void OnClientConnected(MqttServerClientConnectedEventArgs e)
 		{
-			_connectorInterface!.OnConnectorConnected(new ConnectorConnectedEventArgs(_connector!, $"ClientId {e.ClientId} connected"));
+			_connectorInterface!.OnConnectorConnected(new ConnectorConnectedEventArgs(_connector!, $"ClientId {e.ClientId} connected to port {_options.ServerPort}"));
 		}
 
 		private void OnClientDisconnected(MqttServerClientDisconnectedEventArgs e)
