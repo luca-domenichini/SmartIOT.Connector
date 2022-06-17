@@ -1,15 +1,12 @@
-﻿using SmartIOT.Connector.Mqtt;
-using SmartIOT.Connector.Messages;
-using MQTTnet;
-using MQTTnet.Client;
-using MQTTnet.Server;
+﻿using SmartIOT.Connector.Messages;
+using SmartIOT.Connector.Messages.Serializers;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
-using SmartIOT.Connector.Messages.Serializers;
 
 namespace SmartIOT.Connector.TcpServer.Tester
 {
@@ -18,11 +15,9 @@ namespace SmartIOT.Connector.TcpServer.Tester
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		private IMqttServer? _mqttServer;
-		private ISingleMessageSerializer? _messageSerializer;
-		private string? _deviceStatusTopic;
-		private string? _tagReadTopic;
-		private string? _tagWriteTopic;
+		private TcpListener? _tcpListener;
+		private IList<TcpClient> _clients = new List<TcpClient>();
+		private IStreamMessageSerializer? _messageSerializer;
 
 		public MainWindow()
 		{
@@ -36,32 +31,21 @@ namespace SmartIOT.Connector.TcpServer.Tester
 
 		private void BtnStartServer_Click(object sender, RoutedEventArgs e)
 		{
-			if (_mqttServer == null)
+			if (_tcpListener == null)
 			{
 				try
 				{
 					if (rdJsonSerializer.IsChecked == true)
-						_messageSerializer = new JsonSingleMessageSerializer();
+						_messageSerializer = new JsonStreamMessageSerializer();
 					else
-						_messageSerializer = new ProtobufSingleMessageSerializer();
+						_messageSerializer = new ProtobufStreamMessageSerializer();
 
-					MqttServerOptionsBuilder serverOptions = new MqttServerOptionsBuilder()
-						.WithClientId("TestServer")
-						.WithDefaultEndpointPort(int.Parse(txtPort.Text));
+					_tcpListener = new TcpListener(System.Net.IPAddress.Any, int.Parse(txtPort.Text));
+					_tcpListener.Start();
 
-					_mqttServer = new MqttFactory().CreateMqttServer();
+					var tcpClient = _tcpListener.AcceptTcpClient();
 
-					_mqttServer.UseClientConnectedHandler(e => OnClientConnected(e));
-					_mqttServer.UseClientDisconnectedHandler(e => OnClientDisconnected(e));
-					_mqttServer.UseApplicationMessageReceivedHandler(e => OnApplicationMessageReceived(e));
-
-					_mqttServer.ClientSubscribedTopicHandler = new MqttServerClientSubscribedTopicHandlerDelegate(OnClientSubscribedTopic);
-
-					_mqttServer.StartAsync(serverOptions.Build());
-
-					_deviceStatusTopic = txtDeviceStatusTopic.Text;
-					_tagReadTopic = txtTagReadTopic.Text;
-					_tagWriteTopic = txtTagWriteTopic.Text;
+					StartTaskForClient(tcpClient);
 
 					txtLogs.Text += "Started\r\n";
 				}
@@ -72,110 +56,56 @@ namespace SmartIOT.Connector.TcpServer.Tester
 			}
 		}
 
-		private void OnClientSubscribedTopic(MqttServerClientSubscribedTopicEventArgs obj)
+		private void StartTaskForClient(TcpClient tcpClient)
 		{
-			try
-			{
-				txtLogs.Dispatcher.Invoke(() =>
-				{
-					var message = $"Client {obj.ClientId} subscribed to topic {obj.TopicFilter.Topic}\r\n";
-					txtLogs.Text += message;
-				});
-			}
-			catch (Exception ex)
-			{
-				txtLogs.Dispatcher.Invoke(() => txtLogs.Text += $"Exception: {ex.Message}\r\n{ex}\r\n");
-			}
-		}
-		
-
-		private Task OnApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs e)
-		{
-			return Task.Run(() =>
+			Task.Factory.StartNew(() =>
 			{
 				try
 				{
-					if (_messageSerializer == null)
-						throw new InvalidOperationException("Serializer is null");
+					Dispatcher.Invoke(() => txtLogs.Text += $"Client connected\r\n");
+					_clients.Add(tcpClient);
 
-					if (IsTopicRoot(_deviceStatusTopic, e.ApplicationMessage.Topic))
+					while (tcpClient.Connected)
 					{
-						var msg = _messageSerializer.DeserializeMessage<DeviceEvent>(e.ApplicationMessage.Payload);
-						string message = JsonSerializer.Serialize(msg);
-						txtLogs.Dispatcher.Invoke(() => txtLogs.Text += $"RECV DeviceStatus {message}\r\n");
-					}
-					else if (IsTopicRoot(_tagReadTopic, e.ApplicationMessage.Topic))
-					{
-						var msg = _messageSerializer.DeserializeMessage<TagEvent>(e.ApplicationMessage.Payload);
-						string message = JsonSerializer.Serialize(msg);
-						txtLogs.Dispatcher.Invoke(() => txtLogs.Text += $"RECV TagRead {message}\r\n");
-					}
-					else if (IsTopicRoot(_tagWriteTopic, e.ApplicationMessage.Topic))
-					{
-						var msg = _messageSerializer.DeserializeMessage<TagEvent>(e.ApplicationMessage.Payload);
-						string message = JsonSerializer.Serialize(msg);
-						txtLogs.Dispatcher.Invoke(() => txtLogs.Text += $"RECV TagWrite {message}\r\n");
-					}
-					else
-					{
-						string message = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-						txtLogs.Dispatcher.Invoke(() => txtLogs.Text += $"RECV from topic {e.ApplicationMessage.Topic}: {message}\r\n");
+						var msg = _messageSerializer!.DeserializeMessage(tcpClient.GetStream());
+
+						if (msg is DeviceEvent)
+						{
+							string message = JsonSerializer.Serialize(msg);
+							Dispatcher.Invoke(() => txtLogs.Text += $"RECV DeviceStatus {message}\r\n");
+						}
+						else if (msg is TagEvent)
+						{
+							string message = JsonSerializer.Serialize(msg);
+							Dispatcher.Invoke(() => txtLogs.Text += $"RECV TagRead {message}\r\n");
+						}
+						else
+						{
+							Dispatcher.Invoke(() => txtLogs.Text += $"RECV unknown message\r\n");
+						}
 					}
 				}
 				catch (Exception ex)
 				{
-					txtLogs.Dispatcher.Invoke(() => txtLogs.Text += $"Exception deserializing: {ex.Message}\r\n{ex}\r\n");
+					Dispatcher.Invoke(() => txtLogs.Text += $"Exception caught: {ex.Message}\r\n{ex}\r\n");
+					tcpClient.Close();
 				}
-			});
-		}
-
-		private Task OnClientDisconnected(MqttServerClientDisconnectedEventArgs e)
-		{
-			return Task.Run(() =>
-			{
-				try
+				finally
 				{
-					txtLogs.Dispatcher.Invoke(() =>
-					{
-						var message = $"Client {e.ClientId} disconnected {e.DisconnectType}\r\n";
-						txtLogs.Text += message;
-					});
-				}
-				catch (Exception ex)
-				{
-					txtLogs.Dispatcher.Invoke(() => txtLogs.Text += $"Exception: {ex.Message}\r\n{ex}\r\n");
-				}
-			});
-		}
-
-		private Task OnClientConnected(MqttServerClientConnectedEventArgs e)
-		{
-			return Task.Run(() =>
-			{
-				try
-				{
-					txtLogs.Dispatcher.Invoke(() =>
-					{
-						var message = $"Client {e.ClientId} connected\r\n";
-						txtLogs.Text += message;
-					});
-				}
-				catch (Exception ex)
-				{
-					txtLogs.Dispatcher.Invoke(() => txtLogs.Text += $"Exception: {ex.Message}\r\n{ex}\r\n");
+					_clients.Remove(tcpClient);
+					Dispatcher.Invoke(() => txtLogs.Text += $"Client disconnected\r\n");
 				}
 			});
 		}
 
 		private void BtnStopServer_Click(object sender, RoutedEventArgs e)
 		{
-			if (_mqttServer != null)
+			if (_tcpListener != null)
 			{
 				try
 				{
-					_mqttServer.StopAsync().Wait();
-					_mqttServer.Dispose();
-					_mqttServer = null;
+					_tcpListener.Stop();
+					_tcpListener = null;
 
 					txtLogs.Text += "Stopped\r\n";
 				}
@@ -186,52 +116,28 @@ namespace SmartIOT.Connector.TcpServer.Tester
 			}
 		}
 
-		public bool IsTopicRoot(string? subscribed, string topic)
-		{
-			if (subscribed == null)
-				return false;
-
-			if (!topic.EndsWith("/"))
-				topic += "/";
-
-			if (subscribed.Contains('/'))
-			{
-				var root = subscribed[..(subscribed.IndexOf('/') + 1)];
-				return topic.StartsWith(root);
-			}
-			else
-			{
-				return topic.StartsWith(subscribed);
-			}
-		}
-
-		private void DoWriteData(string deviceId, string tagId, string topic, int offset, byte[] data)
+		private void DoWriteData(string deviceId, string tagId, int offset, byte[] data)
 		{
 			TagWriteRequestCommand msg = new TagWriteRequestCommand(deviceId, tagId, offset, data);
 
-			_mqttServer.PublishAsync(new MqttApplicationMessageBuilder()
-				.WithTopic(topic)
-				.WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
-				.WithPayload(_messageSerializer!.SerializeMessage(msg))
-				.Build()
-			).Wait();
+			foreach (var client in _clients)
+			{
+				_messageSerializer!.SerializeMessage(client.GetStream(), msg);
+			}
 		}
 
 		private void BtnRequestWrite_Click(object sender, RoutedEventArgs e)
 		{
 			try
 			{
-				if (_mqttServer == null || !_mqttServer.IsStarted)
+				if (_tcpListener == null)
 				{
-					txtLogs.Text += "Mqtt server is not started. Start it first";
+					txtLogs.Text += "Server is not started. Start it first";
 					return;
 				}
 
 				string deviceId = TxtDeviceId.Text;
 				string tagId = TxtTagId.Text;
-				var topic = txtTagWriteTopic.Text;
-				if (topic.Contains('/'))
-					topic = topic[..topic.IndexOf('/')];
 				int offset = int.Parse(TxtByteOffset.Text);
 				byte[] data = TxtData.Text.Split(",")
 					.SelectMany(x => x.Split(" "))
@@ -241,7 +147,7 @@ namespace SmartIOT.Connector.TcpServer.Tester
 					.Select(x => x!.Value)
 					.ToArray();
 
-				DoWriteData(deviceId, tagId, topic, offset, data);
+				DoWriteData(deviceId, tagId, offset, data);
 			}
 			catch (Exception ex)
 			{

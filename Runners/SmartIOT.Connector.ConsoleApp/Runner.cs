@@ -2,7 +2,7 @@
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Prometheus;
 
-namespace SmartIOT.Connector.Runner.Console
+namespace SmartIOT.Connector.ConsoleApp
 {
 	public class Runner
 	{

@@ -85,11 +85,11 @@ You can even jump to section specific guides:
 	- [Snap7 PLC configuration guide](./Devices/SmartIOT.Connector.Plc.Snap7/README.md)
 	- [S7Net PLC configuration guide](./Devices/SmartIOT.Connector.Plc.S7Net/README.md)
 
-## SmartIOT.Connector.Runner.Console and Docker integration
+## SmartIOT.Connector.ConsoleApp and Docker integration
 
-If you want to run SmartIOT.Connector as a standalone application or as a Docker container, see project [SmartIOT.Connector.Runner.Console](./Runners/SmartIOT.Connector.Runner.Console/README.md) for further details.
+If you want to run SmartIOT.Connector as a standalone application or as a Docker container, see project [SmartIOT.Connector.ConsoleApp](./Runners/SmartIOT.Connector.ConsoleApp/README.md) for further details.
 
-Here is a quick link to the Docker image repository: https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-runner-console
+Here is a quick link to the Docker image repository: https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp
 
 ## Nuget packages
 
@@ -119,7 +119,7 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
    - [ ] How to create and plug a custom device
    - [ ] How to create and plug a custom connector
  - [X] Nuget packages on nuget.org - https://www.nuget.org/packages?q=SmartIOT.Connector
- - [X] Docker runner image on dockerhub - https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-runner-console
+ - [X] Docker runner image on dockerhub - https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp
  - [ ] Runners
    - [X] Run SmartIOT.Connector as a console app
    - [X] Run SmartIOT.Connector as a Docker image

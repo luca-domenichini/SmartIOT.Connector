@@ -10,7 +10,7 @@ set /P PUSH_NUGET_PACKAGES="Do you want to push the nuget packages to nuget.org?
 if /I "%PUSH_NUGET_PACKAGES%"=="y" (
     set /P API_KEY="Enter to API Key to use to push the packages: "
 )
-set /P PUSH_DOCKER_IMAGE="Do you want to build and publish the SmartIOT.Connector.Runner.Console Docker Image? [y|n]: "
+set /P PUSH_DOCKER_IMAGE="Do you want to build and publish the SmartIOT.Connector.ConsoleApp Docker Image? [y|n]: "
 
 set VERSION=%VERSION_PREFIX%%VERSION_SUFFIX%
 
@@ -67,19 +67,19 @@ if /I "%PUSH_NUGET_PACKAGES%" == "y" (
     nuget push -Source nuget.org Core\SmartIOT.Connector.Prometheus\bin\%RELEASE%\SmartIOT.Connector.Prometheus.%VERSION%.nupkg %API_KEY%
     nuget push -Source nuget.org Devices\SmartIOT.Connector.Plc.S7Net\bin\%RELEASE%\SmartIOT.Connector.Plc.S7Net.%VERSION%.nupkg %API_KEY%
     nuget push -Source nuget.org Devices\SmartIOT.Connector.Plc.Snap7\bin\%RELEASE%\SmartIOT.Connector.Plc.Snap7.%VERSION%.nupkg %API_KEY%
-    nuget push -Source nuget.org Runners\SmartIOT.Connector.Runner.Console\bin\%RELEASE%\SmartIOT.Connector.Runner.Console.%VERSION%.nupkg %API_KEY%
+    nuget push -Source nuget.org Runners\SmartIOT.Connector.ConsoleApp\bin\%RELEASE%\SmartIOT.Connector.ConsoleApp.%VERSION%.nupkg %API_KEY%
 )
 
 if /I "%PUSH_DOCKER_IMAGE%" == "y" (
 
     echo -------------------------------------------------------
-    echo Building SmartIOT.Connector.Runner.Console Docker Image
+    echo Building SmartIOT.Connector.ConsoleApp Docker Image
     echo -------------------------------------------------------
 
-    set LOCAL_IMAGE=smartiot-connector-runner-console
-    set REMOTE_IMAGE=lucadomenichini/smartiot-connector-runner-console
+    set LOCAL_IMAGE=smartiot-connector-consoleapp
+    set REMOTE_IMAGE=lucadomenichini/smartiot-connector-consoleapp
 
-    docker build -t %LOCAL_IMAGE%:latest -f Runners/SmartIOT.Connector.Runner.Console/Dockerfile .
+    docker build -t %LOCAL_IMAGE%:latest -f Runners/SmartIOT.Connector.ConsoleApp/Dockerfile .
     if errorlevel 1 (
         echo Error building Docker Image: %errorlevel%
         exit /b %errorlevel%
@@ -90,7 +90,7 @@ if /I "%PUSH_DOCKER_IMAGE%" == "y" (
 
 
     echo ------------------------------------------------------
-    echo Pushing SmartIOT.Connector.Runner.Console Docker Image
+    echo Pushing SmartIOT.Connector.ConsoleApp Docker Image
     echo ------------------------------------------------------
 
     docker push %REMOTE_IMAGE%:%VERSION%

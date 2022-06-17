@@ -5,7 +5,7 @@
       "environmentVariables": {},
       "distributionName": ""
     },
-    "SmartIOT.Connector.Runner.Console": {
+    "SmartIOT.Connector.ConsoleApp": {
       "commandName": "Project",
       "commandLineArgs": "smartiot-config.json"
     }

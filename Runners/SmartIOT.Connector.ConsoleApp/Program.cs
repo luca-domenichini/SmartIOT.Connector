@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Text.Json;
 
-namespace SmartIOT.Connector.Runner.Console
+namespace SmartIOT.Connector.ConsoleApp
 {
 	public class Program
 	{
@@ -43,10 +43,10 @@ namespace SmartIOT.Connector.Runner.Console
 				});
 
 			runner.RunAndWaitForShutdown(
-				onStartingHandler: (s, e) => WriteInfo("SmartIotConnector starting..")
-				, onStartedHandler: (s, e) => WriteInfo("SmartIotConnector started. Press Ctrl-C for graceful stop.")
-				, onStoppingHandler: (s, e) => WriteInfo("SmartIotConnector stopping..")
-				, onStoppedHandler: (s, e) => WriteInfo("SmartIotConnector stopped")
+				onStartingHandler: (s, e) => WriteInfo("SmartIOT.Connector starting..")
+				, onStartedHandler: (s, e) => WriteInfo("SmartIOT.Connector started. Press Ctrl-C for graceful stop.")
+				, onStoppingHandler: (s, e) => WriteInfo("SmartIOT.Connector stopping..")
+				, onStoppedHandler: (s, e) => WriteInfo("SmartIOT.Connector stopped")
 				, onExceptionHandler: (s, e) => WriteError($"Exception caught: {e.Exception.Message}{Environment.NewLine}{e.Exception}")
 				, onTagRead: (s, e) =>
 				{

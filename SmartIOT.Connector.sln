@@ -31,8 +31,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Plc.S7Ne
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Plc.Snap7", "Devices\SmartIOT.Connector.Plc.Snap7\SmartIOT.Connector.Plc.Snap7.csproj", "{99AD52AC-5983-4016-BC18-81ED7E21CD13}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Runner.Console", "Runners\SmartIOT.Connector.Runner.Console\SmartIOT.Connector.Runner.Console.csproj", "{FF03F0DC-1FEF-45EB-8806-4B28BCCF51AA}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Mqtt.Tests", "Tests\SmartIOT.Connector.Mqtt.Tests\SmartIOT.Connector.Mqtt.Tests.csproj", "{05D35F47-13EC-48AD-AAE3-D49A56C8A16B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Core.Tests", "Tests\SmartIOT.Connector.Core.Tests\SmartIOT.Connector.Core.Tests.csproj", "{564D1D75-1792-49A8-BF5B-6923A9801AC3}"
@@ -52,6 +50,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.TcpClient.Tester", "Testers\SmartIOT.Connector.TcpClient.Tester\SmartIOT.Connector.TcpClient.Tester.csproj", "{57778892-A6E7-410D-86C8-5CF061F40DF6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.TcpServer.Tester", "Testers\SmartIOT.Connector.TcpServer.Tester\SmartIOT.Connector.TcpServer.Tester.csproj", "{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Runners", "Runners", "{56D33DD2-28C6-45C5-B994-54FA4D8055F5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.ConsoleApp", "Runners\SmartIOT.Connector.ConsoleApp\SmartIOT.Connector.ConsoleApp.csproj", "{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,10 +85,6 @@ Global
 		{99AD52AC-5983-4016-BC18-81ED7E21CD13}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99AD52AC-5983-4016-BC18-81ED7E21CD13}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99AD52AC-5983-4016-BC18-81ED7E21CD13}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FF03F0DC-1FEF-45EB-8806-4B28BCCF51AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FF03F0DC-1FEF-45EB-8806-4B28BCCF51AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FF03F0DC-1FEF-45EB-8806-4B28BCCF51AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FF03F0DC-1FEF-45EB-8806-4B28BCCF51AA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{05D35F47-13EC-48AD-AAE3-D49A56C8A16B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{05D35F47-13EC-48AD-AAE3-D49A56C8A16B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{05D35F47-13EC-48AD-AAE3-D49A56C8A16B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -127,6 +125,10 @@ Global
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -141,6 +143,7 @@ Global
 		{58E07F42-929C-40B0-A61B-C9AC8B88855C} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
 		{57778892-A6E7-410D-86C8-5CF061F40DF6} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
+		{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F} = {56D33DD2-28C6-45C5-B994-54FA4D8055F5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {72862639-80E2-4903-910B-7FC4EC818672}

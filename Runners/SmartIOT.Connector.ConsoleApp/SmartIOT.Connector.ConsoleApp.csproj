@@ -5,7 +5,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <StartupObject>SmartIOT.Connector.Runner.Console.Program</StartupObject>
+    <StartupObject>SmartIOT.Connector.ConsoleApp.Program</StartupObject>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 	<Authors>Luca Domenichini</Authors>
 	<Title>Console runner for SmartIOT.Connector library</Title>
@@ -36,6 +36,9 @@
     <None Update="README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
+    </None>
+    <None Update="smartiot-config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
