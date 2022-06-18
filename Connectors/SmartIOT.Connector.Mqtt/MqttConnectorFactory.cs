@@ -1,11 +1,9 @@
-﻿using SmartIOT.Connector.Mqtt.Client;
-using SmartIOT.Connector.Mqtt.Server;
-using SmartIOT.Connector.Core;
+﻿using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Factory;
 using SmartIOT.Connector.Core.Util;
-using SmartIOT.Connector.Messages;
 using SmartIOT.Connector.Messages.Serializers;
-using SmartIOT.Connector.Core.Connector;
+using SmartIOT.Connector.Mqtt.Client;
+using SmartIOT.Connector.Mqtt.Server;
 
 namespace SmartIOT.Connector.Mqtt
 {
@@ -26,6 +24,7 @@ namespace SmartIOT.Connector.Mqtt
 		private readonly string TagReadEventsTopicKey = "TagReadEventsTopic".ToLower();
 		private readonly string TagWriteRequestCommandsTopicRootKey = "TagWriteRequestCommandsTopicRoot".ToLower();
 		private readonly string PublishPartialReadsKey = "PublishPartialReads".ToLower();
+		private readonly string ReconnectIntervalMillisKey = "ReconnectIntervalMillis".ToLower();
 		private readonly string UsernameKey = "Username".ToLower();
 		private readonly string PasswordKey = "Password".ToLower();
 
@@ -36,22 +35,14 @@ namespace SmartIOT.Connector.Mqtt
 
 			if (connectionString.ToLower().StartsWith("mqttclient://", StringComparison.InvariantCultureIgnoreCase))
 			{
-				return new MqttConnector(ParseConnectorOptions(tokens), new MqttClientEventPublisher(ParseMessageSerializer(tokens), ParseMqttClientEventPublisherOptions(tokens)));
+				return new MqttClientConnector(ParseMqttClientConnectorOptions(tokens));
 			}
 			if (connectionString.ToLower().StartsWith("mqttserver://", StringComparison.InvariantCultureIgnoreCase))
 			{
-				return new MqttConnector(ParseConnectorOptions(tokens), new MqttServerEventPublisher(ParseMessageSerializer(tokens), ParseMqttServerEventPublisherOptions(tokens)));
+				return new MqttServerConnector(ParseMqttServerConnectorOptions(tokens));
 			}
 
 			return null;
-		}
-
-		private ConnectorOptions ParseConnectorOptions(IDictionary<string, string> tokens)
-		{
-			return new ConnectorOptions()
-			{
-				IsPublishWriteEvents = "true".Equals(tokens.GetOrDefault(PublishWriteEventsKey), StringComparison.InvariantCultureIgnoreCase)
-			};
 		}
 
 		private ISingleMessageSerializer ParseMessageSerializer(IDictionary<string, string> tokens)
@@ -64,13 +55,18 @@ namespace SmartIOT.Connector.Mqtt
 			return new JsonSingleMessageSerializer();
 		}
 
-		private MqttClientEventPublisherOptions ParseMqttClientEventPublisherOptions(IDictionary<string, string> tokens)
+		private MqttClientConnectorOptions ParseMqttClientConnectorOptions(IDictionary<string, string> tokens)
 		{
+			var isPublishWriteEvents = "true".Equals(tokens.GetOrDefault(PublishWriteEventsKey), StringComparison.InvariantCultureIgnoreCase);
 			var clientId = tokens.GetOrDefault(ClientIdKey) ?? Guid.NewGuid().ToString("N");
 			var serverAddress = tokens.GetOrDefault(ServerKey) ?? throw new ArgumentException("Invalid mqttClient connectionString: Server expected");
 			var sServerPort = tokens.GetOrDefault(PortKey) ?? string.Empty;
 			if (!int.TryParse(sServerPort, out var serverPort))
 				throw new ArgumentException("Invalid mqttClient connectionString: Port expected");
+
+			var sReconnectInterval = tokens.GetOrDefault(ReconnectIntervalMillisKey) ?? "5000";
+			if (!int.TryParse(sReconnectInterval, out var reconnectInterval))
+				reconnectInterval = 5000;
 
 			var exceptionsTopicPattern = tokens.GetOrDefault(ExceptionTopicKey) ?? DefaultExceptionTopicPattern;
 			var deviceStatusEventsTopicPattern = tokens.GetOrDefault(DeviceStatusEventsTopicKey) ?? DefaultDeviceStatusEventsTopicPattern;
@@ -79,11 +75,12 @@ namespace SmartIOT.Connector.Mqtt
 			var username = tokens.GetOrDefault(UsernameKey) ?? string.Empty;
 			var password = tokens.GetOrDefault(PasswordKey) ?? string.Empty;
 
-			return new MqttClientEventPublisherOptions(clientId, serverAddress, serverPort, exceptionsTopicPattern, deviceStatusEventsTopicPattern, tagScheduleEventsTopicPattern, tagWriteRequestCommandsTopicRoot, username, password);
+			return new MqttClientConnectorOptions(isPublishWriteEvents, ParseMessageSerializer(tokens), clientId, serverAddress, serverPort, exceptionsTopicPattern, deviceStatusEventsTopicPattern, tagScheduleEventsTopicPattern, tagWriteRequestCommandsTopicRoot, TimeSpan.FromMilliseconds(reconnectInterval), username, password);
 		}
 
-		private MqttServerEventPublisherOptions ParseMqttServerEventPublisherOptions(IDictionary<string, string> tokens)
+		private MqttServerConnectorOptions ParseMqttServerConnectorOptions(IDictionary<string, string> tokens)
 		{
+			var isPublishWriteEvents = "true".Equals(tokens.GetOrDefault(PublishWriteEventsKey), StringComparison.InvariantCultureIgnoreCase);
 			var serverId = tokens.GetOrDefault(ServerIdKey) ?? Guid.NewGuid().ToString("N");
 			var sServerPort = tokens.GetOrDefault(PortKey) ?? string.Empty;
 			if (!int.TryParse(sServerPort, out var serverPort))
@@ -95,7 +92,7 @@ namespace SmartIOT.Connector.Mqtt
 			var tagWriteRequestCommandsTopic = tokens.GetOrDefault(TagWriteRequestCommandsTopicRootKey) ?? DefaultTagWriteRequestCommandsTopicRoot;
 			var isPublishPartialReads = tokens.GetOrDefault(PublishPartialReadsKey) != "false";
 
-			return new MqttServerEventPublisherOptions(serverId, serverPort, exceptionsTopicPattern, deviceStatusEventsTopicPattern, tagScheduleEventsTopicPattern, tagWriteRequestCommandsTopic, isPublishPartialReads);
+			return new MqttServerConnectorOptions(isPublishWriteEvents, ParseMessageSerializer(tokens), serverId, serverPort, exceptionsTopicPattern, deviceStatusEventsTopicPattern, tagScheduleEventsTopicPattern, tagWriteRequestCommandsTopic, isPublishPartialReads);
 		}
 	}
 }

@@ -40,6 +40,9 @@ namespace SmartIOT.Connector.Messages.Serializers
 				case TagWriteRequestCommand c:
 					SerializeMessage(3, stream, c);
 					break;
+				case PingMessage p:
+					SerializeMessage(99, stream, p);
+					break;
 				default:
 					throw new ArgumentException($"Message type {message.GetType().FullName} is not managed", nameof(message));
 			}
@@ -59,7 +62,7 @@ namespace SmartIOT.Connector.Messages.Serializers
 			// serialize newline \r\n
 			stream.Write(Encoding.UTF8.GetBytes(Environment.NewLine));
 		}
-		
+
 		public object? DeserializeMessage(Stream stream)
 		{
 			try
@@ -73,6 +76,7 @@ namespace SmartIOT.Connector.Messages.Serializers
 					1 => DeserializeMessage<TagEvent>(stream),
 					2 => DeserializeMessage<DeviceEvent>(stream),
 					3 => DeserializeMessage<TagWriteRequestCommand>(stream),
+					99 => DeserializeMessage<PingMessage>(stream),
 					_ => throw new InvalidDataException($"Message type {typeValue} is not recognized"),
 				};
 			}

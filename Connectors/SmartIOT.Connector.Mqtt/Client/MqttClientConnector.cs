@@ -11,30 +11,28 @@ using SmartIOT.Connector.Messages.Serializers;
 
 namespace SmartIOT.Connector.Mqtt.Client
 {
-	public class MqttClientEventPublisher : IConnectorEventPublisher
+	public class MqttClientConnector : AbstractPublisherConnector
 	{
-		private readonly MqttClientEventPublisherOptions _options;
+		private new MqttClientConnectorOptions Options => (MqttClientConnectorOptions)base.Options;
 		private readonly ManagedMqttClientOptions _mqttOptions;
 		private readonly IManagedMqttClient _mqttClient;
 		private readonly ISingleMessageSerializer _messageSerializer;
 		private bool _connected;
-		private IConnector? _connector;
-		private ISmartIOTConnectorInterface? _connectorInterface;
 
-		public MqttClientEventPublisher(ISingleMessageSerializer messageSerializer, MqttClientEventPublisherOptions options)
+		public MqttClientConnector(MqttClientConnectorOptions options)
+			: base(options)
 		{
-			_messageSerializer = messageSerializer;
-			_options = options;
+			_messageSerializer = options.MessageSerializer;
 
 			MqttClientOptionsBuilder clientOptions = new MqttClientOptionsBuilder()
-				.WithClientId(_options.ClientId)
-				.WithTcpServer(_options.ServerAddress, _options.ServerPort);
+				.WithClientId(Options.ClientId)
+				.WithTcpServer(Options.ServerAddress, Options.ServerPort);
 
-			if (!string.IsNullOrWhiteSpace(_options.Username) && !string.IsNullOrWhiteSpace(_options.Password))
-				clientOptions = clientOptions.WithCredentials(_options.Username, _options.Password);
+			if (!string.IsNullOrWhiteSpace(Options.Username) && !string.IsNullOrWhiteSpace(Options.Password))
+				clientOptions = clientOptions.WithCredentials(Options.Username, Options.Password);
 
 			_mqttOptions = new ManagedMqttClientOptionsBuilder()
-				.WithAutoReconnectDelay(_options.ReconnectDelay)
+				.WithAutoReconnectDelay(Options.ReconnectDelay)
 				.WithClientOptions(clientOptions.Build())
 				.Build();
 
@@ -46,44 +44,46 @@ namespace SmartIOT.Connector.Mqtt.Client
 			_mqttClient.UseApplicationMessageReceivedHandler(e => OnApplicationMessageReceived(e));
 		}
 
-		public void Start(IConnector connector, ISmartIOTConnectorInterface connectorInterface)
+		public override void Start(ISmartIOTConnectorInterface connectorInterface)
 		{
-			_connector = connector;
-			_connectorInterface = connectorInterface;
+			base.Start(connectorInterface);
+
 			_mqttClient.StartAsync(_mqttOptions);
 		}
 
-		public void Stop()
+		public override void Stop()
 		{
+			base.Stop();
+
 			_mqttClient.StopAsync().Wait();
 		}
 
 		private void OnConnectionFailed(ManagedProcessFailedEventArgs e)
 		{
-			_connectorInterface!.OnConnectorConnectionFailed(new ConnectorConnectionFailedEventArgs(_connector!, $"ClientId {_options.ClientId} failed connection to server {_options.ServerAddress}:{_options.ServerPort}: {e.Exception.Message}", e.Exception));
+			ConnectorInterface!.OnConnectorConnectionFailed(new ConnectorConnectionFailedEventArgs(this, $"ClientId {Options.ClientId} failed connection to server {Options.ServerAddress}:{Options.ServerPort}: {e.Exception.Message}", e.Exception));
 		}
 
 		private void OnDisconnected(MqttClientDisconnectedEventArgs e)
 		{
 			_connected = false;
-			_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"ClientId {_options.ClientId} disconnected from server {_options.ServerAddress}:{_options.ServerPort}: {e.ConnectResult.ReasonString}", e.Exception));
+			ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"ClientId {Options.ClientId} disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {e.ConnectResult.ReasonString}", e.Exception));
 		}
 
 		private void OnApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs e)
 		{
-			if (e.ApplicationMessage.Topic.StartsWith(_options.TagWriteRequestCommandsTopicRoot, StringComparison.InvariantCultureIgnoreCase))
+			if (e.ApplicationMessage.Topic.StartsWith(Options.TagWriteRequestCommandsTopicRoot, StringComparison.InvariantCultureIgnoreCase))
 			{
 				var command = _messageSerializer.DeserializeMessage<TagWriteRequestCommand>(e.ApplicationMessage.Payload);
 				if (command != null)
-					_connectorInterface!.RequestTagWrite(command.DeviceId, command.TagId, command.StartOffset, command.Data);
+					ConnectorInterface!.RequestTagWrite(command.DeviceId, command.TagId, command.StartOffset, command.Data);
 			}
 		}
 
 		private void OnConnected(MqttClientConnectedEventArgs e)
 		{
-			_mqttClient.SubscribeAsync(_options.TagWriteRequestCommandsTopicRoot, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce).Wait();
+			_mqttClient.SubscribeAsync(Options.TagWriteRequestCommandsTopicRoot, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce).Wait();
 
-			_connectorInterface!.RunInitializationAction(
+			ConnectorInterface!.RunInitializationAction(
 				initAction: (deviceEvents, tagEvents) =>
 				{
 					foreach (var deviceEvent in deviceEvents)
@@ -97,31 +97,31 @@ namespace SmartIOT.Connector.Mqtt.Client
 				});
 
 			_connected = true; // once initialized the publisher is OK
-			_connectorInterface!.OnConnectorConnected(new ConnectorConnectedEventArgs(_connector!, $"ClientId {_options.ClientId} connected to server {_options.ServerAddress}:{_options.ServerPort}"));
+			ConnectorInterface!.OnConnectorConnected(new ConnectorConnectedEventArgs(this, $"ClientId {Options.ClientId} connected to server {Options.ServerAddress}:{Options.ServerPort}"));
 		}
 
-		public void PublishException(Exception exception)
+		protected override void PublishException(Exception exception)
 		{
 			if (_connected)
 			{
 				_mqttClient.PublishAsync(b => b
-					.WithTopic(_options.ExceptionsTopicPattern)
+					.WithTopic(Options.ExceptionsTopicPattern)
 					.WithAtLeastOnceQoS()
 					.WithPayload(_messageSerializer.SerializeMessage(EventExtensions.ToEventMessage(exception)))
 				).Wait();
 			}
 		}
 
-		public void PublishDeviceStatusEvent(DeviceStatusEvent e)
+		protected override void PublishDeviceStatusEvent(DeviceStatusEvent e)
 		{
 			PublishDeviceStatusEvent(e, false);
 		}
-		public void PublishDeviceStatusEvent(DeviceStatusEvent e, bool isInitializationEvent)
+		private void PublishDeviceStatusEvent(DeviceStatusEvent e, bool isInitializationEvent)
 		{
 			if (_connected || isInitializationEvent)
 			{
 				_mqttClient.PublishAsync(b => b
-					.WithTopic(_options.GetDeviceStatusEventsTopic(e.Device.DeviceId))
+					.WithTopic(Options.GetDeviceStatusEventsTopic(e.Device.DeviceId))
 					.WithAtLeastOnceQoS()
 					.WithPayload(_messageSerializer.SerializeMessage(EventExtensions.ToEventMessage(e)))
 					.WithRetainFlag(true)
@@ -129,11 +129,11 @@ namespace SmartIOT.Connector.Mqtt.Client
 			}
 		}
 
-		public void PublishTagScheduleEvent(TagScheduleEvent e)
+		protected override void PublishTagScheduleEvent(TagScheduleEvent e)
 		{
 			PublishTagScheduleEvent(e, false);
 		}
-		public void PublishTagScheduleEvent(TagScheduleEvent e, bool isInitializationData)
+		private void PublishTagScheduleEvent(TagScheduleEvent e, bool isInitializationData)
 		{
 			if (_connected || isInitializationData)
 			{
@@ -144,7 +144,7 @@ namespace SmartIOT.Connector.Mqtt.Client
 				var message = evt.ToEventMessage(isInitializationData);
 
 				_mqttClient.PublishAsync(b => b
-					.WithTopic(_options.GetTagScheduleEventsTopic(e.Device.DeviceId, e.Tag.TagId))
+					.WithTopic(Options.GetTagScheduleEventsTopic(e.Device.DeviceId, e.Tag.TagId))
 					.WithAtLeastOnceQoS()
 					.WithPayload(_messageSerializer.SerializeMessage(message))
 					.WithRetainFlag(true)).Wait();

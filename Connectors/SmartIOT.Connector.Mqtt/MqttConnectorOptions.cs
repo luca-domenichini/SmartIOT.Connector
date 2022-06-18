@@ -1,14 +1,20 @@
-﻿namespace SmartIOT.Connector.Mqtt
+﻿using SmartIOT.Connector.Core.Connector;
+using SmartIOT.Connector.Messages.Serializers;
+
+namespace SmartIOT.Connector.Mqtt
 {
-	public class MqttEventPublisherOptions
+	public class MqttConnectorOptions : ConnectorOptions
 	{
 		public string ExceptionsTopicPattern { get; }
 		public string DeviceStatusEventsTopicPattern { get; }
 		public string TagScheduleEventsTopicPattern { get; }
 		public string TagWriteRequestCommandsTopicRoot { get; }
+		public ISingleMessageSerializer MessageSerializer { get; }
 
-		public MqttEventPublisherOptions(string exceptionsTopicPattern, string deviceStatusEventsTopicPattern, string tagScheduleEventsTopicPattern, string tagWriteRequestCommandsTopicRoot)
+		public MqttConnectorOptions(bool isPublishWriteEvents, ISingleMessageSerializer messageSerializer, string exceptionsTopicPattern, string deviceStatusEventsTopicPattern, string tagScheduleEventsTopicPattern, string tagWriteRequestCommandsTopicRoot)
+			: base(isPublishWriteEvents)
 		{
+			MessageSerializer = messageSerializer;
 			ExceptionsTopicPattern = exceptionsTopicPattern;
 			DeviceStatusEventsTopicPattern = deviceStatusEventsTopicPattern;
 			TagScheduleEventsTopicPattern = tagScheduleEventsTopicPattern;

@@ -66,7 +66,7 @@ namespace SmartIOT.Connector.Core.Connector
 		/// </summary>
 		private bool IsTagReadEventMeaningful(TagScheduleEventArgs tagScheduleEvent)
 		{
-			return tagScheduleEvent.TagScheduleEvent.Data != null && tagScheduleEvent.TagScheduleEvent.Data.Length > 0
+			return (tagScheduleEvent.TagScheduleEvent.Data != null && tagScheduleEvent.TagScheduleEvent.Data.Length > 0)
 				|| tagScheduleEvent.TagScheduleEvent.IsErrorNumberChanged;
 		}
 

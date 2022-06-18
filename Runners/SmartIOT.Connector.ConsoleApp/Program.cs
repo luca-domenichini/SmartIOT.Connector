@@ -47,7 +47,7 @@ namespace SmartIOT.Connector.ConsoleApp
 				, onStartedHandler: (s, e) => WriteInfo("SmartIOT.Connector started. Press Ctrl-C for graceful stop.")
 				, onStoppingHandler: (s, e) => WriteInfo("SmartIOT.Connector stopping..")
 				, onStoppedHandler: (s, e) => WriteInfo("SmartIOT.Connector stopped")
-				, onExceptionHandler: (s, e) => WriteError($"Exception caught: {e.Exception.Message}{Environment.NewLine}{e.Exception}")
+				, onExceptionHandler: (s, e) => WriteError($"Exception caught: {e.Exception.Message}", e.Exception)
 				, onTagRead: (s, e) =>
 				{
 					if (e.TagScheduleEvent.Data != null)
@@ -86,24 +86,30 @@ namespace SmartIOT.Connector.ConsoleApp
 				{
 					WriteInfo($"{e.Connector.GetType().Name}: {e.Info}");
 				}
+				, onConnectorConnectionFailedHandler: (s, e) =>
+				{
+					WriteError($"{e.Connector.GetType().Name}: {e.Info}", e.Exception);
+				}
 				, onConnectorDisconnectedHandler: (s, e) =>
 				{
 					WriteInfo($"{e.Connector.GetType().Name}: {e.Info}");
 				}
 				, onConnectorExceptionHandler: (s, e) =>
 				{
-					WriteError($"{e.Connector.GetType().Name}: Unexpected exception: {e.Exception.Message}{Environment.NewLine}{e.Exception}");
+					WriteError($"{e.Connector.GetType().Name}: Unexpected exception: {e.Exception.Message}", e.Exception);
 				}
 				);
 		}
 
 		public static void WriteInfo(string message)
 		{
-			System.Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [INFO] {message}");
+			Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [INFO] {message}");
 		}
-		public static void WriteError(string message)
+		public static void WriteError(string message, Exception? exception = null)
 		{
-			System.Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [ERROR] {message}");
+			Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [ERROR] {message}");
+			if (exception != null)
+				Console.WriteLine(exception);
 		}
 	}
 }

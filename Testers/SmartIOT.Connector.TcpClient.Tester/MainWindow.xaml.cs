@@ -21,6 +21,13 @@ namespace SmartIOT.Connector.TcpClient.Tester
 			InitializeComponent();
 		}
 
+		protected override void OnClosed(EventArgs e)
+		{
+			base.OnClosed(e);
+
+			Application.Current.Shutdown();
+		}
+
 		private void BtnClearLogs_Click(object sender, RoutedEventArgs e)
 		{
 			txtLogs.Text = string.Empty;
@@ -82,6 +89,10 @@ namespace SmartIOT.Connector.TcpClient.Tester
 						{
 							string message = JsonSerializer.Serialize(msg);
 							txtLogs.Dispatcher.Invoke(() => txtLogs.Text += $"RECV TagRead {message}\r\n");
+						}
+						else if (msg is PingMessage)
+						{
+							Dispatcher.Invoke(() => txtLogs.Text += "RECV Ping\r\n");
 						}
 						else
 						{

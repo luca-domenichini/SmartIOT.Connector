@@ -40,6 +40,7 @@ namespace SmartIOT.Connector.ConsoleApp
 			, EventHandler<ConnectorStartedEventArgs>? onConnectorStartedHandler = null
 			, EventHandler<ConnectorStoppedEventArgs>? onConnectorStoppedHandler = null
 			, EventHandler<ConnectorConnectedEventArgs>? onConnectorConnectedHandler = null
+			, EventHandler<ConnectorConnectionFailedEventArgs>? onConnectorConnectionFailedHandler = null
 			, EventHandler<ConnectorDisconnectedEventArgs>? onConnectorDisconnectedHandler = null
 			, EventHandler<ConnectorExceptionEventArgs>? onConnectorExceptionHandler = null
 			)
@@ -62,6 +63,7 @@ namespace SmartIOT.Connector.ConsoleApp
 			SmartIotConnector.ConnectorStarted += onConnectorStartedHandler;
 			SmartIotConnector.ConnectorStopped += onConnectorStoppedHandler;
 			SmartIotConnector.ConnectorConnected += onConnectorConnectedHandler;
+			SmartIotConnector.ConnectorConnectionFailed += onConnectorConnectionFailedHandler;
 			SmartIotConnector.ConnectorDisconnected += onConnectorDisconnectedHandler;
 			SmartIotConnector.ConnectorException += onConnectorExceptionHandler;
 
@@ -80,6 +82,7 @@ namespace SmartIOT.Connector.ConsoleApp
 			, EventHandler<ConnectorStartedEventArgs>? onConnectorStartedHandler = null
 			, EventHandler<ConnectorStoppedEventArgs>? onConnectorStoppedHandler = null
 			, EventHandler<ConnectorConnectedEventArgs>? onConnectorConnectedHandler = null
+			, EventHandler<ConnectorConnectionFailedEventArgs>? onConnectorConnectionFailedHandler = null
 			, EventHandler<ConnectorDisconnectedEventArgs>? onConnectorDisconnectedHandler = null
 			, EventHandler<ConnectorExceptionEventArgs>? onConnectorExceptionHandler = null
 			)
@@ -96,6 +99,7 @@ namespace SmartIOT.Connector.ConsoleApp
 				, onConnectorStartedHandler
 				, onConnectorStoppedHandler
 				, onConnectorConnectedHandler
+				, onConnectorConnectionFailedHandler
 				, onConnectorDisconnectedHandler
 				, onConnectorExceptionHandler
 				);

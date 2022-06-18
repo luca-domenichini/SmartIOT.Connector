@@ -7,46 +7,44 @@ using System.Net.Sockets;
 
 namespace SmartIOT.Connector.Tcp.Client
 {
-	public class TcpClientEventPublisher : IConnectorEventPublisher
+	public class TcpClientConnector : AbstractPublisherConnector
 	{
-		private TcpClient? TcpClient { get; set; }
+		private new TcpClientConnectorOptions Options => (TcpClientConnectorOptions)base.Options;
 
+		private TcpClient? _tcpClient;
 		private readonly IStreamMessageSerializer _messageSerializer;
-		private readonly TcpClientEventPublisherOptions _options;
 		private readonly CancellationTokenSource _stopToken = new CancellationTokenSource();
 		private readonly ManualResetEventSlim _reconnectTaskTerminated = new ManualResetEventSlim();
-		private readonly CountdownLatch _readers = new CountdownLatch();
-		private IConnector? _connector;
-		private ISmartIOTConnectorInterface? _connectorInterface;
+		private readonly CountdownLatch _clients = new CountdownLatch();
 
-		public TcpClientEventPublisher(IStreamMessageSerializer messageSerializer, TcpClientEventPublisherOptions options)
+		public TcpClientConnector(TcpClientConnectorOptions options)
+			: base(options)
 		{
-			_messageSerializer = messageSerializer;
-			_options = options;
+			_messageSerializer = options.MessageSerializer;
 		}
 
 
-		public void PublishDeviceStatusEvent(DeviceStatusEvent e)
+		protected override void PublishDeviceStatusEvent(DeviceStatusEvent e)
 		{
-			PublishDeviceStatusEvent(e, TcpClient);
+			PublishDeviceStatusEvent(e, _tcpClient);
 		}
 		private void PublishDeviceStatusEvent(DeviceStatusEvent e, TcpClient? tcpClient)
 		{
 			SendMessage(tcpClient, e.ToEventMessage());
 		}
 
-		public void PublishException(Exception exception)
+		protected override void PublishException(Exception exception)
 		{
-			PublishException(exception, TcpClient);
+			PublishException(exception, _tcpClient);
 		}
 		private void PublishException(Exception exception, TcpClient? tcpClient)
 		{
 			SendMessage(tcpClient, new ExceptionEvent(exception.Message, exception.ToString()));
 		}
 
-		public void PublishTagScheduleEvent(TagScheduleEvent e)
+		protected override void PublishTagScheduleEvent(TagScheduleEvent e)
 		{
-			PublishTagScheduleEvent(e, TcpClient, false);
+			PublishTagScheduleEvent(e, _tcpClient, false);
 		}
 		private void PublishTagScheduleEvent(TagScheduleEvent e, TcpClient? tcpClient, bool isInitializationData)
 		{
@@ -68,15 +66,14 @@ namespace SmartIOT.Connector.Tcp.Client
 				catch (Exception ex)
 				{
 					tcpClient.Close();
-					_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"Disconnected from server {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
+					ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"Disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
 				}
 			}
 		}
 
-		public void Start(IConnector connector, ISmartIOTConnectorInterface connectorInterface)
+		public override void Start(ISmartIOTConnectorInterface connectorInterface)
 		{
-			_connector = connector;
-			_connectorInterface = connectorInterface;
+			base.Start(connectorInterface);
 
 			Task.Factory.StartNew(async () =>
 			{
@@ -86,22 +83,20 @@ namespace SmartIOT.Connector.Tcp.Client
 					{
 						try
 						{
-							await Task.Delay(_options.ReconnectDelay, _stopToken.Token);
-
-							if (!(TcpClient?.Connected ?? true))
+							if (!(_tcpClient?.Connected ?? true))
 							{
-								TcpClient?.Close();
-								TcpClient = null;
+								_tcpClient?.Close();
+								_tcpClient = null;
 							}
 
-							if (TcpClient == null)
+							if (_tcpClient == null)
 							{
 								var tcpClient = new TcpClient();
 								ConfigureTcpClient(tcpClient);
 
 								try
 								{
-									await tcpClient.ConnectAsync(_options.ServerAddress, _options.ServerPort, _stopToken.Token);
+									await tcpClient.ConnectAsync(Options.ServerAddress, Options.ServerPort, _stopToken.Token);
 								}
 								catch (Exception ex)
 								{
@@ -109,7 +104,7 @@ namespace SmartIOT.Connector.Tcp.Client
 									tcpClient = null;
 
 									if (ex is not OperationCanceledException)
-										connectorInterface.OnConnectorConnectionFailed(new ConnectorConnectionFailedEventArgs(connector, $"TcpClient Connector failed to connect to host {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
+										connectorInterface.OnConnectorConnectionFailed(new ConnectorConnectionFailedEventArgs(this, $"TcpClient Connector failed to connect to host {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
 								}
 
 								if (tcpClient != null && tcpClient.Connected)
@@ -119,7 +114,7 @@ namespace SmartIOT.Connector.Tcp.Client
 										// locking on tcpClient to handle concurrency on message events vs initialization
 										lock (tcpClient)
 										{
-											TcpClient = tcpClient;
+											_tcpClient = tcpClient;
 
 											// send initialization events
 											connectorInterface.RunInitializationAction((deviceStatusEvents, tagEvents) =>
@@ -134,9 +129,9 @@ namespace SmartIOT.Connector.Tcp.Client
 												}
 											});
 
-											connectorInterface.OnConnectorConnected(new ConnectorConnectedEventArgs(connector, $"Connected to server {_options.ServerAddress}:{_options.ServerPort}"));
+											connectorInterface.OnConnectorConnected(new ConnectorConnectedEventArgs(this, $"Connected to server {Options.ServerAddress}:{Options.ServerPort}"));
 
-											StartReadMessagesTask(tcpClient);
+											StartHandlingTcpClient(tcpClient);
 										}
 									}
 									catch (Exception ex)
@@ -144,10 +139,12 @@ namespace SmartIOT.Connector.Tcp.Client
 										tcpClient.Close();
 										tcpClient = null;
 
-										_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(connector, $"Disconnected from server {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
+										ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"Disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
 									}
 								}
 							}
+
+							await Task.Delay(Options.ReconnectInterval, _stopToken.Token);
 						}
 						catch (OperationCanceledException)
 						{
@@ -158,7 +155,7 @@ namespace SmartIOT.Connector.Tcp.Client
 							// unhandled exception: signal via interface
 							try
 							{
-								_connectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(connector, ex));
+								ConnectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
 							}
 							catch
 							{
@@ -174,11 +171,12 @@ namespace SmartIOT.Connector.Tcp.Client
 			});
 		}
 
-		private void StartReadMessagesTask(TcpClient tcpClient)
+		private void StartHandlingTcpClient(TcpClient tcpClient)
 		{
-			_readers.Increment();
+			_clients.Increment();
 
-			Task.Factory.StartNew(() =>
+			// processing thread
+			new Thread(() =>
 			{
 				try
 				{
@@ -198,14 +196,43 @@ namespace SmartIOT.Connector.Tcp.Client
 					{
 						tcpClient.Close();
 
-						_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"Disconnected from server {_options.ServerAddress}:{_options.ServerPort}: {ex.Message}", ex));
+						ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"Disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
 					}
 				}
 				finally
 				{
-					_readers.Decrement();
+					_clients.Decrement();
 				}
-			});
+			})
+			{
+				Name = "TcpClient.Reader"
+			}.Start();
+
+			// ping thread
+			if (Options.PingInterval > TimeSpan.Zero)
+			{
+				new Thread(() =>
+				{
+					try
+					{
+						while (!_stopToken.Token.WaitHandle.WaitOne(5000))
+						{
+							lock (tcpClient)
+							{
+								_messageSerializer.SerializeMessage(tcpClient.GetStream(), new PingMessage());
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						ConnectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
+					}
+				})
+				{
+					Name = "TcpClient.Ping",
+					IsBackground = true
+				}.Start();
+			}
 		}
 
 		private void HandleMessage(object message)
@@ -215,6 +242,8 @@ namespace SmartIOT.Connector.Tcp.Client
 				case TagWriteRequestCommand c:
 					HandleTagWriteRequestCommand(c);
 					break;
+				case PingMessage:
+					break;
 				default:
 					throw new InvalidOperationException($"Message type {message.GetType().FullName} not managed");
 			}
@@ -222,20 +251,22 @@ namespace SmartIOT.Connector.Tcp.Client
 
 		private void HandleTagWriteRequestCommand(TagWriteRequestCommand c)
 		{
-			_connectorInterface!.RequestTagWrite(c.DeviceId, c.TagId, c.StartOffset, c.Data);
+			ConnectorInterface!.RequestTagWrite(c.DeviceId, c.TagId, c.StartOffset, c.Data);
 		}
 
 		private void ConfigureTcpClient(TcpClient tcpClient)
 		{
-			// TODO configure tcp parameters
+			
 		}
 
-		public void Stop()
+		public override void Stop()
 		{
-			_stopToken.Cancel();
-			TcpClient?.Close();
+			base.Stop();
 
-			_readers.WaitUntilZero();
+			_stopToken.Cancel();
+			_tcpClient?.Close();
+
+			_clients.WaitUntilZero();
 			_reconnectTaskTerminated.Wait();
 		}
 	}

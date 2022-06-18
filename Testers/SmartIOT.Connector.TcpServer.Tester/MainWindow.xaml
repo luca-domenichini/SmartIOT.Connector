@@ -11,12 +11,6 @@
 		<TextBox x:Name="txtPort" HorizontalAlignment="Left" Margin="47,16,0,0" TextWrapping="Wrap" Text="1883" VerticalAlignment="Top" Width="49"/>
 		<Button x:Name="btnStart" Content="Start server" HorizontalAlignment="Left" Margin="104,12,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.049,0.154" Height="28" Width="158" Click="BtnStartServer_Click"/>
 		<Button x:Name="btnStopServer" Content="Stop server" HorizontalAlignment="Left" Margin="267,12,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.049,0.154" Height="28" Width="158" Click="BtnStopServer_Click"/>
-		<Label x:Name="chkDeviceStatusTopic" Content="Device status topic root" HorizontalAlignment="Left" Margin="10,49,0,0" VerticalAlignment="Top" />
-		<TextBox x:Name="txtDeviceStatusTopic" HorizontalAlignment="Left" Margin="161,53,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.508,0.67" Text="deviceStatus"/>
-		<Label x:Name="chkTagReadTopic" Content="Tag read topic root" HorizontalAlignment="Left" Margin="10,73,0,0" VerticalAlignment="Top" />
-		<TextBox x:Name="txtTagReadTopic" HorizontalAlignment="Left" Margin="161,79,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.508,0.67" Text="tagRead"/>
-		<Label x:Name="chkTagWriteTopic" Content="Tag write topic root" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top"/>
-		<TextBox x:Name="txtTagWriteTopic" HorizontalAlignment="Left" Margin="161,106,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.508,0.67" Text="tagWrite"/>
 		<Label x:Name="label1" Content="Select the serializer to be used to parse messages" HorizontalAlignment="Left" Margin="376,59,0,0" VerticalAlignment="Top"/>
 		<RadioButton x:Name="rdJsonSerializer" Content="Json serializer" HorizontalAlignment="Left" Margin="376,85,0,0" VerticalAlignment="Top" IsChecked="True"/>
 		<RadioButton x:Name="rdProtobufSerializer" Content="Protobuf serializer" HorizontalAlignment="Left" Margin="376,105,0,0" VerticalAlignment="Top"/>

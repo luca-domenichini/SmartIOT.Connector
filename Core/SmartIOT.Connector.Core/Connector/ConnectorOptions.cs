@@ -2,6 +2,11 @@
 {
 	public class ConnectorOptions
 	{
-		public bool IsPublishWriteEvents { get; set; }
+		public bool IsPublishWriteEvents { get; }
+
+		public ConnectorOptions(bool isPublishWriteEvents)
+		{
+			IsPublishWriteEvents = isPublishWriteEvents;
+		}
 	}
 }

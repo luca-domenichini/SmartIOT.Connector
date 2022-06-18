@@ -1,9 +1,9 @@
 ﻿using SmartIOT.Connector.Core;
-using SmartIOT.Connector.Core.Connector;
 using SmartIOT.Connector.Core.Factory;
 using SmartIOT.Connector.Core.Util;
 using SmartIOT.Connector.Messages.Serializers;
 using SmartIOT.Connector.Tcp.Client;
+using SmartIOT.Connector.Tcp.Server;
 
 namespace SmartIOT.Connector.Tcp
 {
@@ -12,6 +12,8 @@ namespace SmartIOT.Connector.Tcp
 		private readonly string PublishWriteEventsKey = "PublishWriteEvents".ToLower();
 		private readonly string ServerKey = "Server".ToLower();
 		private readonly string PortKey = "Port".ToLower();
+		private readonly string PingIntervalMillisKey = "PingIntervalMillis".ToLower();
+		private readonly string ReconnectIntervalMillisKey = "ReconnectIntervalMillis".ToLower();
 
 
 		public IConnector? CreateConnector(string connectionString)
@@ -20,22 +22,14 @@ namespace SmartIOT.Connector.Tcp
 
 			if (connectionString.ToLower().StartsWith("tcpclient://", StringComparison.InvariantCultureIgnoreCase))
 			{
-				return new TcpConnector(ParseConnectorOptions(tokens), new TcpClientEventPublisher(ParseMessageSerializer(tokens), ParseTcpClientEventPublisherOptions(tokens)));
+				return new TcpClientConnector(ParseTcpClientConnectorOptions(tokens));
 			}
 			if (connectionString.ToLower().StartsWith("tcpserver://", StringComparison.InvariantCultureIgnoreCase))
 			{
-				throw new NotImplementedException("to be done");
+				return new TcpServerConnector(ParseTcpServerConnectorOptions(tokens));
 			}
 
 			return null;
-		}
-
-		private ConnectorOptions ParseConnectorOptions(IDictionary<string, string> tokens)
-		{
-			return new ConnectorOptions()
-			{
-				IsPublishWriteEvents = "true".Equals(tokens.GetOrDefault(PublishWriteEventsKey), StringComparison.InvariantCultureIgnoreCase)
-			};
 		}
 
 		private IStreamMessageSerializer ParseMessageSerializer(IDictionary<string, string> tokens)
@@ -48,23 +42,37 @@ namespace SmartIOT.Connector.Tcp
 			return new JsonStreamMessageSerializer();
 		}
 
-		private TcpClientEventPublisherOptions ParseTcpClientEventPublisherOptions(IDictionary<string, string> tokens)
+		private TcpClientConnectorOptions ParseTcpClientConnectorOptions(IDictionary<string, string> tokens)
 		{
-			var serverAddress = tokens.GetOrDefault(ServerKey) ?? throw new ArgumentException("Invalid mqttClient connectionString: Server expected");
+			var isPublishWriteEvents = "true".Equals(tokens.GetOrDefault(PublishWriteEventsKey), StringComparison.InvariantCultureIgnoreCase);
+			var serverAddress = tokens.GetOrDefault(ServerKey) ?? throw new ArgumentException("Invalid TcpClient connectionString: Server expected");
 			var sServerPort = tokens.GetOrDefault(PortKey) ?? string.Empty;
 			if (!int.TryParse(sServerPort, out var serverPort))
-				throw new ArgumentException("Invalid mqttClient connectionString: Port expected");
+				throw new ArgumentException("Invalid TcpClient connectionString: Port expected");
 
-			return new TcpClientEventPublisherOptions(serverAddress, serverPort);
+			string sReconnectIntervalMillis = tokens.GetOrDefault(ReconnectIntervalMillisKey) ?? "5000";
+			if (!int.TryParse(sReconnectIntervalMillis, out var reconnectIntervalMillis))
+				reconnectIntervalMillis = 5000;
+
+			string sPingIntervalMillis = tokens.GetOrDefault(PingIntervalMillisKey) ?? "0";
+			if (!int.TryParse(sPingIntervalMillis, out var pingIntervalMillis))
+				pingIntervalMillis = 0;
+
+			return new TcpClientConnectorOptions(isPublishWriteEvents, serverAddress, serverPort, TimeSpan.FromMilliseconds(reconnectIntervalMillis), ParseMessageSerializer(tokens), TimeSpan.FromMilliseconds(pingIntervalMillis));
 		}
 
-		//private TcpServerEventPublisherOptions ParseTcpServerEventPublisherOptions(IDictionary<string, string> tokens)
-		//{
-		//	var sServerPort = tokens.GetOrDefault(PortKey) ?? string.Empty;
-		//	if (!int.TryParse(sServerPort, out var serverPort))
-		//		throw new ArgumentException("Invalid mqttServer connectionString: port expected");
+		private TcpServerConnectorOptions ParseTcpServerConnectorOptions(IDictionary<string, string> tokens)
+		{
+			var isPublishWriteEvents = "true".Equals(tokens.GetOrDefault(PublishWriteEventsKey), StringComparison.InvariantCultureIgnoreCase);
+			var sServerPort = tokens.GetOrDefault(PortKey) ?? string.Empty;
+			if (!int.TryParse(sServerPort, out var serverPort))
+				throw new ArgumentException("Invalid TcpServer connectionString: Port expected");
 
-		//	return new TcpServerEventPublisherOptions(serverPort);
-		//}
+			string sPingIntervalMillis = tokens.GetOrDefault(PingIntervalMillisKey) ?? "0";
+			if (!int.TryParse(sPingIntervalMillis, out var pingIntervalMillis))
+				pingIntervalMillis = 0;
+
+			return new TcpServerConnectorOptions(isPublishWriteEvents, serverPort, ParseMessageSerializer(tokens), TimeSpan.FromMilliseconds(pingIntervalMillis));
+		}
 	}
 }

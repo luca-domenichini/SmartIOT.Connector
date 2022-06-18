@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -22,6 +23,13 @@ namespace SmartIOT.Connector.TcpServer.Tester
 		public MainWindow()
 		{
 			InitializeComponent();
+		}
+
+		protected override void OnClosed(EventArgs e)
+		{
+			base.OnClosed(e);
+
+			Application.Current.Shutdown();
 		}
 
 		private void BtnClearLogs_Click(object sender, RoutedEventArgs e)
@@ -43,9 +51,23 @@ namespace SmartIOT.Connector.TcpServer.Tester
 					_tcpListener = new TcpListener(System.Net.IPAddress.Any, int.Parse(txtPort.Text));
 					_tcpListener.Start();
 
-					var tcpClient = _tcpListener.AcceptTcpClient();
+					new Thread(() =>
+					{
+						try
+						{
+							while (true)
+							{
+								var tcpClient = _tcpListener.AcceptTcpClient();
 
-					StartTaskForClient(tcpClient);
+								StartTaskForClient(tcpClient);
+							}
+						}
+						catch (Exception ex)
+						{
+							Dispatcher.Invoke(() => txtLogs.Text += $"Closing server accept: {ex.Message}\r\n");
+						}
+
+					}).Start();
 
 					txtLogs.Text += "Started\r\n";
 				}
@@ -79,6 +101,10 @@ namespace SmartIOT.Connector.TcpServer.Tester
 							string message = JsonSerializer.Serialize(msg);
 							Dispatcher.Invoke(() => txtLogs.Text += $"RECV TagRead {message}\r\n");
 						}
+						else if (msg is PingMessage)
+						{
+							Dispatcher.Invoke(() => txtLogs.Text += "RECV Ping\r\n");
+						}
 						else
 						{
 							Dispatcher.Invoke(() => txtLogs.Text += $"RECV unknown message\r\n");
@@ -106,6 +132,12 @@ namespace SmartIOT.Connector.TcpServer.Tester
 				{
 					_tcpListener.Stop();
 					_tcpListener = null;
+
+					foreach (var client in _clients)
+					{
+						client.Close();
+					}
+					_clients.Clear();
 
 					txtLogs.Text += "Stopped\r\n";
 				}

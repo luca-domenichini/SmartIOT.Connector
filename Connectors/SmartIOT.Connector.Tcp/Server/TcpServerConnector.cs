@@ -7,34 +7,32 @@ using System.Net.Sockets;
 
 namespace SmartIOT.Connector.Tcp.Server
 {
-	public class TcpServerEventPublisher : IConnectorEventPublisher
+	public class TcpServerConnector : AbstractPublisherConnector
 	{
 		private readonly IStreamMessageSerializer _messageSerializer;
-		private readonly TcpServerEventPublisherOptions _options;
+		private new TcpServerConnectorOptions Options => (TcpServerConnectorOptions)base.Options;
 		private readonly TcpListener _tcpListener;
-		private IConnector? _connector;
-		private ISmartIOTConnectorInterface? _connectorInterface;
 		private readonly CancellationTokenSource _stopToken = new CancellationTokenSource();
 		private readonly TcpServerClientCollection _clients = new TcpServerClientCollection();
 
-		public TcpServerEventPublisher(IStreamMessageSerializer messageSerializer, TcpServerEventPublisherOptions options)
+		public TcpServerConnector(TcpServerConnectorOptions options)
+			: base(options)
 		{
-			_messageSerializer = messageSerializer;
-			_options = options;
-			_tcpListener = new TcpListener(System.Net.IPAddress.Any, _options.ServerPort);
+			_messageSerializer = options.MessageSerializer;
+			_tcpListener = new TcpListener(System.Net.IPAddress.Any, Options.ServerPort);
 		}
 
-		public void PublishDeviceStatusEvent(DeviceStatusEvent e)
+		protected override void PublishDeviceStatusEvent(DeviceStatusEvent e)
 		{
 			BroadcastMessage(e.ToEventMessage());
 		}
 
-		public void PublishException(Exception exception)
+		protected override void PublishException(Exception exception)
 		{
 			BroadcastMessage(exception.ToEventMessage());
 		}
 
-		public void PublishTagScheduleEvent(TagScheduleEvent e)
+		protected override void PublishTagScheduleEvent(TagScheduleEvent e)
 		{
 			BroadcastMessage(e.ToEventMessage());
 		}
@@ -51,7 +49,7 @@ namespace SmartIOT.Connector.Tcp.Server
 				{
 					CloseTcpClientQuietly(tcpClient);
 
-					_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"Client disconnected: {ex.Message}", ex));
+					ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"Client disconnected: {ex.Message}", ex));
 				}
 			}
 		}
@@ -65,10 +63,9 @@ namespace SmartIOT.Connector.Tcp.Server
 			}
 		}
 
-		public void Start(IConnector connector, ISmartIOTConnectorInterface connectorInterface)
+		public override void Start(ISmartIOTConnectorInterface connectorInterface)
 		{
-			_connector = connector;
-			_connectorInterface = connectorInterface;
+			base.Start(connectorInterface);
 
 			_tcpListener.Start();
 
@@ -91,7 +88,7 @@ namespace SmartIOT.Connector.Tcp.Server
 					{
 						try
 						{
-							connectorInterface.OnConnectorException(new ConnectorExceptionEventArgs(connector, ex));
+							connectorInterface.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
 						}
 						catch
 						{
@@ -109,12 +106,14 @@ namespace SmartIOT.Connector.Tcp.Server
 			{
 				try
 				{
+					ConnectorInterface!.OnConnectorConnected(new ConnectorConnectedEventArgs(this, "Client connected"));
+
 					// locking on tcpClient to handle concurrency on message events vs initialization
 					lock (tcpClient)
 					{
 						_clients.Add(tcpClient);
 
-						_connectorInterface!.RunInitializationAction((deviceStatusEvents, tagScheduleEvents) =>
+						ConnectorInterface!.RunInitializationAction((deviceStatusEvents, tagScheduleEvents) =>
 						{
 							foreach (var deviceStatusEvent in deviceStatusEvents)
 							{
@@ -130,25 +129,18 @@ namespace SmartIOT.Connector.Tcp.Server
 					// reading messages
 					while (!_stopToken.IsCancellationRequested)
 					{
-						try
-						{
-							var message = _messageSerializer.DeserializeMessage(tcpClient.GetStream());
-							if (message == null)
-								break;
-
-							HandleMessage(message);
-						}
-						catch (Exception ex) when (ex is OperationCanceledException || ex is ObjectDisposedException)
-						{
+						var message = _messageSerializer.DeserializeMessage(tcpClient.GetStream());
+						if (message == null)
 							break;
-						}
+
+						HandleMessage(message);
 					}
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (ex is not OperationCanceledException)
 				{
 					try
 					{
-						_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"Unexpected exception occurred with a client: {ex.Message}", ex));
+						ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"Unexpected exception occurred with a client: {ex.Message}", ex));
 					}
 					catch
 					{
@@ -161,9 +153,31 @@ namespace SmartIOT.Connector.Tcp.Server
 				}
 			})
 			{
-				IsBackground = true,
 				Name = "TcpServer.ClientHandler"
 			}.Start();
+
+			// ping thread
+			if (Options.PingInterval > TimeSpan.Zero)
+			{
+				new Thread(() =>
+				{
+					try
+					{
+						while (!_stopToken.Token.WaitHandle.WaitOne(5000))
+						{
+							SendSingleMessage(tcpClient, new PingMessage());
+						}
+					}
+					catch (Exception ex)
+					{
+						ConnectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
+					}
+				})
+				{
+					Name = "TcpServer.Ping",
+					IsBackground = true
+				}.Start();
+			}
 		}
 
 		private void HandleMessage(object message)
@@ -173,6 +187,8 @@ namespace SmartIOT.Connector.Tcp.Server
 				case TagWriteRequestCommand c:
 					HandleTagWriteRequestCommand(c);
 					break;
+				case PingMessage:
+					break;
 				default:
 					throw new InvalidOperationException($"Message type {message.GetType().FullName} not managed");
 			}
@@ -180,7 +196,7 @@ namespace SmartIOT.Connector.Tcp.Server
 
 		private void HandleTagWriteRequestCommand(TagWriteRequestCommand c)
 		{
-			_connectorInterface!.RequestTagWrite(c.DeviceId, c.TagId, c.StartOffset, c.Data);
+			ConnectorInterface!.RequestTagWrite(c.DeviceId, c.TagId, c.StartOffset, c.Data);
 		}
 
 		private void CloseTcpClientQuietly(TcpClient tcpClient)
@@ -197,8 +213,10 @@ namespace SmartIOT.Connector.Tcp.Server
 			}
 		}
 
-		public void Stop()
+		public override void Stop()
 		{
+			base.Stop();
+
 			_stopToken.Cancel();
 			_tcpListener.Stop();
 		}

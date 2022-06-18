@@ -29,6 +29,13 @@ namespace SmartIOT.Connector.MqttServer.Tester
 			InitializeComponent();
 		}
 
+		protected override void OnClosed(EventArgs e)
+		{
+			base.OnClosed(e);
+
+			Application.Current.Shutdown();
+		}
+
 		private void BtnClearLogs_Click(object sender, RoutedEventArgs e)
 		{
 			txtLogs.Text = string.Empty;

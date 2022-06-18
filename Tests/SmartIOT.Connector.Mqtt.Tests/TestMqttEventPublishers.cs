@@ -5,7 +5,6 @@ using MQTTnet.Client.Receiving;
 using MQTTnet.Server;
 using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Conf;
-using SmartIOT.Connector.Core.Connector;
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Core.Scheduler;
 using SmartIOT.Connector.Core.Tests;
@@ -24,54 +23,12 @@ namespace SmartIOT.Connector.Mqtt.Tests
 {
 	public class TestMqttEventPublishers : SmartIOTBaseTests
 	{
-		[Fact]
-		public void Test_MqttConnector_with_mock_publisher()
-		{
-			var publisher = new MockEventPublisher();
-			var connector = new MqttConnector(new ConnectorOptions()
-			{
-				IsPublishWriteEvents = true
-			}, publisher);
-
-			SmartIotConnector module = SetupSmartIotConnector(SetupConfiguration(new DeviceConfiguration("mock://mock", "1", true, "MockDevice", new List<TagConfiguration>()
-			{
-				new TagConfiguration("DB20", TagType.READ, 10, 100, 1),
-				new TagConfiguration("DB22", TagType.WRITE, 10, 100, 1)
-			})), connector);
-
-			MockDeviceDriver driver = (MockDeviceDriver)module.Schedulers[0].DeviceDriver;
-			driver.SetupReadTagAsRandomData(15, 10);
-
-			module.Start();
-			try
-			{
-				Thread.Sleep(1000);
-
-				// richiedo scrittura dati
-				publisher.RequestTagWrite(new TagWriteRequestCommand("1", "DB22", 20, new byte[] { 1, 2, 3, 4, 5 }));
-				Thread.Sleep(1000);
-
-				module.Stop();
-
-				publisher.Verify(x => x.Start(It.IsAny<MqttConnector>(), It.IsAny<ISmartIOTConnectorInterface>()), Times.Once);
-				publisher.Verify(x => x.Stop(), Times.Once);
-				publisher.Verify(x => x.PublishDeviceStatusEvent(It.IsAny<DeviceStatusEvent>()), Times.AtLeastOnce);
-				publisher.Verify(x => x.PublishTagScheduleEvent(It.Is<TagScheduleEvent>(x => x.Tag.TagId == "DB20")), Times.AtLeastOnce);
-				publisher.Verify(x => x.PublishTagScheduleEvent(It.Is<TagScheduleEvent>(x => x.Tag.TagId == "DB22")), Times.AtLeastOnce);
-				publisher.Verify(x => x.PublishTagScheduleEvent(It.Is<TagScheduleEvent>(x => x.Tag.TagId == "DB22" && x.StartOffset == 20 && x.Data!.Length == 5)), Times.Once);
-			}
-			finally
-			{
-				module.Stop();
-			}
-		}
-
 		[Theory]
 		[InlineData(true, "json")]
 		[InlineData(true, "protobuf")]
 		[InlineData(false, "json")]
 		[InlineData(false, "protobuf")]
-		public void Test_MqttConnector_with_real_mqttServer_publisher(bool isPublishPartialReads, string serializerType)
+		public void Test_MqttServerConnector(bool isPublishPartialReads, string serializerType)
 		{
 			IList<TagEvent> tagEvents = new List<TagEvent>();
 			IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
@@ -109,8 +66,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				}
 			});
 
-			var publisher = new MqttServerEventPublisher(serializer, new MqttServerEventPublisherOptions(Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", isPublishPartialReads));
-			var connector = new MqttConnector(new ConnectorOptions(), publisher);
+			var connector = new MqttServerConnector(new MqttServerConnectorOptions(false, serializer, Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", isPublishPartialReads));
 
 			SmartIotConnector module = SetupSmartIotConnector(
 				SetupConfiguration(
@@ -210,7 +166,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 		[Theory]
 		[InlineData("json")]
 		[InlineData("protobuf")]
-		public void Test_scheduler_and_MqttConnector_with_real_mqttServer_publisher(string serializerType)
+		public void Test_scheduler_and_MqttServerConnector(string serializerType)
 		{
 			IList<TagEvent> tagEvents = new List<TagEvent>();
 			IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
@@ -234,8 +190,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				throw new InvalidOperationException("serializer not valid");
 
 
-			var publisher = new MqttServerEventPublisher(serializer, new MqttServerEventPublisherOptions(Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", true));
-			var connector = new MqttConnector(new ConnectorOptions(), publisher);
+			var connector = new MqttServerConnector(new MqttServerConnectorOptions(false, serializer, Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", true));
 
 			DeviceConfiguration deviceConfiguration = new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 				, new List<TagConfiguration>()
@@ -340,9 +295,6 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
 				client.ConnectAsync(mqttClientOptions, CancellationToken.None).Wait();
 
-				Thread.Sleep(100);
-
-
 				Assert.True(connectedEvent.Wait(1000));
 				Assert.Equal(WaitHandle.WaitTimeout, WaitHandle.WaitAny(new[] { tagEvent.WaitHandle, deviceStatusEvent.WaitHandle }, 1000));
 				Assert.Empty(tagEvents);
@@ -412,7 +364,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 		[Theory]
 		[InlineData("json")]
 		[InlineData("protobuf")]
-		public void Test_MqttConnector_with_real_mqttClient_publisher(string serializerType)
+		public void Test_MqttClientConnector(string serializerType)
 		{
 			IList<TagEvent> tagEvents = new List<TagEvent>();
 			IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
@@ -461,8 +413,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				}
 			});
 
-			var publisher = new MqttClientEventPublisher(serializer, new MqttClientEventPublisherOptions(Guid.NewGuid().ToString("N"), "localhost", 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", "", ""));
-			var connector = new MqttConnector(new ConnectorOptions(), publisher);
+			var connector = new MqttClientConnector(new MqttClientConnectorOptions(false, serializer, Guid.NewGuid().ToString("N"), "localhost", 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", TimeSpan.FromSeconds(5), "", ""));
 
 			SmartIotConnector module = SetupSmartIotConnector(
 				SetupConfiguration(

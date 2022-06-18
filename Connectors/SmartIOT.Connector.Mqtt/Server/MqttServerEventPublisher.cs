@@ -9,24 +9,22 @@ using SmartIOT.Connector.Messages.Serializers;
 
 namespace SmartIOT.Connector.Mqtt.Server
 {
-	public class MqttServerEventPublisher : IConnectorEventPublisher
+	public class MqttServerConnector : AbstractPublisherConnector
 	{
-		private readonly MqttServerEventPublisherOptions _options;
+		private new MqttServerConnectorOptions Options => (MqttServerConnectorOptions)base.Options;
 		private readonly IMqttServerOptions _mqttOptions;
 		private readonly IMqttServer _mqttServer;
 		private readonly ISingleMessageSerializer _messageSerializer;
 		private bool _started;
-		private IConnector? _connector;
-		private ISmartIOTConnectorInterface? _connectorInterface;
 
-		public MqttServerEventPublisher(ISingleMessageSerializer messageSerializer, MqttServerEventPublisherOptions options)
+		public MqttServerConnector(MqttServerConnectorOptions options)
+			: base(options)
 		{
-			_messageSerializer = messageSerializer;
-			_options = options;
+			_messageSerializer = options.MessageSerializer;
 
 			MqttServerOptionsBuilder serverOptions = new MqttServerOptionsBuilder()
-				.WithClientId(_options.ServerId)
-				.WithDefaultEndpointPort(_options.ServerPort);
+				.WithClientId(Options.ServerId)
+				.WithDefaultEndpointPort(Options.ServerPort);
 
 			_mqttOptions = serverOptions.Build();
 
@@ -44,20 +42,20 @@ namespace SmartIOT.Connector.Mqtt.Server
 
 		private void OnClientSubscribedTopic(MqttServerClientSubscribedTopicEventArgs e)
 		{
-			if (_options.IsDeviceStatusEventsTopicRoot(e.TopicFilter.Topic))
+			if (Options.IsDeviceStatusEventsTopicRoot(e.TopicFilter.Topic))
 			{
 				InvokeInitializationDelegate(true, false);
 			}
-			if (_options.IsTagScheduleEventsTopicRoot(e.TopicFilter.Topic))
+			if (Options.IsTagScheduleEventsTopicRoot(e.TopicFilter.Topic))
 			{
 				InvokeInitializationDelegate(false, true);
 			}
 		}
 
-		public void Start(IConnector connector, ISmartIOTConnectorInterface connectorInterface)
+		public override void Start(ISmartIOTConnectorInterface connectorInterface)
 		{
-			_connector = connector;
-			_connectorInterface = connectorInterface;
+			base.Start(connectorInterface);
+
 			_mqttServer.StartAsync(_mqttOptions).Wait();
 		}
 
@@ -66,8 +64,10 @@ namespace SmartIOT.Connector.Mqtt.Server
 			_started = true;
 		}
 
-		public void Stop()
+		public override void Stop()
 		{
+			base.Stop();
+
 			_mqttServer.StopAsync().Wait();
 		}
 
@@ -78,32 +78,32 @@ namespace SmartIOT.Connector.Mqtt.Server
 
 		private void OnApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs e)
 		{
-			if (e.ApplicationMessage.Topic.StartsWith(_options.TagWriteRequestCommandsTopicRoot, StringComparison.InvariantCultureIgnoreCase))
+			if (e.ApplicationMessage.Topic.StartsWith(Options.TagWriteRequestCommandsTopicRoot, StringComparison.InvariantCultureIgnoreCase))
 			{
 				var command = _messageSerializer.DeserializeMessage<TagWriteRequestCommand>(e.ApplicationMessage.Payload);
 				if (command != null)
-					_connectorInterface!.RequestTagWrite(command.DeviceId, command.TagId, command.StartOffset, command.Data);
+					ConnectorInterface!.RequestTagWrite(command.DeviceId, command.TagId, command.StartOffset, command.Data);
 			}
 		}
 
 		private void OnClientConnected(MqttServerClientConnectedEventArgs e)
 		{
-			_connectorInterface!.OnConnectorConnected(new ConnectorConnectedEventArgs(_connector!, $"ClientId {e.ClientId} connected to port {_options.ServerPort}"));
+			ConnectorInterface!.OnConnectorConnected(new ConnectorConnectedEventArgs(this, $"ClientId {e.ClientId} connected to port {Options.ServerPort}"));
 		}
 
 		private void OnClientDisconnected(MqttServerClientDisconnectedEventArgs e)
 		{
-			_connectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(_connector!, $"ClientId {e.ClientId} disconnected: {e.DisconnectType}"));
+			ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"ClientId {e.ClientId} disconnected: {e.DisconnectType}"));
 		}
 
-		public void PublishException(Exception exception)
+		protected override void PublishException(Exception exception)
 		{
 			if (_started)
 			{
 				try
 				{
 					_mqttServer.PublishAsync(b => b
-						.WithTopic(_options.ExceptionsTopicPattern)
+						.WithTopic(Options.ExceptionsTopicPattern)
 						.WithAtLeastOnceQoS()
 						.WithPayload(_messageSerializer.SerializeMessage(EventExtensions.ToEventMessage(exception)))
 					).Wait();
@@ -115,14 +115,14 @@ namespace SmartIOT.Connector.Mqtt.Server
 			}
 		}
 
-		public void PublishDeviceStatusEvent(DeviceStatusEvent e)
+		protected override void PublishDeviceStatusEvent(DeviceStatusEvent e)
 		{
 			if (_started)
 			{
 				try
 				{
 					_mqttServer.PublishAsync(b => b
-						.WithTopic(_options.GetDeviceStatusEventsTopic(e.Device.DeviceId))
+						.WithTopic(Options.GetDeviceStatusEventsTopic(e.Device.DeviceId))
 						.WithAtLeastOnceQoS()
 						.WithPayload(_messageSerializer.SerializeMessage(EventExtensions.ToEventMessage(e)))
 					).Wait();
@@ -134,22 +134,22 @@ namespace SmartIOT.Connector.Mqtt.Server
 			}
 		}
 
-		public void PublishTagScheduleEvent(TagScheduleEvent e)
+		protected override void PublishTagScheduleEvent(TagScheduleEvent e)
 		{
 			PublishTagScheduleEvent(e, false);
 		}
-		public void PublishTagScheduleEvent(TagScheduleEvent e, bool isInitializationData)
+		private void PublishTagScheduleEvent(TagScheduleEvent e, bool isInitializationData)
 		{
 			if (_started)
 			{
-				var evt = !_options.IsPublishPartialReads && e.Data != null ? TagScheduleEvent.BuildTagData(e.Device, e.Tag, e.IsErrorNumberChanged) : e;
+				var evt = !Options.IsPublishPartialReads && e.Data != null ? TagScheduleEvent.BuildTagData(e.Device, e.Tag, e.IsErrorNumberChanged) : e;
 
 				var message = evt.ToEventMessage(isInitializationData);
 
 				try
 				{
 					_mqttServer.PublishAsync(b => b
-						.WithTopic(_options.GetTagScheduleEventsTopic(e.Device.DeviceId, e.Tag.TagId))
+						.WithTopic(Options.GetTagScheduleEventsTopic(e.Device.DeviceId, e.Tag.TagId))
 						.WithAtLeastOnceQoS()
 						.WithPayload(_messageSerializer.SerializeMessage(message))
 					).Wait();
@@ -163,7 +163,7 @@ namespace SmartIOT.Connector.Mqtt.Server
 
 		private void InvokeInitializationDelegate(bool publishDeviceStatusEvents, bool publishTagScheduleEvents)
 		{
-			_connectorInterface!.RunInitializationAction(
+			ConnectorInterface!.RunInitializationAction(
 				initAction: (deviceEvents, tagEvents) =>
 				{
 					if (publishDeviceStatusEvents)
@@ -187,7 +187,7 @@ namespace SmartIOT.Connector.Mqtt.Server
 		{
 			try
 			{
-				_connectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(_connector!, ex));
+				ConnectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
 			}
 			catch
 			{
