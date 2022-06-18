@@ -1,5 +1,4 @@
-﻿using SmartIOT.Connector.Mqtt;
-using SmartIOT.Connector.Messages;
+﻿using SmartIOT.Connector.Messages;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;

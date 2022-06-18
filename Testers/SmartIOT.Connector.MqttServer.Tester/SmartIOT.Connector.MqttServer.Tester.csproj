@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Connectors\SmartIOT.Connector.Mqtt\SmartIOT.Connector.Mqtt.csproj" />
+    <ProjectReference Include="..\..\Core\SmartIOT.Connector.Messages\SmartIOT.Connector.Messages.csproj" />
   </ItemGroup>
 
 </Project>
