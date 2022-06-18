@@ -111,9 +111,11 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 
  - [ ] REST Api Connector (included in default Runner project)
  - [ ] GRPC Server Connector
- - [ ] TCP Server Connector
+ - [X] TCP Server Connector
+   - [ ] docs missing
  - [X] TCP Client Connector
-   - [ ] TCP Client docs missing!
+   - [ ] docs missing!
+ - [ ] Update docs for connectors: some parameters are not documented
  - [ ] Web app Connector with monitoring capabilities (included in default Runner project)
  - [ ] Extensibility docs
    - [ ] How to create and plug a custom device
