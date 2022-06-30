@@ -1,4 +1,4 @@
-[![.NET](https://github.com/luca-domenichini/SmartIOT.Connector/actions/workflows/dotnet-master.yml/badge.svg?branch=master)](https://github.com/luca-domenichini/SmartIOT.Connector/actions/workflows/dotnet-master.yml)
+[![.NET](https://github.com/luca-domenichini/SmartIOT.Connector/actions/workflows/dotnet-release.yml/badge.svg?branch=release)](https://github.com/luca-domenichini/SmartIOT.Connector/actions/workflows/dotnet-release.yml)
 [![NuGet version (SmartIOT.Connector)](https://img.shields.io/nuget/v/SmartIOT.Connector.Core.svg?style=flat-square)](https://www.nuget.org/packages/SmartIOT.Connector.Core/)
 
 # SmartIOT.Connector - Cloud Connector for IOT devices and industrial PLCs
