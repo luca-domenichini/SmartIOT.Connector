@@ -21,7 +21,7 @@ using Xunit;
 
 namespace SmartIOT.Connector.Mqtt.Tests
 {
-	public class TestMqttEventPublishers : SmartIOTBaseTests
+	public class MqttConnectorTests : SmartIOTBaseTests
 	{
 		[Theory]
 		[InlineData(true, "json")]
@@ -452,7 +452,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				{
 					Assert.Equal(0, otherMessages.Count);
 					Assert.True(tagEvents.Count > 0);
-					Assert.All(tagEvents, x => Assert.True(x.DeviceId == "1" && (x.TagId == "DB20" || x.TagId == "DB22") && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100)); // N eventi di lettura completa (MqttEventPublisher publica sempre tutto il tag)
+					Assert.All(tagEvents, x => Assert.True(x.DeviceId == "1" && (x.TagId == "DB20" || x.TagId == "DB22") && x.StartOffset == 10 && x.Data != null && x.Data.Length == 100)); // N complete read events (MqttClientConnector always published a complete tag event)
 					Assert.True(deviceStatusEvents.Count > 0);
 					Assert.True(deviceStatusEvents.All(x => x.DeviceId == "1" && x.DeviceStatus == DeviceStatus.OK && x.ErrorNumber == 0 && string.IsNullOrEmpty(x.Description)));
 				}

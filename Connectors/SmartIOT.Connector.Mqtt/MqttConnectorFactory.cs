@@ -90,7 +90,7 @@ namespace SmartIOT.Connector.Mqtt
 			var deviceStatusEventsTopicPattern = tokens.GetOrDefault(DeviceStatusEventsTopicKey) ?? DefaultDeviceStatusEventsTopicPattern;
 			var tagScheduleEventsTopicPattern = tokens.GetOrDefault(TagReadEventsTopicKey) ?? DefaultTagReadEventsTopicPattern;
 			var tagWriteRequestCommandsTopic = tokens.GetOrDefault(TagWriteRequestCommandsTopicRootKey) ?? DefaultTagWriteRequestCommandsTopicRoot;
-			var isPublishPartialReads = tokens.GetOrDefault(PublishPartialReadsKey) != "false";
+			var isPublishPartialReads = (tokens.GetOrDefault(PublishPartialReadsKey) ?? "true") != "false";
 
 			return new MqttServerConnectorOptions(isPublishWriteEvents, ParseMessageSerializer(tokens), serverId, serverPort, exceptionsTopicPattern, deviceStatusEventsTopicPattern, tagScheduleEventsTopicPattern, tagWriteRequestCommandsTopic, isPublishPartialReads);
 		}

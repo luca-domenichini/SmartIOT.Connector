@@ -79,11 +79,13 @@ smartiot.Stop();
 
 Follow the [configuration guide](./Docs/Configuration.md) to get a complete understanding of how the configuration works.
 You can even jump to section specific guides:
- - [Connectors guide](./Docs/Connectors.md)
-	- [Mqtt Connector guide](./Connectors/SmartIOT.Connector.Mqtt/README.md)
+ - [Connectors guide](./Docs/Configuration.md#configuring-the-connectors)
  - [Device configuration guide](./Docs/Configuration.md#configuring-the-devices)
 	- [Snap7 PLC configuration guide](./Devices/SmartIOT.Connector.Plc.Snap7/README.md)
 	- [S7Net PLC configuration guide](./Devices/SmartIOT.Connector.Plc.S7Net/README.md)
+ - [Scheduler configuration guide](./Docs/Configuration.md#configuring-the-scheduler-main-properties)
+ - [Connectors guide](./Docs/Connectors.md)
+ - [Customization guide](./Docs/Customize.md)
 
 ## SmartIOT.Connector.ConsoleApp and Docker integration
 
@@ -107,16 +109,14 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 
 **currently Siemens PLCs are the only supported devices
 
-## Roadmap - Features TODO list:
+## Roadmap to 1.0 - Features TODO list:
 
- - [ ] REST Api Connector (included in default Runner project)
+ - [ ] REST Api Connector (included in default CosoleApp project)
  - [ ] GRPC Server Connector
  - [X] TCP Server Connector
-   - [ ] docs missing
  - [X] TCP Client Connector
-   - [ ] docs missing!
  - [ ] Update docs for connectors: some parameters are not documented
- - [ ] Web app Connector with monitoring capabilities (included in default Runner project)
+ - [ ] Web app with monitoring capabilities (included in default ConsoleApp project)
  - [ ] Extensibility docs
    - [ ] How to create and plug a custom device
    - [ ] How to create and plug a custom connector
@@ -139,6 +139,6 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 	   introduce <code>IAsyncDeviceDriver</code> and <code>IAsyncConnector</code> and add support to autodiscover and run them
  - [ ] The proto files should be part of SmartIOT.Connector.Messages project
  - [ ] Introduce tag free parameters string in TagConfiguration
- - [ ] Runner.Console
+ - [ ] ConsoleApp
    - [ ] Customizable logs from json config
    - [ ] Log to file

@@ -2,8 +2,8 @@
   "Configuration": {
 	"ConnectorConnectionStrings": [
 	  //"mqttServer://ServerId=MyMqttServer;Port=1883"
-	  //"tcpClient://Server=localhost;Port=1883;Serializer=protobuf"
-	  "tcpServer://Port=1883"
+	  "tcpClient://Server=localhost;Port=1883"
+	  //"tcpServer://Port=1883"
 	],
 	"DeviceConfigurations": [
 	  {

@@ -36,10 +36,10 @@ namespace SmartIOT.Connector.Tcp
 		{
 			var s = tokens.GetOrDefault("serializer");
 
-			if ("protobuf".Equals(s, StringComparison.InvariantCultureIgnoreCase))
-				return new ProtobufStreamMessageSerializer();
+			if ("json".Equals(s, StringComparison.InvariantCultureIgnoreCase))
+				return new JsonStreamMessageSerializer();
 
-			return new JsonStreamMessageSerializer();
+			return new ProtobufStreamMessageSerializer();
 		}
 
 		private TcpClientConnectorOptions ParseTcpClientConnectorOptions(IDictionary<string, string> tokens)
