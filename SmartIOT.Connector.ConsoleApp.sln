@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Plc.S7Ne
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Plc.Snap7", "Devices\SmartIOT.Connector.Plc.Snap7\SmartIOT.Connector.Plc.Snap7.csproj", "{4F1C83CF-6500-4480-8075-26F3CD5CA10E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Runner.Console", "Runners\SmartIOT.Connector.Runner.Console\SmartIOT.Connector.Runner.Console.csproj", "{4B85DB85-E09C-4AB6-BF85-3E23A8414973}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.ConsoleApp", "Runners\SmartIOT.Connector.ConsoleApp\SmartIOT.Connector.ConsoleApp.csproj", "{4B85DB85-E09C-4AB6-BF85-3E23A8414973}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

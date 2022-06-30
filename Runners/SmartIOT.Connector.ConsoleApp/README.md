@@ -10,9 +10,9 @@ See [this file](./smartiot-config.json) for a sample configuration. Please note 
 The Console runner can also be run on Docker. You just need to map a volume pointing the configuration folder <code>/SmartIOT.Connector</code> and expose the ports needed for external communications.<br>
 The container image will look for configuration file at <code>/SmartIOT.Connector/smartiot-config.json</code>
 
-A prebuilt Docker image is also available on Docker Hub. Use the following command to pull the latest image, or browse https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-runner-console for available tags.
+A prebuilt Docker image is also available on Docker Hub. Use the following command to pull the latest image, or browse https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp for available tags.
 
-<pre>docker pull lucadomenichini/smartiot-connector-runner-console:latest</pre>
+<pre>docker pull lucadomenichini/smartiot-connector-consoleapp:latest</pre>
 
 ### Building the Docker image from source
 
