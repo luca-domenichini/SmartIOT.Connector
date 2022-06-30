@@ -1,13 +1,13 @@
-name: .NET Prerelease
+name: .NET Release
 
 on:
   push:
-    branches: [ "prerelease" ]
+    branches: [ "release" ]
   pull_request:
-    branches: [ "prerelease" ]
+    branches: [ "release" ]
 
-env:
-  VERSION_SUFFIX: -beta
+
+
 
 jobs:
   build:

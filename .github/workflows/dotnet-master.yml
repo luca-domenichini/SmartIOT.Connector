@@ -1,4 +1,4 @@
-name: .NET Release
+name: .NET Prerelease
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [ "master" ]
 
-
-
+env:
+  VERSION_SUFFIX: -beta
 
 jobs:
   build:
