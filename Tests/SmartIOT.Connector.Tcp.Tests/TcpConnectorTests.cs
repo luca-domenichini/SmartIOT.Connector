@@ -17,9 +17,9 @@ namespace SmartIOT.Connector.Tcp.Tests
 	public class TcpConnectorTests : SmartIOTBaseTests
 	{
 		[Theory]
-		[InlineData("json")]
-		[InlineData("protobuf")]
-		public void Test_scheduler_and_TcpClientConnector(string serializerType)
+		[InlineData("json", 1884)]
+		[InlineData("protobuf", 1885)]
+		public void Test_scheduler_and_TcpClientConnector(string serializerType, int port)
 		{
 			IList<TagEvent> tagEvents = new List<TagEvent>();
 			IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
@@ -43,7 +43,7 @@ namespace SmartIOT.Connector.Tcp.Tests
 				throw new InvalidOperationException("serializer not valid");
 
 
-			var connector = new TcpClientConnector(new TcpClientConnectorOptions(false, "localhost", 1883, TimeSpan.FromSeconds(5), serializer, TimeSpan.Zero));
+			var connector = new TcpClientConnector(new TcpClientConnectorOptions(false, "localhost", port, TimeSpan.FromSeconds(5), serializer, TimeSpan.Zero));
 
 			DeviceConfiguration deviceConfiguration = new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 				, new List<TagConfiguration>()
@@ -116,7 +116,7 @@ namespace SmartIOT.Connector.Tcp.Tests
 					connectedEvent.Set();
 				});
 
-			var server = new TcpListener(IPAddress.Loopback, 1883);
+			var server = new TcpListener(IPAddress.Loopback, port);
 
 			Stream? stream = null;
 			CancellationTokenSource? token = null;
@@ -187,9 +187,9 @@ namespace SmartIOT.Connector.Tcp.Tests
 		}
 		
 		[Theory]
-		[InlineData("json")]
-		[InlineData("protobuf")]
-		public void Test_scheduler_and_TcpServerConnector(string serializerType)
+		[InlineData("json", 1984)]
+		[InlineData("protobuf", 1985)]
+		public void Test_scheduler_and_TcpServerConnector(string serializerType, int port)
 		{
 			IList<TagEvent> tagEvents = new List<TagEvent>();
 			IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
@@ -213,7 +213,7 @@ namespace SmartIOT.Connector.Tcp.Tests
 				throw new InvalidOperationException("serializer not valid");
 
 
-			var connector = new TcpServerConnector(new TcpServerConnectorOptions(false, 1883, serializer, TimeSpan.Zero));
+			var connector = new TcpServerConnector(new TcpServerConnectorOptions(false, port, serializer, TimeSpan.Zero));
 
 			DeviceConfiguration deviceConfiguration = new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 				, new List<TagConfiguration>()
@@ -294,7 +294,7 @@ namespace SmartIOT.Connector.Tcp.Tests
 			try
 			{
 				connector.Start(connectorInterface.Object);
-				client.Connect("localhost", 1883);
+				client.Connect("localhost", port);
 
 				stream = client.GetStream();
 
