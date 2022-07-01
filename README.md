@@ -27,7 +27,7 @@ For message formats, read the docs [here for project SmartIOT.Connector.Messages
 	"DeviceConfigurations": [
 		{
 			"ConnectionString": "snap7://Ip=<IpAddress>;Rack=0;Slot=0;Type=PG",
-			"DeviceId": 1,
+			"DeviceId": "1",
 			"Enabled": true,
 			"Name": "Test Device",
 			"IsPartialReadsEnabled": false,

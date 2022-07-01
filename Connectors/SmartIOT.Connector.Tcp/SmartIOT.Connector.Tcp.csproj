@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<Authors>Luca Domenichini</Authors>
 	<Title>SmartIOT.Connector Tcp Connector Library</Title>
 	<Description>This package implements a TCP Connector for SmartIOT.Connector Core library</Description>
 	<PackageProjectUrl>https://github.com/luca-domenichini/SmartIOT.Connector</PackageProjectUrl>
