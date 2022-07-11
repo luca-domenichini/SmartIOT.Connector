@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Serilog;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 
@@ -12,19 +13,15 @@ namespace SmartIOT.Connector.ConsoleApp
 			FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
 			var version = fileVersionInfo.ProductVersion ?? "--Unknown";
 
-			WriteInfo($"SmartIOT.Connector v{version}");
-
 			if (args.Length == 0)
 				args = new[] { "smartiot-config.json" };
 
 			string path = args[0];
 			if (!File.Exists(path))
 			{
-				WriteError($"Configuration file {path} does not exists");
+				Console.WriteLine($"Configuration file {path} does not exists");
 				return;
 			}
-
-			WriteInfo($"Configuring SmartIotConnector from file {path}");
 
 			var configuration = JsonSerializer.Deserialize<RunnerConfiguration>(File.ReadAllText(path), new JsonSerializerOptions()
 			{
@@ -32,9 +29,13 @@ namespace SmartIOT.Connector.ConsoleApp
 			});
 			if (configuration == null)
 			{
-				WriteError($"Configuration not valid");
+				Console.WriteLine($"Configuration not valid for file {path}");
 				return;
 			}
+
+			SetupLogger(configuration.LogConfiguration);
+
+			WriteInfo($"SmartIOT.Connector v{version}");
 
 			var runner = new Runner(configuration
 				, onExceptionDuringDiscovery: exceptions =>
@@ -101,15 +102,46 @@ namespace SmartIOT.Connector.ConsoleApp
 				);
 		}
 
+		private static ILogger SetupLogger(LogConfiguration? logConfiguration)
+		{
+			var defaultOutputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3} {Message:lj}{NewLine}{Exception}";
+
+			if (logConfiguration == null)
+			{
+				logConfiguration = new LogConfiguration()
+				{
+					OutputLogFileName = null,
+					OutputTemplate = defaultOutputTemplate
+				};
+			}
+
+			var outputTemplate = string.IsNullOrWhiteSpace(logConfiguration.OutputTemplate) ? defaultOutputTemplate : logConfiguration.OutputTemplate;
+
+			var conf = new LoggerConfiguration()
+				.WriteTo.Console(outputTemplate: outputTemplate)
+				;
+
+			if (!string.IsNullOrWhiteSpace(logConfiguration.OutputLogFileName))
+			{
+				conf.WriteTo.File(logConfiguration.OutputLogFileName, outputTemplate: outputTemplate, rollingInterval: RollingInterval.Day);
+			}
+
+			Log.Logger = conf.CreateLogger();
+
+			return Log.Logger;
+		}
+
 		public static void WriteInfo(string message)
 		{
-			Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [INFO] {message}");
+			Log.Logger.Information(message);
+			//Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [INFO] {message}");
 		}
 		public static void WriteError(string message, Exception? exception = null)
 		{
-			Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [ERROR] {message}");
-			if (exception != null)
-				Console.WriteLine(exception);
+			Log.Logger.Error(message, exception);
+			//Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [ERROR] {message}");
+			//if (exception != null)
+			//	Console.WriteLine(exception);
 		}
 	}
 }

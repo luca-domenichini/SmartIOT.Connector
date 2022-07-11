@@ -142,7 +142,4 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 	   introduce <code>IAsyncDeviceDriver</code> and <code>IAsyncConnector</code> and add support to autodiscover and run them
  - [ ] The proto files should be part of SmartIOT.Connector.Messages project
  - [ ] Introduce tag free parameters string in TagConfiguration
- - [ ] ConsoleApp
-   - [ ] Customizable logs from json config
-   - [ ] Log to file
  - [ ] Build and push docker image with github workflow
