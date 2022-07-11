@@ -133,7 +133,6 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 ## Docs TODO list
 
  - [ ] Extensibility docs
- - [ ] Docs describing message serialization (single message and stream based)
  - [ ] Comment public classes and interfaces
 
 ## Technical TODO list
@@ -145,3 +144,4 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
  - [ ] ConsoleApp
    - [ ] Customizable logs from json config
    - [ ] Log to file
+ - [ ] Build and push docker image with github workflow
