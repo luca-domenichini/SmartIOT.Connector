@@ -7,5 +7,6 @@ namespace SmartIOT.Connector.ConsoleApp
 	{
 		public SmartIotConnectorConfiguration? Configuration { get; set; }
 		public PrometheusConfiguration? PrometheusConfiguration { get; set; }
+		public LogConfiguration? LogConfiguration { get; set; }
 	}
 }

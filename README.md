@@ -1,5 +1,6 @@
 [![.NET](https://github.com/luca-domenichini/SmartIOT.Connector/actions/workflows/dotnet-release.yml/badge.svg?branch=release)](https://github.com/luca-domenichini/SmartIOT.Connector/actions/workflows/dotnet-release.yml)
 [![NuGet version (SmartIOT.Connector)](https://img.shields.io/nuget/v/SmartIOT.Connector.Core.svg?style=flat)](https://www.nuget.org/packages/SmartIOT.Connector.Core/)
+[![SmartIOT.Connector NuGet Package Downloads](https://img.shields.io/nuget/dt/SmartIOT.Connector.Core)](https://www.nuget.org/packages/SmartIOT.Connector.Core)
 [![HitCount](https://hits.dwyl.com/luca-domenichini/luca-domenichini/SmartIOTConnector.svg?style=flat)](http://hits.dwyl.com/luca-domenichini/luca-domenichini/SmartIOTConnector)
 
 # SmartIOT.Connector - Cloud Connector for IOT devices and industrial PLCs
@@ -133,7 +134,6 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 ## Docs TODO list
 
  - [ ] Extensibility docs
- - [ ] Docs describing message serialization (single message and stream based)
  - [ ] Comment public classes and interfaces
 
 ## Technical TODO list
@@ -142,6 +142,4 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 	   introduce <code>IAsyncDeviceDriver</code> and <code>IAsyncConnector</code> and add support to autodiscover and run them
  - [ ] The proto files should be part of SmartIOT.Connector.Messages project
  - [ ] Introduce tag free parameters string in TagConfiguration
- - [ ] ConsoleApp
-   - [ ] Customizable logs from json config
-   - [ ] Log to file
+ - [ ] Build and push docker image with github workflow

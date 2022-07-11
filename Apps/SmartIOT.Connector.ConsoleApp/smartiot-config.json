@@ -1,9 +1,14 @@
 {
+  "Logging": {
+	"OutputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3} {Message:lj}{NewLine}{Exception}",
+	"OutputLogFileName": "smartiot-connector.log"
+  },
   "Configuration": {
 	"ConnectorConnectionStrings": [
-	  //"mqttServer://ServerId=MyMqttServer;Port=1883"
-	  "tcpClient://Server=localhost;Port=1883"
-	  //"tcpServer://Port=1883"
+	  //"mqttServer://ServerId=MyMqttServer;Port=1883",
+	  "mqttClient://Server=localhost;Port=1883",
+	  //"tcpClient://Server=localhost;Port=1884",
+	  //"tcpServer://Port=1885"
 	],
 	"DeviceConfigurations": [
 	  {

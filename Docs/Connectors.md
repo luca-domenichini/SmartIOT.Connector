@@ -46,4 +46,4 @@ To determine the type of the message, a single byte prefix is used. These are th
 
 The two provided implementations are:<br>
  - [Json stream serializer](../Core/SmartIOT.Connector.Messages/Serializers/JsonStreamMessageSerializer.cs): this serializer splits each message with a line break (\n, 0x0A, 10) (see also [here](https://en.wikipedia.org/wiki/JSON_streaming#Line-delimited_JSON))
- - [Protobuf stream serializer](../Core/SmartIOT.Connector.Messages/Serializers/ProtobufStreamMessageSerializer.cs): 
+ - [Protobuf stream serializer](../Core/SmartIOT.Connector.Messages/Serializers/ProtobufStreamMessageSerializer.cs): this serializer splits each message with the number prefix above, and serializes the length of each message to separate them (see [here](https://eli.thegreenplace.net/2011/08/02/length-prefix-framing-for-protocol-buffers) for details. The length-prefix method is provided by [protobuf-net library](https://github.com/protobuf-net/protobuf-net))

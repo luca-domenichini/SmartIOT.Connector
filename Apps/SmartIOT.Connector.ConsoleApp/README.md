@@ -4,6 +4,7 @@ This project implements a simple SmartIOT.Connector runner able to run a SmartIO
 
 The main program takes a json configuration file as parameter, or uses the default <code>./smartiot-config.json</code> if none is provided.
 See [this file](./smartiot-config.json) for a sample configuration. Please note that the internal <code>"Configuration"</code> element reflects the Core SmartIOT.Connector configuration (see [here](../../Docs/Configuration.md))
+The sample configuration will log to the console and to daily rolling file <code>smartiot-connector.log</code>. You can change the logging file from json configuration. The underlying logging library is Serilog, so you can customize the outputTemplate to be used too.
 
 ## Docker support
 
