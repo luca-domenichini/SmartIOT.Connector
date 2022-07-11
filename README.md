@@ -115,11 +115,7 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
  - [ ] GRPC Server Connector
  - [X] TCP Server Connector
  - [X] TCP Client Connector
- - [ ] Update docs for connectors: some parameters are not documented
  - [ ] Web app with monitoring capabilities (included in default ConsoleApp project)
- - [ ] Extensibility docs
-   - [ ] How to create and plug a custom device
-   - [ ] How to create and plug a custom connector
  - [X] Nuget packages on nuget.org - https://www.nuget.org/packages?q=SmartIOT.Connector
  - [X] Docker runner image on dockerhub - https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp
  - [ ] Runners
@@ -130,8 +126,14 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
  - [ ] Testers: connector counterpart as WPF app
    - [ ] REST Api Client
    - [ ] GRPC Client
-   - [ ] TCP client
-   - [ ] TCP server
+   - [X] TCP client
+   - [X] TCP server
+
+## Docs TODO list
+
+ - [ ] Extensibility docs
+ - [ ] Docs describing message serialization (single message and stream based)
+ - [ ] Comment public classes and interfaces
 
 ## Technical TODO list
 

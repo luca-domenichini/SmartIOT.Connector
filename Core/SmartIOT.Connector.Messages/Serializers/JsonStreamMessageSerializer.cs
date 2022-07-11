@@ -8,21 +8,19 @@ namespace SmartIOT.Connector.Messages.Serializers
 	{
 		private readonly JsonSerializerOptions _options;
 
+		private static JsonSerializerOptions CreateDefaultSerializerOptions()
+		{
+			return new JsonSerializerOptions()
+			{
+				ReadCommentHandling = JsonCommentHandling.Skip
+			};
+		}
+
 		public JsonStreamMessageSerializer()
 			: this(CreateDefaultSerializerOptions())
 		{
 
 		}
-
-		private static JsonSerializerOptions CreateDefaultSerializerOptions()
-		{
-			var options = new JsonSerializerOptions()
-			{
-				ReadCommentHandling = JsonCommentHandling.Skip
-			};
-			return options;
-		}
-
 		public JsonStreamMessageSerializer(JsonSerializerOptions options)
 		{
 			_options = options;
@@ -50,40 +48,30 @@ namespace SmartIOT.Connector.Messages.Serializers
 
 		private void SerializeMessage<T>(byte typeValue, Stream stream, T message)
 		{
-			using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, true))
-			{
-				// serialize the type
-				stream.WriteByte(typeValue);
-			}
+			// serialize the type
+			stream.WriteByte(typeValue);
 
 			// serialize payload
 			JsonSerializer.Serialize(stream, message, _options);
 
-			// serialize newline \r\n
-			stream.Write(Encoding.UTF8.GetBytes(Environment.NewLine));
+			// serialize newline \n
+			stream.WriteByte(0x0A);
 		}
 
 		public object? DeserializeMessage(Stream stream)
 		{
-			try
-			{
-				int typeValue = stream.ReadByte();
-				if (typeValue == -1)
-					return null;
-
-				return typeValue switch
-				{
-					1 => DeserializeMessage<TagEvent>(stream),
-					2 => DeserializeMessage<DeviceEvent>(stream),
-					3 => DeserializeMessage<TagWriteRequestCommand>(stream),
-					99 => DeserializeMessage<PingMessage>(stream),
-					_ => throw new InvalidDataException($"Message type {typeValue} is not recognized"),
-				};
-			}
-			catch (Exception ex) when (ex is IOException || ex is SocketException)
-			{
+			int typeValue = stream.ReadByte();
+			if (typeValue == -1)
 				return null;
-			}
+
+			return typeValue switch
+			{
+				1 => DeserializeMessage<TagEvent>(stream),
+				2 => DeserializeMessage<DeviceEvent>(stream),
+				3 => DeserializeMessage<TagWriteRequestCommand>(stream),
+				99 => DeserializeMessage<PingMessage>(stream),
+				_ => throw new InvalidDataException($"Message type {typeValue} is not recognized"),
+			};
 		}
 
 		private T? DeserializeMessage<T>(Stream stream)
@@ -100,14 +88,13 @@ namespace SmartIOT.Connector.Messages.Serializers
 			var bytes = new List<byte>();
 			int current;
 
-			while ((current = stream.ReadByte()) != -1 && current != '\n')
+			while ((current = stream.ReadByte()) != -1 && current != 0x0A)
 			{
-				if (current != '\r')
-					bytes.Add((byte)current);
+				bytes.Add((byte)current);
 			}
 
 			if (bytes.Count > 0)
-				return Encoding.ASCII.GetString(bytes.ToArray());
+				return Encoding.UTF8.GetString(bytes.ToArray());
 
 			return null;
 		}

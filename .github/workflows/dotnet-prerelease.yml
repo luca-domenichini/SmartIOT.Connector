@@ -2,9 +2,9 @@ name: .NET Prerelease
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "prerelease" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "prerelease" ]
 
 env:
   VERSION_SUFFIX: -beta
