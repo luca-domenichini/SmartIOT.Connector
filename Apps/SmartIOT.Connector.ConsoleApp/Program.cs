@@ -10,7 +10,7 @@ namespace SmartIOT.Connector.ConsoleApp
 		{
 			Assembly assembly = Assembly.GetExecutingAssembly();
 			FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
-			var version = fileVersionInfo.ProductVersion ?? "Unkwown";
+			var version = fileVersionInfo.ProductVersion ?? "--Unknown";
 
 			WriteInfo($"SmartIOT.Connector v{version}");
 
