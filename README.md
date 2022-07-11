@@ -90,7 +90,7 @@ You can even jump to section specific guides:
 
 ## SmartIOT.Connector.ConsoleApp and Docker integration
 
-If you want to run SmartIOT.Connector as a standalone application or as a Docker container, see project [SmartIOT.Connector.ConsoleApp](./Runners/SmartIOT.Connector.ConsoleApp/README.md) for further details.
+If you want to run SmartIOT.Connector as a standalone application or as a Docker container, see project [SmartIOT.Connector.ConsoleApp](./Apps/SmartIOT.Connector.ConsoleApp/README.md) for further details.
 
 Here is a quick link to the Docker image repository: https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp
 
@@ -119,7 +119,7 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
  - [ ] Web app with monitoring capabilities (included in default ConsoleApp project)
  - [X] Nuget packages on nuget.org - https://www.nuget.org/packages?q=SmartIOT.Connector
  - [X] Docker runner image on dockerhub - https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp
- - [ ] Runners
+ - [ ] Apps
    - [X] Run SmartIOT.Connector as a console app
    - [X] Run SmartIOT.Connector as a Docker image
    - [ ] Run SmartIOT.Connector as a WPF app

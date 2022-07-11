@@ -58,11 +58,8 @@ namespace SmartIOT.Connector.Messages.Serializers
 
 		private void SerializeMessage<T>(byte typeValue, Stream stream, T message)
 		{
-			using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, true))
-			{
-				// serialize the type
-				stream.WriteByte(typeValue);
-			}
+			// serialize the type
+			stream.WriteByte(typeValue);
 
 			// serialize length + payload
 			Serializer.SerializeWithLengthPrefix<T>(stream, message, PrefixStyle.Base128);

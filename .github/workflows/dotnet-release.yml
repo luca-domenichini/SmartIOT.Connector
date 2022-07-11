@@ -43,5 +43,5 @@ jobs:
         dotnet nuget push Core\SmartIOT.Connector.Core\bin\Release\SmartIOT.Connector.Core.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
         dotnet nuget push Devices\SmartIOT.Connector.Plc.S7Net\bin\Release\SmartIOT.Connector.Plc.S7Net.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
         dotnet nuget push Devices\SmartIOT.Connector.Plc.Snap7\bin\Release\SmartIOT.Connector.Plc.Snap7.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
-        dotnet nuget push Runners\SmartIOT.Connector.ConsoleApp\bin\Release\SmartIOT.Connector.ConsoleApp.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        dotnet nuget push Apps\SmartIOT.Connector.ConsoleApp\bin\Release\SmartIOT.Connector.ConsoleApp.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
         

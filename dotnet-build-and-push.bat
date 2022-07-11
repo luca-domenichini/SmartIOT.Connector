@@ -67,7 +67,7 @@ if /I "%PUSH_NUGET_PACKAGES%" == "y" (
     nuget push -Source nuget.org Core\SmartIOT.Connector.Prometheus\bin\%RELEASE%\SmartIOT.Connector.Prometheus.%VERSION%.nupkg %API_KEY%
     nuget push -Source nuget.org Devices\SmartIOT.Connector.Plc.S7Net\bin\%RELEASE%\SmartIOT.Connector.Plc.S7Net.%VERSION%.nupkg %API_KEY%
     nuget push -Source nuget.org Devices\SmartIOT.Connector.Plc.Snap7\bin\%RELEASE%\SmartIOT.Connector.Plc.Snap7.%VERSION%.nupkg %API_KEY%
-    nuget push -Source nuget.org Runners\SmartIOT.Connector.ConsoleApp\bin\%RELEASE%\SmartIOT.Connector.ConsoleApp.%VERSION%.nupkg %API_KEY%
+    nuget push -Source nuget.org Apps\SmartIOT.Connector.ConsoleApp\bin\%RELEASE%\SmartIOT.Connector.ConsoleApp.%VERSION%.nupkg %API_KEY%
 )
 
 if /I "%PUSH_DOCKER_IMAGE%" == "y" (
@@ -79,7 +79,7 @@ if /I "%PUSH_DOCKER_IMAGE%" == "y" (
     set LOCAL_IMAGE=smartiot-connector-consoleapp
     set REMOTE_IMAGE=lucadomenichini/smartiot-connector-consoleapp
 
-    docker build -t %LOCAL_IMAGE%:latest -f Runners/SmartIOT.Connector.ConsoleApp/Dockerfile .
+    docker build -t %LOCAL_IMAGE%:latest -f Apps/SmartIOT.Connector.ConsoleApp/Dockerfile .
     if errorlevel 1 (
         echo Error building Docker Image: %errorlevel%
         exit /b %errorlevel%

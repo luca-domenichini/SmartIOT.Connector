@@ -51,9 +51,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.TcpClien
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.TcpServer.Tester", "Testers\SmartIOT.Connector.TcpServer.Tester\SmartIOT.Connector.TcpServer.Tester.csproj", "{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Runners", "Runners", "{56D33DD2-28C6-45C5-B994-54FA4D8055F5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Apps", "Apps", "{56D33DD2-28C6-45C5-B994-54FA4D8055F5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.ConsoleApp", "Runners\SmartIOT.Connector.ConsoleApp\SmartIOT.Connector.ConsoleApp.csproj", "{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.ConsoleApp", "Apps\SmartIOT.Connector.ConsoleApp\SmartIOT.Connector.ConsoleApp.csproj", "{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

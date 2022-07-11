@@ -18,7 +18,7 @@ A prebuilt Docker image is also available on Docker Hub. Use the following comma
 
 Provided you installed docker on your machine, go to SmartIOT.Connector root project folder and type:
 
-<pre>docker build -t smartiot-connector -f Runners/SmartIOT.Connector.ConsoleApp/Dockerfile .</pre>
+<pre>docker build -t smartiot-connector -f Apps/SmartIOT.Connector.ConsoleApp/Dockerfile .</pre>
 
 ### Running the container
 
@@ -33,4 +33,4 @@ docker run -it --rm -v /path/to/smartiot-connector/configuration/folder:/SmartIO
 
 Suppose you have downloaded the solution on Windows on folder C:\develop\SmartIOT.Connector. You will have an <code>smartiot-config.json</code> file under the <code>SmartIOT.Connector.ConsoleApp</code> project folder.<br>
 Type this to use that configuration file:<pre>
-docker run -it --rm -v C:\develop\SmartIOT.Connector\Runners\SmartIOT.Connector.ConsoleApp:/SmartIOT.Connector -p 9001:9001 -p 1883:1883 smartiot-connector</pre>
+docker run -it --rm -v C:\develop\SmartIOT.Connector\Apps\SmartIOT.Connector.ConsoleApp:/SmartIOT.Connector -p 9001:9001 -p 1883:1883 smartiot-connector</pre>
