@@ -219,6 +219,11 @@ namespace SmartIOT.Connector.Tcp.Server
 
 			_stopToken.Cancel();
 			_tcpListener.Stop();
+
+			foreach (var client in _clients)
+			{
+				client.Close();
+			}
 		}
 	}
 }

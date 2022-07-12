@@ -1,28 +1,23 @@
-﻿using SmartIOT.Connector.Core;
+﻿using Sharp7;
+using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Model;
-using Sharp7;
 using System.Text;
 using static Sharp7.S7Client;
-using System.Text.RegularExpressions;
 
 namespace SmartIOT.Connector.Plc.Snap7
 {
 	public class Snap7Driver : IDeviceDriver
 	{
-		private static readonly Regex RegexDB = new Regex(@"^DB(?<tag>[0-9]*)$");
-
-		public string Name => $"{nameof(Snap7Driver)}.{Plc.Name}";
-		public Snap7Plc Plc { get; }
-		private readonly IList<Snap7Plc> _plcs = new List<Snap7Plc>();
+		public string Name => $"{nameof(Snap7Driver)}.{Device.Name}";
+		public Device Device { get; }
 
 
 		public Snap7Driver(Snap7Plc plc)
 		{
-			Plc = plc;
-			_plcs.Add(plc);
+			Device = plc;
 		}
 
-		public int Connect(Core.Model.Device plc)
+		public int Connect(Device plc)
 		{
 			lock (plc)
 			{
@@ -31,7 +26,7 @@ namespace SmartIOT.Connector.Plc.Snap7
 			}
 		}
 
-		public int Disconnect(Core.Model.Device plc)
+		public int Disconnect(Device plc)
 		{
 			lock (plc)
 			{
@@ -45,7 +40,7 @@ namespace SmartIOT.Connector.Plc.Snap7
 			return S7Client.ErrorText(errorNumber);
 		}
 
-		public string GetDeviceDescription(Core.Model.Device plc)
+		public string GetDeviceDescription(Device plc)
 		{
 			lock (plc)
 			{
@@ -76,31 +71,19 @@ namespace SmartIOT.Connector.Plc.Snap7
 			}
 		}
 
-		public IList<Core.Model.Device> GetDevices(bool enabledOnly)
-		{
-			return _plcs.Where(x => !enabledOnly || Plc.DeviceStatus != DeviceStatus.DISABLED).Cast<Core.Model.Device>().ToList();
-		}
-
 		public int ReadTag(Device plc, Tag tag, byte[] data, int startOffset, int length)
 		{
 			Snap7Plc p = (Snap7Plc)plc;
 
-			if (int.TryParse(tag.TagId, out int t))
-			{
-				return p.ReadBytes(t, startOffset, data);
-			}
-			else
-			{
-				var match = RegexDB.Match(tag.TagId);
-				if (match.Success)
-				{
-					t = int.Parse(match.Groups["tag"].Value);
-					return p.ReadBytes(t, startOffset, data);
-				}
+			var bytes = new byte[length];
 
-				// other tag types can be supported here..
-				throw new ArgumentException($"TagId {tag.TagId} not handled. TagId must be in the form \"DB<number>\"");
-			}
+			int ret = p.ReadBytes(tag.TagId, startOffset, bytes, length);
+			if (ret != 0)
+				return ret;
+
+			Array.Copy(bytes, 0, data, startOffset - tag.ByteOffset, length);
+
+			return 0;
 		}
 
 		public int StartInterface()
@@ -120,22 +103,7 @@ namespace SmartIOT.Connector.Plc.Snap7
 
 			Snap7Plc p = (Snap7Plc)plc;
 
-			if (int.TryParse(tag.TagId, out int t))
-			{
-				return p.WriteBytes(t, startOffset, bytes);
-			}
-			else
-			{
-				var match = RegexDB.Match(tag.TagId);
-				if (match.Success)
-				{
-					t = int.Parse(match.Groups["tag"].Value);
-					return p.WriteBytes(t, startOffset, bytes);
-				}
-
-				// other tag types can be supported here..
-				throw new ArgumentException($"TagId {tag.TagId} not handled. TagId must be in the form \"DB<number>\"");
-			}
+			return p.WriteBytes(tag.TagId, startOffset, bytes);
 		}
 	}
 }

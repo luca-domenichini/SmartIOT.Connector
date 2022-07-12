@@ -24,7 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Connectors\SmartIOT.Connector.Mqtt\SmartIOT.Connector.Mqtt.csproj" />
     <ProjectReference Include="..\SmartIOT.Connector.Core.Tests\SmartIOT.Connector.Core.Tests.csproj" />
-    <ProjectReference Include="..\SmartIOT.Connector.Device.Mocks\SmartIOT.Connector.Device.Mocks.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
 ﻿using SmartIOT.Connector.Core.Conf;
-using System.Collections.ObjectModel;
+using SmartIOT.Connector.Core.Util;
 
 namespace SmartIOT.Connector.Core.Model
 {
@@ -12,7 +12,7 @@ namespace SmartIOT.Connector.Core.Model
 		public string DeviceId => Configuration.DeviceId;
 		public int ErrorCode { get; internal set; }
 		public int ErrorCount { get; internal set; }
-		public IList<Tag> Tags => new ReadOnlyCollection<Tag>(_tags);
+		public IReadOnlyList<Tag> Tags => _tags;
 
 		public bool IsPartialReadsEnabled => Configuration.IsPartialReadsEnabled;
 		public int SinglePDUReadBytes { get; set; }
@@ -20,7 +20,7 @@ namespace SmartIOT.Connector.Core.Model
 		public int SinglePDUWriteBytes { get; set; }
 		public int PDULength { get; set; }
 
-		private readonly IList<Tag> _tags = new List<Tag>();
+		private readonly CopyOnWriteArrayList<Tag> _tags = new CopyOnWriteArrayList<Tag>();
 
 		private int _weightMCMRead;
 		private int _weightMCMWrite;
@@ -32,12 +32,36 @@ namespace SmartIOT.Connector.Core.Model
 
 			foreach (var tagConfiguration in deviceConfiguration.Tags)
 			{
-				AddTag(new Tag(tagConfiguration));
+				InternalAddTag(tagConfiguration);
 			}
 		}
 
-		private void AddTag(Tag tag)
+		public bool IsEnabled()
 		{
+			return DeviceStatus != DeviceStatus.DISABLED;
+		}
+		public void SetEnabled(bool enabled)
+		{
+			bool wasEnabled = DeviceStatus != DeviceStatus.DISABLED;
+
+			if (enabled != wasEnabled)
+			{
+				if (DeviceStatus == DeviceStatus.DISABLED)
+				{
+					DeviceStatus = DeviceStatus.UNINITIALIZED;
+				}
+				else
+				{
+					DeviceStatus = DeviceStatus.DISABLED;
+				}
+
+				Configuration.Enabled = enabled;
+			}
+		}
+
+		private void InternalAddTag(TagConfiguration tagConfiguration)
+		{
+			var tag = new Tag(tagConfiguration);
 			_tags.Add(tag);
 
 			switch (tag.TagType)
@@ -48,6 +72,68 @@ namespace SmartIOT.Connector.Core.Model
 				case TagType.WRITE:
 					_weightMCMWrite = CalculateMCM(TagType.WRITE);
 					break;
+			}
+		}
+		public void AddTag(TagConfiguration tagConfiguration)
+		{
+			lock (_tags)
+			{
+				Configuration.Tags.Add(tagConfiguration);
+				InternalAddTag(tagConfiguration);
+			}
+		}
+		
+		public void RemoveTag(Tag tag)
+		{
+			lock (_tags)
+			{
+				var tc = Configuration.Tags.FirstOrDefault(x => x.TagId.Equals(tag.TagId, StringComparison.InvariantCultureIgnoreCase));
+				if (tc != null)
+					Configuration.Tags.Remove(tc);
+
+				_tags.Remove(tag);
+
+				switch (tag.TagType)
+				{
+					case TagType.READ:
+						_weightMCMRead = CalculateMCM(TagType.READ);
+						break;
+					case TagType.WRITE:
+						_weightMCMWrite = CalculateMCM(TagType.WRITE);
+						break;
+				}
+			}
+		}
+		
+		public bool UpdateTag(TagConfiguration tagConfiguration)
+		{
+			lock (_tags)
+			{
+				var index = Configuration.Tags.Where(x => x.TagId.Equals(tagConfiguration.TagId, StringComparison.InvariantCultureIgnoreCase))
+					.Select((tag, index) => index)
+					.FirstOrDefault(-1);
+
+				if (index < 0)
+					return false;
+
+				Configuration.Tags[index] = tagConfiguration;
+
+				var old = _tags.First(x => x.TagId.Equals(tagConfiguration.TagId, StringComparison.InvariantCultureIgnoreCase));
+
+				var tag = new Tag(tagConfiguration);
+				_tags.Replace(old, tag);
+
+				switch (tag.TagType)
+				{
+					case TagType.READ:
+						_weightMCMRead = CalculateMCM(TagType.READ);
+						break;
+					case TagType.WRITE:
+						_weightMCMWrite = CalculateMCM(TagType.WRITE);
+						break;
+				}
+
+				return true;
 			}
 		}
 
@@ -180,7 +266,7 @@ namespace SmartIOT.Connector.Core.Model
 				return _weightMCMWrite;
 		}
 
-		protected int CalculateMCM(TagType type)
+		private int CalculateMCM(TagType type)
 		{
 			int max = int.MinValue;
 

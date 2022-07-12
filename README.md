@@ -79,14 +79,16 @@ smartiot.Start();
 smartiot.Stop();
 ```
 
-Follow the [configuration guide](./Docs/Configuration.md) to get a complete understanding of how the configuration works.
-You can even jump to section specific guides:
- - [Connectors guide](./Docs/Configuration.md#configuring-the-connectors)
- - [Device configuration guide](./Docs/Configuration.md#configuring-the-devices)
-	- [Snap7 PLC configuration guide](./Devices/SmartIOT.Connector.Plc.Snap7/README.md)
-	- [S7Net PLC configuration guide](./Devices/SmartIOT.Connector.Plc.S7Net/README.md)
- - [Scheduler configuration guide](./Docs/Configuration.md#configuring-the-scheduler-main-properties)
+## Documentation
+
+ - [Configuration guide](./Docs/Configuration.md)
+   - [Configure the devices](./Docs/Configuration.md#configuring-the-devices)
+   - [Configure the connectors](./Docs/Configuration.md#configuring-the-connectors)
+   - [Configure the scheduler main properties](./Docs/Configuration.md#configuring-the-scheduler-main-properties)
+ - [Snap7 PLC configuration guide](./Devices/SmartIOT.Connector.Plc.Snap7/README.md)
+ - [S7Net PLC configuration guide](./Devices/SmartIOT.Connector.Plc.S7Net/README.md)
  - [Connectors guide](./Docs/Connectors.md)
+ - [REST API guide](./Core/SmartIOT.Connector.RestApi/README.md)
  - [Customization guide](./Docs/Customize.md)
 
 ## SmartIOT.Connector.ConsoleApp and Docker integration
@@ -113,7 +115,7 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 
 ## Roadmap to 1.0 - Features TODO list:
 
- - [ ] REST Api Connector (included in default CosoleApp project)
+ - [X] REST Api (included in default CosoleApp project)
  - [ ] GRPC Server Connector
  - [X] TCP Server Connector
  - [X] TCP Client Connector
@@ -126,7 +128,6 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
    - [ ] Run SmartIOT.Connector as a WPF app
    - [ ] Run SmartIOT.Connector as a WinService
  - [ ] Testers: connector counterpart as WPF app
-   - [ ] REST Api Client
    - [ ] GRPC Client
    - [X] TCP client
    - [X] TCP server
@@ -141,5 +142,4 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
  - [ ] Leverage the async pattern for Connectors and Devices:
 	   introduce <code>IAsyncDeviceDriver</code> and <code>IAsyncConnector</code> and add support to autodiscover and run them
  - [ ] The proto files should be part of SmartIOT.Connector.Messages project
- - [ ] Introduce tag free parameters string in TagConfiguration
  - [ ] Build and push docker image with github workflow

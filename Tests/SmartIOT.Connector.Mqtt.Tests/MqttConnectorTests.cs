@@ -8,7 +8,7 @@ using SmartIOT.Connector.Core.Conf;
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Core.Scheduler;
 using SmartIOT.Connector.Core.Tests;
-using SmartIOT.Connector.Device.Mocks;
+using SmartIOT.Connector.Mocks;
 using SmartIOT.Connector.Messages;
 using SmartIOT.Connector.Messages.Serializers;
 using SmartIOT.Connector.Mqtt.Client;
@@ -66,7 +66,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				}
 			});
 
-			var connector = new MqttServerConnector(new MqttServerConnectorOptions(false, serializer, Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", isPublishPartialReads));
+			var connector = new MqttServerConnector(new MqttServerConnectorOptions("mqttServer://", false, serializer, Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", isPublishPartialReads));
 
 			SmartIotConnector module = SetupSmartIotConnector(
 				SetupConfiguration(
@@ -190,7 +190,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				throw new InvalidOperationException("serializer not valid");
 
 
-			var connector = new MqttServerConnector(new MqttServerConnectorOptions(false, serializer, Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", true));
+			var connector = new MqttServerConnector(new MqttServerConnectorOptions("mqttServer://", false, serializer, Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", true));
 
 			DeviceConfiguration deviceConfiguration = new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 				, new List<TagConfiguration>()
@@ -203,7 +203,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 			MockDeviceDriver driver = new MockDeviceDriver(new Core.Model.Device(deviceConfiguration));
 			driver.SetupReadTagAsRandomData(15, 10);
 
-			var device = driver.GetDevices(true)[0];
+			var device = driver.Device;
 			var tag = device.Tags[0];
 
 			TagSchedulerEngine engine = new TagSchedulerEngine(driver, new TimeService(), configuration.SchedulerConfiguration);
@@ -413,7 +413,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 				}
 			});
 
-			var connector = new MqttClientConnector(new MqttClientConnectorOptions(false, serializer, Guid.NewGuid().ToString("N"), "localhost", 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", TimeSpan.FromSeconds(5), "", ""));
+			var connector = new MqttClientConnector(new MqttClientConnectorOptions("mqttClient://", false, serializer, Guid.NewGuid().ToString("N"), "localhost", 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", TimeSpan.FromSeconds(5), "", ""));
 
 			SmartIotConnector module = SetupSmartIotConnector(
 				SetupConfiguration(

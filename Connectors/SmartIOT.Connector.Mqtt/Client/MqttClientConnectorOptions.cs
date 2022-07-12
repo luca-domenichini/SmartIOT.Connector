@@ -12,8 +12,8 @@ namespace SmartIOT.Connector.Mqtt.Client
 		public string Username { get; set; }
 		public string Password { get; set; }
 
-		public MqttClientConnectorOptions(bool isPublishWriteEvents, ISingleMessageSerializer messageSerializer, string clientId, string serverAddress, int serverPort, string exceptionsTopicPattern, string deviceStatusEventsTopicPattern, string tagScheduleEventsTopicPattern, string tagWriteRequestCommandsTopicRoot, TimeSpan reconnectDelay, string username, string password)
-			: base(isPublishWriteEvents, messageSerializer, exceptionsTopicPattern, deviceStatusEventsTopicPattern, tagScheduleEventsTopicPattern, tagWriteRequestCommandsTopicRoot)
+		public MqttClientConnectorOptions(string connectionString, bool isPublishWriteEvents, ISingleMessageSerializer messageSerializer, string clientId, string serverAddress, int serverPort, string exceptionsTopicPattern, string deviceStatusEventsTopicPattern, string tagScheduleEventsTopicPattern, string tagWriteRequestCommandsTopicRoot, TimeSpan reconnectDelay, string username, string password)
+			: base(connectionString, isPublishWriteEvents, messageSerializer, exceptionsTopicPattern, deviceStatusEventsTopicPattern, tagScheduleEventsTopicPattern, tagWriteRequestCommandsTopicRoot)
 		{
 			ClientId = clientId;
 			ServerAddress = serverAddress;

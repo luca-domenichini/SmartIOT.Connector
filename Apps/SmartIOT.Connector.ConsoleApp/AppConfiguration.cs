@@ -3,10 +3,9 @@ using SmartIOT.Connector.Prometheus;
 
 namespace SmartIOT.Connector.ConsoleApp
 {
-	public class RunnerConfiguration
+	public class AppConfiguration
 	{
 		public SmartIotConnectorConfiguration? Configuration { get; set; }
 		public PrometheusConfiguration? PrometheusConfiguration { get; set; }
-		public LogConfiguration? LogConfiguration { get; set; }
 	}
 }

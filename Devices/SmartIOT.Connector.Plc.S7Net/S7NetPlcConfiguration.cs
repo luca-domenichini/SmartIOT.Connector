@@ -6,11 +6,11 @@ namespace SmartIOT.Connector.Plc.S7Net
 {
 	public class S7NetPlcConfiguration : DeviceConfiguration
 	{
-		public CpuType CpuType { get; init; }
-		public string IpAddress { get; init; }
-		public int? Port { get; init; }
-		public short Rack { get; init; }
-		public short Slot { get; init; }
+		internal CpuType CpuType { get; init; }
+		internal string IpAddress { get; init; }
+		internal int? Port { get; init; }
+		internal short Rack { get; init; }
+		internal short Slot { get; init; }
 
 		public S7NetPlcConfiguration(DeviceConfiguration configuration) : base(configuration)
 		{

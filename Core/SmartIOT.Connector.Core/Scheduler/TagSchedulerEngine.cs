@@ -26,11 +26,6 @@ namespace SmartIOT.Connector.Core.Scheduler
 			_configuration = configuration;
 		}
 
-		public IList<Device> GetManagedDevices()
-		{
-			return DeviceDriver.GetDevices(false);
-		}
-
 		public TagSchedule ScheduleNextTag(bool scheduleWritesOnly)
 		{
 			lock (DeviceDriver)
@@ -44,60 +39,55 @@ namespace SmartIOT.Connector.Core.Scheduler
 
 		public TagSchedule GetNextTagSchedule(bool scheduleWritesOnly = false)
 		{
-			Device? deviceToSchedule = null;
 			Tag? tagToSchedule = null;
 			TimeSpan waitTime = TimeSpan.FromSeconds(1);
 
-			foreach (Device device in DeviceDriver.GetDevices(true))
-			{
-				foreach (Tag tag in device.Tags)
-				{
-					if (scheduleWritesOnly && tag.TagType != TagType.WRITE)
-						continue;
+			var device = DeviceDriver.Device;
 
-					var time = GetRemainingTimeForTagSchedule(device, tag);
-					if (time <= TimeSpan.Zero)
-					{
-						// tag schedulabile! verifico se posso assegnarlo
-						if (tagToSchedule == null)
-						{ // nessun tag ancora assegnato
-							deviceToSchedule = device;
-							tagToSchedule = tag;
-						}
-						else
-						{
-							// tag già assegnato
-							// il tag corrente e' in scrittura: cambio solo con 1 tag in scrittura che non viene scritto da piu' tempo
-							if (tagToSchedule.IsWriteSynchronizationRequested)
-							{
-								if (tag.IsWriteSynchronizationRequested && tag.TagType == TagType.WRITE && (tag.LastDeviceSynchronization < tagToSchedule.LastDeviceSynchronization))
-								{
-									deviceToSchedule = device;
-									tagToSchedule = tag;
-								}
-							}
-							// il tag corrente e' in lettura: cambio con un tag in scrittura da scrivere o uno in lettura che ha un numero inferiore di punti
-							else
-							{
-								if ((tag.IsWriteSynchronizationRequested && tag.TagType == TagType.WRITE)
-										|| (tag.TagType == TagType.READ && tag.Points < tagToSchedule.Points))
-								{
-									deviceToSchedule = device;
-									tagToSchedule = tag;
-								}
-							}
-						}
+			foreach (Tag tag in device.Tags)
+			{
+				if (scheduleWritesOnly && tag.TagType != TagType.WRITE)
+					continue;
+
+				var time = GetRemainingTimeForTagSchedule(device, tag);
+				if (time <= TimeSpan.Zero)
+				{
+					// tag schedulabile! verifico se posso assegnarlo
+					if (tagToSchedule == null)
+					{ // nessun tag ancora assegnato
+						tagToSchedule = tag;
 					}
 					else
 					{
-						if (time < waitTime)
-							waitTime = time;
+						// tag già assegnato
+						// il tag corrente e' in scrittura: cambio solo con 1 tag in scrittura che non viene scritto da piu' tempo
+						if (tagToSchedule.IsWriteSynchronizationRequested)
+						{
+							if (tag.IsWriteSynchronizationRequested && tag.TagType == TagType.WRITE && (tag.LastDeviceSynchronization < tagToSchedule.LastDeviceSynchronization))
+							{
+								tagToSchedule = tag;
+							}
+						}
+						// il tag corrente e' in lettura: cambio con un tag in scrittura da scrivere o uno in lettura che ha un numero inferiore di punti
+						else
+						{
+							if ((tag.IsWriteSynchronizationRequested && tag.TagType == TagType.WRITE)
+									|| (tag.TagType == TagType.READ && tag.Points < tagToSchedule.Points))
+							{
+								tagToSchedule = tag;
+							}
+						}
 					}
+				}
+				else
+				{
+					if (time < waitTime)
+						waitTime = time;
 				}
 			}
 
-			if (tagToSchedule != null && deviceToSchedule != null)
-				return new TagSchedule(deviceToSchedule, tagToSchedule, tagToSchedule.TagType == TagType.READ ? TagScheduleType.READ : TagScheduleType.WRITE);
+			if (tagToSchedule != null)
+				return new TagSchedule(device, tagToSchedule, tagToSchedule.TagType == TagType.READ ? TagScheduleType.READ : TagScheduleType.WRITE);
 
 			// se non ho trovato nessun tag da schedulare, rilancio una eccezione indicando il tempo di attesa
 			throw new TagSchedulerWaitException(waitTime);
@@ -146,22 +136,17 @@ namespace SmartIOT.Connector.Core.Scheduler
 						else
 						{
 							// check for tag write only if partial read is not completed
-							foreach (Device device in DeviceDriver.GetDevices(true))
+							foreach (Tag tag in DeviceDriver.Device.Tags)
 							{
-								foreach (Tag tag in device.Tags)
+								if (tag.IsWriteSynchronizationRequested)
 								{
-									if (tag.IsWriteSynchronizationRequested)
+									var timeToWait = GetRemainingTimeForTagSchedule(DeviceDriver.Device, tag);
+									if (timeToWait <= TimeSpan.Zero)
 									{
-										var timeToWait = GetRemainingTimeForTagSchedule(device, tag);
-										if (timeToWait <= TimeSpan.Zero)
-										{
-											somethingToWrite = true;
-											break;
-										}
+										somethingToWrite = true;
+										break;
 									}
 								}
-								if (somethingToWrite)
-									break;
 							}
 						}
 					}
@@ -543,18 +528,19 @@ namespace SmartIOT.Connector.Core.Scheduler
 			bool restart = _lastRestartInstant == null;
 			if (!restart)
 			{
-				if (_timeService.IsTimeoutElapsed(_lastRestartInstant!.Value, _configuration.RestarDeviceInErrorTimeout))
+				if (_timeService.IsTimeoutElapsed(_lastRestartInstant!.Value, _configuration.RestartDeviceInErrorTimeout))
 				{
-					IList<Device> devices = DeviceDriver.GetDevices(true);
-					foreach (Device device in devices)
+					var device = DeviceDriver.Device;
+
+					if (device.ErrorCount >= _configuration.MaxErrorsBeforeReconnection
+							|| device.DeviceStatus == DeviceStatus.UNINITIALIZED
+							|| device.DeviceStatus == DeviceStatus.ERROR)
 					{
-						if (device.ErrorCount >= _configuration.MaxErrorsBeforeReconnection
-								|| device.DeviceStatus == DeviceStatus.UNINITIALIZED
-								|| device.DeviceStatus == DeviceStatus.ERROR)
-						{
-							restart = true;
-							break;
-						}
+						restart = true;
+					}
+
+					if (!restart)
+					{
 						foreach (Tag tag in device.Tags)
 						{
 							if (tag.ErrorCount >= _configuration.MaxErrorsBeforeReconnection
@@ -564,8 +550,6 @@ namespace SmartIOT.Connector.Core.Scheduler
 								break;
 							}
 						}
-						if (restart)
-							break;
 					}
 				}
 			}
@@ -585,13 +569,12 @@ namespace SmartIOT.Connector.Core.Scheduler
 			// devo far ripartire tutto: se non e' la prima partenza allora devo anche stoppare tutto.
 			lock (DeviceDriver)
 			{
+				var device = DeviceDriver.Device;
+
 				if (_lastRestartInstant != null)
 				{
 					TryWithDeviceDriver(x => x.StopInterface());
-					foreach (Device device in DeviceDriver.GetDevices(true))
-					{
-						TryWithDeviceDriver(x => x.Disconnect(device));
-					}
+					TryWithDeviceDriver(x => x.Disconnect(device));
 				}
 
 				(int err, string description) = TryWithDeviceDriver(x => x.StartInterface());
@@ -600,33 +583,56 @@ namespace SmartIOT.Connector.Core.Scheduler
 					success = false;
 					message = description;
 
-					foreach (Device device in DeviceDriver.GetDevices(true))
-					{
-						device.IncrementOrReseDeviceErrorCode(err);
+					device.IncrementOrReseDeviceErrorCode(err);
 
-						OnDeviceStatusEvent(new DeviceStatusEvent(device, device.DeviceStatus, err, description));
-					}
+					OnDeviceStatusEvent(new DeviceStatusEvent(device, device.DeviceStatus, err, description));
 				}
 				else
 				{
-					foreach (Device device in DeviceDriver.GetDevices(true))
+					(err, description) = TryWithDeviceDriver(x => x.Connect(device));
+					device.IncrementOrReseDeviceErrorCode(err);
+
+					if (err != 0)
 					{
-						(err, description) = TryWithDeviceDriver(x => x.Connect(device));
-						device.IncrementOrReseDeviceErrorCode(err);
+						success = false;
+						message = description;
+						OnDeviceStatusEvent(new DeviceStatusEvent(device, device.DeviceStatus, err, description));
+					}
+					else
+					{
+						OnDeviceStatusEvent(new DeviceStatusEvent(device, device.DeviceStatus, 0, string.Empty));
 
-						if (err != 0)
+						foreach (Tag tag in device.Tags)
 						{
-							success = false;
-							message = description;
-							OnDeviceStatusEvent(new DeviceStatusEvent(device, device.DeviceStatus, err, description));
-						}
-						else
-						{
-							OnDeviceStatusEvent(new DeviceStatusEvent(device, device.DeviceStatus, 0, string.Empty));
-
-							foreach (Tag tag in device.Tags)
+							if (tag.TagType == TagType.READ)
 							{
-								if (tag.TagType == TagType.READ)
+								TagScheduleEvent? evt;
+
+								lock (tag)
+								{
+									evt = ReadTag(new TagSchedule(device, tag, TagScheduleType.READ), false, true);
+									if (evt == null)
+										throw new InvalidOperationException("A complete read should always produce a TagRead event");
+
+									if (evt.ErrorNumber == 0)
+									{
+										// se durante il restart del driver non ottengo nessun errore in lettura di un tag
+										// lo segnalto interamente al gestore dell'evento.
+										evt = TagScheduleEvent.BuildTagData(device, tag, true);
+									}
+									else
+									{
+										success = false;
+										message = evt.Description!;
+									}
+								}
+
+								OnTagRead(evt);
+							}
+							else /*if (tag.getType() == TagType.WRITE)*/
+							{
+								// I tag in scrittura li leggo solo 1 volta, al momento della partenza o fino a quando non sono riuscito a leggerlo una volta
+								if (!tag.IsInitialized)
 								{
 									TagScheduleEvent? evt;
 
@@ -638,8 +644,6 @@ namespace SmartIOT.Connector.Core.Scheduler
 
 										if (evt.ErrorNumber == 0)
 										{
-											// se durante il restart del driver non ottengo nessun errore in lettura di un tag
-											// lo segnalto interamente al gestore dell'evento.
 											evt = TagScheduleEvent.BuildTagData(device, tag, true);
 										}
 										else
@@ -650,33 +654,6 @@ namespace SmartIOT.Connector.Core.Scheduler
 									}
 
 									OnTagRead(evt);
-								}
-								else /*if (tag.getType() == TagType.WRITE)*/
-								{
-									// I tag in scrittura li leggo solo 1 volta, al momento della partenza o fino a quando non sono riuscito a leggerlo una volta
-									if (!tag.IsInitialized)
-									{
-										TagScheduleEvent? evt;
-
-										lock (tag)
-										{
-											evt = ReadTag(new TagSchedule(device, tag, TagScheduleType.READ), false, true);
-											if (evt == null)
-												throw new InvalidOperationException("A complete read should always produce a TagRead event");
-
-											if (evt.ErrorNumber == 0)
-											{
-												evt = TagScheduleEvent.BuildTagData(device, tag, true);
-											}
-											else
-											{
-												success = false;
-												message = evt.Description!;
-											}
-										}
-
-										OnTagRead(evt);
-									}
 								}
 							}
 						}

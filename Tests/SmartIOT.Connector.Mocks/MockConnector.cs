@@ -1,12 +1,14 @@
 ﻿using Moq;
+using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Messages;
 
-namespace SmartIOT.Connector.Core.Tests
+namespace SmartIOT.Connector.Mocks
 {
 	public class MockConnector : Mock<IConnector>, IConnector
 	{
 		private ISmartIOTConnectorInterface? _connectorInterface;
+		public string ConnectionString => "mock://";
 
 		public void Start(ISmartIOTConnectorInterface connectorInterface)
 		{

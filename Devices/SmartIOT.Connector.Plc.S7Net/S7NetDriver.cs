@@ -1,23 +1,21 @@
-﻿using SmartIOT.Connector.Core;
+﻿using S7.Net;
+using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Model;
-using S7.Net;
 
 namespace SmartIOT.Connector.Plc.S7Net
 {
 	public class S7NetDriver : IDeviceDriver
 	{
-		public string Name => $"{nameof(S7NetDriver)}.{Plc.Name}";
-		public S7NetPlc Plc { get; }
-		private readonly IList<S7NetPlc> _plcs = new List<S7NetPlc>();
+		public string Name => $"{nameof(S7NetDriver)}.{Device.Name}";
+		public Device Device { get; }
 
 
 		public S7NetDriver(S7NetPlc plc)
 		{
-			Plc = plc;
-			_plcs.Add(plc);
+			Device = plc;
 		}
 
-		public int Connect(Core.Model.Device plc)
+		public int Connect(Device plc)
 		{
 			try
 			{
@@ -35,7 +33,7 @@ namespace SmartIOT.Connector.Plc.S7Net
 			}
 		}
 
-		public int Disconnect(Core.Model.Device plc)
+		public int Disconnect(Device plc)
 		{
 			try
 			{
@@ -58,17 +56,12 @@ namespace SmartIOT.Connector.Plc.S7Net
 			return $"Error {errorNumber}";
 		}
 
-		public string GetDeviceDescription(Core.Model.Device plc)
+		public string GetDeviceDescription(Device plc)
 		{
 			return plc.Name;
 		}
 
-		public IList<Core.Model.Device> GetDevices(bool enabledOnly)
-		{
-			return _plcs.Where(x => !enabledOnly || Plc.DeviceStatus != DeviceStatus.DISABLED).Cast<Core.Model.Device>().ToList();
-		}
-
-		public int ReadTag(Core.Model.Device plc, Tag tag, byte[] data, int startOffset, int length)
+		public int ReadTag(Device plc, Tag tag, byte[] data, int startOffset, int length)
 		{
 			try
 			{
@@ -98,7 +91,7 @@ namespace SmartIOT.Connector.Plc.S7Net
 			return 0;
 		}
 
-		public int WriteTag(Core.Model.Device plc, Tag tag, byte[] data, int startOffset, int length)
+		public int WriteTag(Device plc, Tag tag, byte[] data, int startOffset, int length)
 		{
 			try
 			{

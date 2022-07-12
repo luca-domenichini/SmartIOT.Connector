@@ -7,7 +7,9 @@ on:
     branches: [ "prerelease" ]
 
 env:
-  VERSION_SUFFIX: -beta
+  VERSION_MAJOR: 0
+  VERSION_MINOR: 3
+  VERSION_SUFFIX: "-beta"
 
 jobs:
   build:
@@ -20,7 +22,7 @@ jobs:
       run: echo "::set-output name=date::$(date +'%Y%m%d')"
     - name: Set Version variable
       id: version
-      run: echo "::set-output name=PRODUCT_VERSION::0.2.${{ steps.date.outputs.date }}.${{ github.run_attempt }}${{ env.VERSION_SUFFIX }}"
+      run: echo "::set-output name=PRODUCT_VERSION::${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${{ steps.date.outputs.date }}.${{ github.run_attempt }}${{ env.VERSION_SUFFIX }}"
     - uses: actions/checkout@v3
     - name: Setup .NET
       uses: actions/setup-dotnet@v2

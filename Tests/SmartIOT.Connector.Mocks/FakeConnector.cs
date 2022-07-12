@@ -1,10 +1,10 @@
-﻿using SmartIOT.Connector.Core.Events;
-using System;
-using System.Collections.Generic;
+﻿using SmartIOT.Connector.Core;
+using SmartIOT.Connector.Core.Connector;
+using SmartIOT.Connector.Core.Events;
 
-namespace SmartIOT.Connector.Core.Tests
+namespace SmartIOT.Connector.Mocks
 {
-	internal class FakeConnector : IConnector
+	public class FakeConnector : AbstractConnector
 	{
 		private ISmartIOTConnectorInterface? _connectorInterface;
 
@@ -13,22 +13,26 @@ namespace SmartIOT.Connector.Core.Tests
 		public IList<DeviceStatusEvent> DeviceStatusEvents { get; } = new List<DeviceStatusEvent>();
 		public IList<ExceptionEventArgs> ExceptionEvents { get; } = new List<ExceptionEventArgs>();
 
-		public void OnTagReadEvent(object? sender, TagScheduleEventArgs e)
+		public FakeConnector() : base("fake://")
+		{
+		}
+
+		public override void OnTagReadEvent(object? sender, TagScheduleEventArgs e)
 		{
 			TagReadEvents.Add(e.TagScheduleEvent);
 		}
 
-		public void OnTagWriteEvent(object? sender, TagScheduleEventArgs e)
+		public override void OnTagWriteEvent(object? sender, TagScheduleEventArgs e)
 		{
 			TagWriteEvents.Add(e.TagScheduleEvent);
 		}
 
-		public void OnDeviceStatusEvent(object? sender, DeviceStatusEventArgs e)
+		public override void OnDeviceStatusEvent(object? sender, DeviceStatusEventArgs e)
 		{
 			DeviceStatusEvents.Add(e.DeviceStatusEvent);
 		}
 
-		public void OnException(object? sender, ExceptionEventArgs args)
+		public override void OnException(object? sender, ExceptionEventArgs args)
 		{
 			ExceptionEvents.Add(args);
 		}
@@ -41,23 +45,13 @@ namespace SmartIOT.Connector.Core.Tests
 			ExceptionEvents.Clear();
 		}
 
-		public void Start(ISmartIOTConnectorInterface connectorInterface)
+		public override void Start(ISmartIOTConnectorInterface connectorInterface)
 		{
 			_connectorInterface = connectorInterface;
 		}
-		public void Stop()
+		public override void Stop()
 		{
 
-		}
-
-		public void OnSchedulerStarting(object? sender, EventArgs e)
-		{
-			
-		}
-
-		public void OnSchedulerStopped(object? sender, EventArgs e)
-		{
-			
 		}
 
 		public void RequestTagWrite(string deviceId, string tagId, int startOffset, byte[] data)

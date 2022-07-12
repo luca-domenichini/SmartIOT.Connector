@@ -1,5 +1,6 @@
 ﻿using SmartIOT.Connector.Core.Conf;
 using SmartIOT.Connector.Core.Factory;
+using SmartIOT.Connector.Mocks;
 using System.Collections.Generic;
 
 namespace SmartIOT.Connector.Core.Tests

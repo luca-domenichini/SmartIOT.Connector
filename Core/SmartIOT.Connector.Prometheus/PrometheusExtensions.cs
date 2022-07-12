@@ -18,22 +18,22 @@ namespace SmartIOT.Connector.Prometheus
 		{
 			return connector.AddPrometheusServerImpl(server, false, metricsPrefix);
 		}
-		public static Core.SmartIotConnector AddManagedPrometheusServer(this Core.SmartIotConnector connector, int port, string url = "metrics/", CollectorRegistry? registry = null, bool useHttps = false, string metricsPrefix = "smartiot_connector")
+		public static Core.SmartIotConnector AddManagedPrometheusServer(this Core.SmartIotConnector connector, int port, string url = "metrics/", bool useHttps = false, string metricsPrefix = "smartiot_connector")
 		{
-			return connector.AddPrometheusServerImpl(new MetricServer(port, url, registry, useHttps), true, metricsPrefix);
+			return connector.AddPrometheusServerImpl(new MetricServer(port, url, null, useHttps), true, metricsPrefix);
 		}
-		public static Core.SmartIotConnector AddManagedPrometheusServer(this Core.SmartIotConnector connector, string hostname, int port, string url = "metrics/", CollectorRegistry? registry = null, bool useHttps = false, string metricsPrefix = "smartiot_connector")
+		public static Core.SmartIotConnector AddManagedPrometheusServer(this Core.SmartIotConnector connector, string hostname, int port, string url = "metrics/", bool useHttps = false, string metricsPrefix = "smartiot_connector")
 		{
-			return connector.AddPrometheusServerImpl(new MetricServer(hostname, port, url, registry, useHttps), true, metricsPrefix);
+			return connector.AddPrometheusServerImpl(new MetricServer(hostname, port, url, null, useHttps), true, metricsPrefix);
 		}
 		public static Core.SmartIotConnector AddPrometheus(this Core.SmartIotConnector connector, PrometheusConfiguration prometheusConfiguration)
 		{
 			if (prometheusConfiguration.Port > 0)
 			{
 				if (!string.IsNullOrWhiteSpace(prometheusConfiguration.HostName))
-					return connector.AddPrometheusServerImpl(new MetricServer(prometheusConfiguration.HostName, prometheusConfiguration.Port, prometheusConfiguration.Url, prometheusConfiguration.CollectorRegistry, prometheusConfiguration.UseHttps), true, prometheusConfiguration.MetricsPrefix);
+					return connector.AddPrometheusServerImpl(new MetricServer(prometheusConfiguration.HostName, prometheusConfiguration.Port, prometheusConfiguration.Url, null, prometheusConfiguration.UseHttps), true, prometheusConfiguration.MetricsPrefix);
 				else
-					return connector.AddPrometheusServerImpl(new MetricServer(prometheusConfiguration.Port, prometheusConfiguration.Url, prometheusConfiguration.CollectorRegistry, prometheusConfiguration.UseHttps), true, prometheusConfiguration.MetricsPrefix);
+					return connector.AddPrometheusServerImpl(new MetricServer(prometheusConfiguration.Port, prometheusConfiguration.Url, null, prometheusConfiguration.UseHttps), true, prometheusConfiguration.MetricsPrefix);
 			}
 
 			return connector;

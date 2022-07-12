@@ -1,6 +1,7 @@
-﻿using SmartIOT.Connector.Core.Factory;
+﻿using SmartIOT.Connector.Core;
+using SmartIOT.Connector.Core.Factory;
 
-namespace SmartIOT.Connector.Core.Tests
+namespace SmartIOT.Connector.Mocks
 {
 	public class FakeConnectorFactory : IConnectorFactory
 	{

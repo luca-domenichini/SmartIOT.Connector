@@ -13,16 +13,14 @@ namespace SmartIOT.Connector.Prometheus
 		public int Port { get; }
 		public string Url { get; }
 		public string MetricsPrefix { get; }
-		public CollectorRegistry? CollectorRegistry { get; }
 		public bool UseHttps { get; }
 
-		public PrometheusConfiguration(string hostName, int port, string url = "metrics/", string metricsPrefix = "smartiot_connector", CollectorRegistry? collectorRegistry = null, bool useHttps = false)
+		public PrometheusConfiguration(string hostName, int port, string url = "metrics/", string metricsPrefix = "smartiot_connector", bool useHttps = false)
 		{
 			HostName = hostName;
 			Port = port;
 			Url = url;
 			MetricsPrefix = metricsPrefix;
-			CollectorRegistry = collectorRegistry;
 			UseHttps = useHttps;
 		}
 	}

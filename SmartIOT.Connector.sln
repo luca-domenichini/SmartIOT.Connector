@@ -5,10 +5,14 @@ VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{00225731-BE18-495B-9FDA-DEC2D79868B1}"
 	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
 		.editorconfig = .editorconfig
-		docker-build-runner-console.bat = docker-build-runner-console.bat
-		docker-run-runner-console.bat = docker-run-runner-console.bat
+		docker-build-consoleapp.bat = docker-build-consoleapp.bat
+		docker-push-consoleapp.bat = docker-push-consoleapp.bat
+		docker-run-consoleapp.bat = docker-run-consoleapp.bat
 		dotnet-build-and-push.bat = dotnet-build-and-push.bat
+		.github\workflows\dotnet-develop.yml = .github\workflows\dotnet-develop.yml
+		.github\workflows\dotnet-master.yml = .github\workflows\dotnet-master.yml
 		.github\workflows\dotnet-prerelease.yml = .github\workflows\dotnet-prerelease.yml
 		.github\workflows\dotnet-release.yml = .github\workflows\dotnet-release.yml
 		LICENSE = LICENSE
@@ -35,8 +39,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Mqtt.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Core.Tests", "Tests\SmartIOT.Connector.Core.Tests\SmartIOT.Connector.Core.Tests.csproj", "{564D1D75-1792-49A8-BF5B-6923A9801AC3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Device.Mocks", "Tests\SmartIOT.Connector.Device.Mocks\SmartIOT.Connector.Device.Mocks.csproj", "{49F0C215-8DEF-4E3E-B5E9-F80D923C5F08}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Prometheus.Tests", "Tests\SmartIOT.Connector.Prometheus.Tests\SmartIOT.Connector.Prometheus.Tests.csproj", "{43537DFE-3544-4FD7-97AA-0C986900EA9F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.MqttClient.Tester", "Testers\SmartIOT.Connector.MqttClient.Tester\SmartIOT.Connector.MqttClient.Tester.csproj", "{8D6F4801-783E-426C-BDDD-0B2629B64192}"
@@ -53,7 +55,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.TcpServe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Apps", "Apps", "{56D33DD2-28C6-45C5-B994-54FA4D8055F5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.ConsoleApp", "Apps\SmartIOT.Connector.ConsoleApp\SmartIOT.Connector.ConsoleApp.csproj", "{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.ConsoleApp", "Apps\SmartIOT.Connector.ConsoleApp\SmartIOT.Connector.ConsoleApp.csproj", "{B6B46E61-F57A-4843-BEF6-180C82382E15}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Mocks", "Tests\SmartIOT.Connector.Mocks\SmartIOT.Connector.Mocks.csproj", "{442D217B-E924-4A67-BE4F-FE68D8471C11}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.RestApi", "Core\SmartIOT.Connector.RestApi\SmartIOT.Connector.RestApi.csproj", "{E39654FA-5AA3-4C69-94B8-0BEF1272349C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.RestApi.Tests", "Tests\SmartIOT.Connector.RestApi.Tests\SmartIOT.Connector.RestApi.Tests.csproj", "{4EC87D61-7FC7-413A-9B35-7D15AAB2308F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,10 +101,6 @@ Global
 		{564D1D75-1792-49A8-BF5B-6923A9801AC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{564D1D75-1792-49A8-BF5B-6923A9801AC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{564D1D75-1792-49A8-BF5B-6923A9801AC3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{49F0C215-8DEF-4E3E-B5E9-F80D923C5F08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{49F0C215-8DEF-4E3E-B5E9-F80D923C5F08}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{49F0C215-8DEF-4E3E-B5E9-F80D923C5F08}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{49F0C215-8DEF-4E3E-B5E9-F80D923C5F08}.Release|Any CPU.Build.0 = Release|Any CPU
 		{43537DFE-3544-4FD7-97AA-0C986900EA9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{43537DFE-3544-4FD7-97AA-0C986900EA9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43537DFE-3544-4FD7-97AA-0C986900EA9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -125,10 +129,22 @@ Global
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6B46E61-F57A-4843-BEF6-180C82382E15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6B46E61-F57A-4843-BEF6-180C82382E15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6B46E61-F57A-4843-BEF6-180C82382E15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6B46E61-F57A-4843-BEF6-180C82382E15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{442D217B-E924-4A67-BE4F-FE68D8471C11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{442D217B-E924-4A67-BE4F-FE68D8471C11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{442D217B-E924-4A67-BE4F-FE68D8471C11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{442D217B-E924-4A67-BE4F-FE68D8471C11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E39654FA-5AA3-4C69-94B8-0BEF1272349C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E39654FA-5AA3-4C69-94B8-0BEF1272349C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E39654FA-5AA3-4C69-94B8-0BEF1272349C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E39654FA-5AA3-4C69-94B8-0BEF1272349C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EC87D61-7FC7-413A-9B35-7D15AAB2308F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EC87D61-7FC7-413A-9B35-7D15AAB2308F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EC87D61-7FC7-413A-9B35-7D15AAB2308F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EC87D61-7FC7-413A-9B35-7D15AAB2308F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -136,14 +152,15 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{05D35F47-13EC-48AD-AAE3-D49A56C8A16B} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
 		{564D1D75-1792-49A8-BF5B-6923A9801AC3} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
-		{49F0C215-8DEF-4E3E-B5E9-F80D923C5F08} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
 		{43537DFE-3544-4FD7-97AA-0C986900EA9F} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
 		{8D6F4801-783E-426C-BDDD-0B2629B64192} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
 		{0CE1DA57-B923-4037-9E09-46C107FAFA03} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
 		{58E07F42-929C-40B0-A61B-C9AC8B88855C} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
 		{57778892-A6E7-410D-86C8-5CF061F40DF6} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
-		{D37878E7-F439-4DC4-9BA0-E5FEE5483E7F} = {56D33DD2-28C6-45C5-B994-54FA4D8055F5}
+		{B6B46E61-F57A-4843-BEF6-180C82382E15} = {56D33DD2-28C6-45C5-B994-54FA4D8055F5}
+		{442D217B-E924-4A67-BE4F-FE68D8471C11} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
+		{4EC87D61-7FC7-413A-9B35-7D15AAB2308F} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {72862639-80E2-4903-910B-7FC4EC818672}

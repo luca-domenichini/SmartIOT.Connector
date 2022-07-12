@@ -8,8 +8,8 @@ namespace SmartIOT.Connector.Mqtt.Server
 		public int ServerPort { get; }
 		public bool IsPublishPartialReads { get; }
 
-		public MqttServerConnectorOptions(bool isPublishWriteEvents, ISingleMessageSerializer messageSerializer, string serverId, int serverPort, string exceptionsTopicPattern, string deviceStatusEventsTopicPattern, string tagScheduleEventsTopicPattern, string tagWriteRequestCommandsTopicRoot, bool isPublishPartialReads)
-			: base(isPublishWriteEvents, messageSerializer, exceptionsTopicPattern, deviceStatusEventsTopicPattern, tagScheduleEventsTopicPattern, tagWriteRequestCommandsTopicRoot)
+		public MqttServerConnectorOptions(string connectionString, bool isPublishWriteEvents, ISingleMessageSerializer messageSerializer, string serverId, int serverPort, string exceptionsTopicPattern, string deviceStatusEventsTopicPattern, string tagScheduleEventsTopicPattern, string tagWriteRequestCommandsTopicRoot, bool isPublishPartialReads)
+			: base(connectionString, isPublishWriteEvents, messageSerializer, exceptionsTopicPattern, deviceStatusEventsTopicPattern, tagScheduleEventsTopicPattern, tagWriteRequestCommandsTopicRoot)
 		{
 			ServerId = serverId;
 			ServerPort = serverPort;

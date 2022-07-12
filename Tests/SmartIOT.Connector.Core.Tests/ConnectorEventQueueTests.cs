@@ -1,6 +1,6 @@
 ﻿using SmartIOT.Connector.Core.Connector;
 using SmartIOT.Connector.Core.Events;
-using SmartIOT.Connector.Device.Mocks;
+using SmartIOT.Connector.Mocks;
 using Xunit;
 
 namespace SmartIOT.Connector.Core.Tests

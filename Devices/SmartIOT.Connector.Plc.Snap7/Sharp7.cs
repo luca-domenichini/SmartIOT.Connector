@@ -1,13 +1,14 @@
 ﻿#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 #pragma warning disable CS8073 // The result of the expression is always the same since a value of this type is never equal to 'null'
-#pragma warning disable CS0414
+#pragma warning disable CS0414 // The field is assigned but its value is never used
 #pragma warning disable IDE0017 // Simplify object initialization
-#pragma warning disable IDE0066 // Convert switch statement to expression
-#pragma warning disable IDE0051 // Remove unused private members
 #pragma warning disable IDE0044 // Add readonly modifier
-#pragma warning disable IDE0054 // Use compound assignment
+#pragma warning disable IDE0051 // Remove unused private members
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
+#pragma warning disable IDE0060 // Remove unused parameter
+#pragma warning disable IDE0066 // Convert switch statement to expression
+#pragma warning disable IDE0054 // Use compound assignment
 #pragma warning disable IDE0034 // Simplify 'default' expression
 /*=============================================================================|
 | PROJECT Sharp7                                                        1.1.0 |

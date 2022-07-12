@@ -66,7 +66,7 @@ namespace SmartIOT.Connector.Mqtt.Client
 		private void OnDisconnected(MqttClientDisconnectedEventArgs e)
 		{
 			_connected = false;
-			ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"ClientId {Options.ClientId} disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {e.ConnectResult.ReasonString}", e.Exception));
+			ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"ClientId {Options.ClientId} disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {e.ConnectResult?.ReasonString ?? "NULL"}", e.Exception));
 		}
 
 		private void OnApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs e)

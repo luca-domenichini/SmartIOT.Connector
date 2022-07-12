@@ -5,6 +5,8 @@ namespace SmartIOT.Connector.Core.Scheduler
 {
 	public interface ITagScheduler
 	{
+		public event EventHandler<SchedulerStartingEventArgs>? SchedulerStarting;
+		public event EventHandler<SchedulerStoppingEventArgs>? SchedulerStopping;
 		public event EventHandler<DeviceDriverRestartingEventArgs>? EngineRestartingEvent;
 		public event EventHandler<DeviceDriverRestartedEventArgs>? EngineRestartedEvent;
 		public event EventHandler<TagSchedulerWaitExceptionEventArgs>? TagSchedulerWaitExceptionEvent;
@@ -14,12 +16,10 @@ namespace SmartIOT.Connector.Core.Scheduler
 		public event EventHandler<ExceptionEventArgs>? ExceptionHandler;
 		public bool IsPaused { get; set; }
 		public IDeviceDriver DeviceDriver { get; }
+		public Device Device { get; }
 
 		void Start();
 		void Stop();
-		void AddConnector(IConnector connector);
-		void RemoveConnector(IConnector connector);
-		IList<Device> GetManagedDevices();
 
 		/// <summary>
 		/// Questo metodo consente di eseguire una action di inizializzazione,

@@ -4,7 +4,7 @@ using SmartIOT.Connector.Core.Conf;
 using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Core.Scheduler;
 using SmartIOT.Connector.Core.Tests;
-using SmartIOT.Connector.Device.Mocks;
+using SmartIOT.Connector.Mocks;
 using SmartIOT.Connector.Messages;
 using SmartIOT.Connector.Messages.Serializers;
 using SmartIOT.Connector.Tcp.Client;
@@ -43,7 +43,7 @@ namespace SmartIOT.Connector.Tcp.Tests
 				throw new InvalidOperationException("serializer not valid");
 
 
-			var connector = new TcpClientConnector(new TcpClientConnectorOptions(false, "localhost", port, TimeSpan.FromSeconds(5), serializer, TimeSpan.Zero));
+			var connector = new TcpClientConnector(new TcpClientConnectorOptions("tcpClient://", false, "localhost", port, TimeSpan.FromSeconds(5), serializer, TimeSpan.Zero));
 
 			DeviceConfiguration deviceConfiguration = new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 				, new List<TagConfiguration>()
@@ -56,7 +56,7 @@ namespace SmartIOT.Connector.Tcp.Tests
 			MockDeviceDriver driver = new MockDeviceDriver(new Core.Model.Device(deviceConfiguration));
 			driver.SetupReadTagAsRandomData(15, 10);
 
-			var device = driver.GetDevices(true)[0];
+			var device = driver.Device;
 			var tag = device.Tags[0];
 
 			TagSchedulerEngine engine = new TagSchedulerEngine(driver, new TimeService(), configuration.SchedulerConfiguration);
@@ -213,7 +213,7 @@ namespace SmartIOT.Connector.Tcp.Tests
 				throw new InvalidOperationException("serializer not valid");
 
 
-			var connector = new TcpServerConnector(new TcpServerConnectorOptions(false, port, serializer, TimeSpan.Zero));
+			var connector = new TcpServerConnector(new TcpServerConnectorOptions("tcpServer://", false, port, serializer, TimeSpan.Zero));
 
 			DeviceConfiguration deviceConfiguration = new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
 				, new List<TagConfiguration>()
@@ -226,7 +226,7 @@ namespace SmartIOT.Connector.Tcp.Tests
 			MockDeviceDriver driver = new MockDeviceDriver(new Core.Model.Device(deviceConfiguration));
 			driver.SetupReadTagAsRandomData(15, 10);
 
-			var device = driver.GetDevices(true)[0];
+			var device = driver.Device;
 			var tag = device.Tags[0];
 
 			TagSchedulerEngine engine = new TagSchedulerEngine(driver, new TimeService(), configuration.SchedulerConfiguration);

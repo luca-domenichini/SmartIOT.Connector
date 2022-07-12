@@ -9,14 +9,14 @@ namespace SmartIOT.Connector.Core
 	{
 		private bool _autoDiscoverDeviceDriverFactory;
 		private readonly List<IDeviceDriver> _deviceDrivers = new List<IDeviceDriver>();
-		private readonly List<IDeviceDriverFactory> _deviceDriverFactories = new List<IDeviceDriverFactory>();
 		private bool _autoDiscoverConnectorFactory;
 		private readonly List<IConnector> _connectors = new List<IConnector>();
-		private readonly List<IConnectorFactory> _connectorFactories = new List<IConnectorFactory>();
-		private ITimeService _timeService = new TimeService();
-		private ISchedulerFactory _schedulerFactory = new SchedulerFactory();
-		private SmartIotConnectorConfiguration? _configuration;
+		public ITimeService TimeService { get; private set; } = new TimeService();
+		public ISchedulerFactory SchedulerFactory { get; private set; } = new SchedulerFactory();
+		public SmartIotConnectorConfiguration? Configuration { get; private set; }
 		public IList<Exception> AutoDiscoveryExceptions { get; } = new List<Exception>();
+		public DeviceDriverFactory DeviceDriverFactory { get; } = new DeviceDriverFactory();
+		public ConnectorFactory ConnectorFactory { get; } = new ConnectorFactory();
 
 		public SmartIotConnectorBuilder WithAutoDiscoverDeviceDriverFactories(bool value = true)
 		{
@@ -32,7 +32,7 @@ namespace SmartIOT.Connector.Core
 
 		public SmartIotConnectorBuilder AddDeviceDriverFactory(IDeviceDriverFactory factory)
 		{
-			_deviceDriverFactories.Add(factory);
+			DeviceDriverFactory.Add(factory);
 			return this;
 		}
 
@@ -50,77 +50,61 @@ namespace SmartIOT.Connector.Core
 
 		public SmartIotConnectorBuilder AddConnectorFactory(IConnectorFactory factory)
 		{
-			_connectorFactories.Add(factory);
+			ConnectorFactory.Add(factory);
 			return this;
 		}
 
 		public SmartIotConnectorBuilder WithConfiguration(SmartIotConnectorConfiguration configuration)
 		{
-			_configuration = configuration;
+			Configuration = configuration;
 			return this;
 		}
 		public SmartIotConnectorBuilder WithConfigurationJsonFilePath(string jsonFilePath)
 		{
-			_configuration = SmartIotConnectorConfiguration.FromJson(File.ReadAllText(jsonFilePath));
+			Configuration = SmartIotConnectorConfiguration.FromJson(File.ReadAllText(jsonFilePath));
 			return this;
 		}
 
 		public SmartIotConnectorBuilder WithSchedulerFactory(ISchedulerFactory schedulerFactory)
 		{
-			_schedulerFactory = schedulerFactory;
+			SchedulerFactory = schedulerFactory;
 			return this;
 		}
 
 		public SmartIotConnectorBuilder WithTimeService(ITimeService timeService)
 		{
-			_timeService = timeService;
+			TimeService = timeService;
 			return this;
 		}
 
 		public SmartIotConnector Build()
 		{
-			if (_configuration == null)
+			if (Configuration == null)
 				throw new InvalidOperationException("Error building module: Configuration is not set");
 
 			if (_autoDiscoverDeviceDriverFactory)
-				_deviceDriverFactories.AddRange(AutoDiscoverDeviceDriverFactories());
+				DeviceDriverFactory.AddRange(AutoDiscoverDeviceDriverFactories());
 
-			if (!_deviceDriverFactories.Any() && !_deviceDrivers.Any())
+			if (!DeviceDriverFactory.Any() && !_deviceDrivers.Any())
 				throw new ArgumentException($"Nessuna {nameof(IDeviceDriverFactory)} o {nameof(IDeviceDriver)} presente in configurazione");
 
 			if (_autoDiscoverConnectorFactory)
-				_connectorFactories.AddRange(AutoDiscoverConnectorFactory());
+				ConnectorFactory.AddRange(AutoDiscoverConnectorFactories());
 
 
 			IList<ITagScheduler> schedulers = BuildSchedulers();
 			IList<IConnector> connectors = BuildConnectors();
 
-			foreach (var connector in connectors)
-			{
-				foreach (var scheduler in schedulers)
-				{
-					scheduler.AddConnector(connector);
-				}
-			}
-
-			return new SmartIotConnector(schedulers, connectors);
+			return new SmartIotConnector(schedulers, connectors, Configuration.SchedulerConfiguration);
 		}
 
 		private IList<IConnector> BuildConnectors()
 		{
 			var list = new List<IConnector>();
 
-			foreach (var connectionString in _configuration!.ConnectorConnectionStrings)
+			foreach (var connectionString in Configuration!.ConnectorConnectionStrings)
 			{
-				IConnector? connector = null;
-
-				foreach (var factory in _connectorFactories)
-				{
-					connector = factory.CreateConnector(connectionString);
-					if (connector != null)
-						break;
-				}
-
+				IConnector? connector = ConnectorFactory.CreateConnector(connectionString);
 				if (connector == null)
 					throw new ArgumentException($"Impossibile creare il connector: ConnectionString {connectionString} non riconosciuta.");
 
@@ -136,33 +120,28 @@ namespace SmartIOT.Connector.Core
 		{
 			// creating schedulers from configuration
 			var drivers = new Dictionary<DeviceConfiguration, IDeviceDriver>();
-			var devices = new List<DeviceConfiguration>(_configuration!.DeviceConfigurations);
+			var devices = new List<DeviceConfiguration>(Configuration!.DeviceConfigurations);
 			if (devices.Any())
 			{
-
-				foreach (var factory in _deviceDriverFactories)
+				foreach (var device in devices)
 				{
-					var dictionary = factory.CreateDrivers(devices);
-
-					devices.RemoveAll(x => dictionary.ContainsKey(x)); // rimuovo dalla lista temporanea le configurazioni che hanno ritornato un driver
-
-					foreach (var kv in dictionary)
+					var driver = DeviceDriverFactory.CreateDriver(device);
+					if (driver != null)
 					{
-						drivers[kv.Key] = kv.Value;
+						drivers[device] = driver;
 					}
-
-					if (!devices.Any())
-						break;
 				}
+
+				devices.RemoveAll(x => drivers.ContainsKey(x)); // rimuovo dalla lista temporanea le configurazioni che hanno ritornato un driver
 			}
 
 			if (devices.Any())
 				throw new ArgumentException($"Error configuring SmartIotConnector: no scheduler factory found for these devices:\r\n{string.Join("\r\n", devices.Select(x => x.Name + ": " + x.ConnectionString))}");
 
-			var schedulers = drivers.Values.Select(x => _schedulerFactory.CreateScheduler(x.Name, x, _timeService, _configuration.SchedulerConfiguration)).ToList();
+			var schedulers = drivers.Values.Select(x => SchedulerFactory.CreateScheduler(x.Name, x, TimeService, Configuration.SchedulerConfiguration)).ToList();
 
 			// adding schedulers from _deviceDrivers list
-			schedulers.AddRange(_deviceDrivers.Select(x => _schedulerFactory.CreateScheduler(x.Name, x, _timeService, _configuration.SchedulerConfiguration)));
+			schedulers.AddRange(_deviceDrivers.Select(x => SchedulerFactory.CreateScheduler(x.Name, x, TimeService, Configuration.SchedulerConfiguration)));
 
 			return schedulers;
 		}
@@ -180,9 +159,10 @@ namespace SmartIOT.Connector.Core
 					foreach (var type in assembly.ExportedTypes)
 					{
 						// le factory già presenti in elenco non li aggiungiamo nuovamente
-						bool alreadyAvailable = _deviceDriverFactories.Any(x => x.GetType() == type);
+						bool alreadyAvailable = DeviceDriverFactory.Any(x => x.GetType() == type);
 						if (!alreadyAvailable
 							&& typeof(IDeviceDriverFactory).IsAssignableFrom(type)
+							&& type != typeof(DeviceDriverFactory)
 							&& !type.IsAbstract
 							&& type.IsClass
 							&& !type.IsInterface
@@ -208,7 +188,7 @@ namespace SmartIOT.Connector.Core
 			return list;
 		}
 
-		private IList<IConnectorFactory> AutoDiscoverConnectorFactory()
+		private IList<IConnectorFactory> AutoDiscoverConnectorFactories()
 		{
 			var list = new List<IConnectorFactory>();
 
@@ -221,9 +201,10 @@ namespace SmartIOT.Connector.Core
 					foreach (var type in assembly.ExportedTypes)
 					{
 						// le factory già presenti in elenco non li aggiungiamo nuovamente
-						bool alreadyAvailable = _connectorFactories.Any(x => x.GetType() == type);
+						bool alreadyAvailable = ConnectorFactory.Any(x => x.GetType() == type);
 						if (!alreadyAvailable
 							&& typeof(IConnectorFactory).IsAssignableFrom(type)
+							&& type != typeof(ConnectorFactory)
 							&& !type.IsAbstract
 							&& type.IsClass
 							&& !type.IsInterface

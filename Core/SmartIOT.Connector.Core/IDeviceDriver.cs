@@ -10,10 +10,9 @@ namespace SmartIOT.Connector.Core
         public string Name { get; }
 
         /// <summary>
-        /// Questo metodo ritorna l'elenco dei device gestiti dall'istanza del driver
+        /// The device managed by this driver
         /// </summary>
-        public IList<Device> GetDevices(bool enabledOnly);
-
+		public Device Device { get; }
 
         /// <summary>
         /// Metodo di start generale dell'interfaccia del driver

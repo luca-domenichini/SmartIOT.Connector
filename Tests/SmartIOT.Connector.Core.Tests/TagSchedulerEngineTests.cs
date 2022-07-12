@@ -1,7 +1,7 @@
 using SmartIOT.Connector.Core.Conf;
 using SmartIOT.Connector.Core.Model;
 using SmartIOT.Connector.Core.Scheduler;
-using SmartIOT.Connector.Device.Mocks;
+using SmartIOT.Connector.Mocks;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -337,7 +337,7 @@ namespace SmartIOT.Connector.Core.Tests
 			Assert.Throws<TagSchedulerWaitException>(() => engine.GetNextTagSchedule());
 
 			// verifica inizializzazione ok
-			timeService.Now += schedulerConfiguration.RestarDeviceInErrorTimeout;
+			timeService.Now += schedulerConfiguration.RestartDeviceInErrorTimeout;
 			Assert.True(engine.IsRestartNeeded());
 			engine.RestartDriver();
 
@@ -361,7 +361,7 @@ namespace SmartIOT.Connector.Core.Tests
 			driver.StartInterfaceReturns = 0;
 			driver.ReadTagReturns = 1;
 
-			timeService.Now += schedulerConfiguration.RestarDeviceInErrorTimeout;
+			timeService.Now += schedulerConfiguration.RestartDeviceInErrorTimeout;
 			Assert.True(engine.IsRestartNeeded());
 			engine.RestartDriver();
 
@@ -384,7 +384,7 @@ namespace SmartIOT.Connector.Core.Tests
 
 			// verifica inizializzazione ok
 			driver.ReadTagReturns = 0;
-			timeService.Now += schedulerConfiguration.RestarDeviceInErrorTimeout;
+			timeService.Now += schedulerConfiguration.RestartDeviceInErrorTimeout;
 			Assert.True(engine.IsRestartNeeded());
 
 			engine.RestartDriver();
@@ -554,7 +554,6 @@ namespace SmartIOT.Connector.Core.Tests
 				driver.Verify(x => x.WriteTag(device, tag22, It.IsAny<byte[]>(), 10, 12));
 			}
 
-			driver.Verify(x => x.GetDevices(true));
 			driver.VerifyNoOtherCalls();
 
 			eventListener.ClearEvents();
@@ -583,7 +582,7 @@ namespace SmartIOT.Connector.Core.Tests
 			Assert.True(tag22.IsInitialized);
 			Assert.Equal(0, tag22.ErrorCode);
 
-			timeService.Now += configuration.RestarDeviceInErrorTimeout;
+			timeService.Now += configuration.RestartDeviceInErrorTimeout;
 			Assert.False(engine.IsRestartNeeded()); // non devo far ripartire nulla perché non ci sono errori
 
 

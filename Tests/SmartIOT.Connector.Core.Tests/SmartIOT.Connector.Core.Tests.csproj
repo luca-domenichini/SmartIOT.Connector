@@ -26,7 +26,7 @@
     <ProjectReference Include="..\..\Core\SmartIOT.Connector.Core\SmartIOT.Connector.Core.csproj" />
     <ProjectReference Include="..\..\Devices\SmartIOT.Connector.Plc.S7Net\SmartIOT.Connector.Plc.S7Net.csproj" />
     <ProjectReference Include="..\..\Devices\SmartIOT.Connector.Plc.Snap7\SmartIOT.Connector.Plc.Snap7.csproj" />
-    <ProjectReference Include="..\SmartIOT.Connector.Device.Mocks\SmartIOT.Connector.Device.Mocks.csproj" />
+    <ProjectReference Include="..\SmartIOT.Connector.Mocks\SmartIOT.Connector.Mocks.csproj" />
   </ItemGroup>
 
   <ItemGroup>

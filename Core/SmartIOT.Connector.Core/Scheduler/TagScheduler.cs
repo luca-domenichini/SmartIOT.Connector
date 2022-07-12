@@ -17,8 +17,8 @@ namespace SmartIOT.Connector.Core.Scheduler
 		private DateTime _lastWriteOnDevice = new DateTime(0);
 		private readonly ConcurrentDictionary<Device, DeviceStatusEvent> _lastDeviceStatusEvents = new ConcurrentDictionary<Device, DeviceStatusEvent>();
 
-		public event EventHandler? SchedulerStarting;
-		public event EventHandler? SchedulerStopping;
+		public event EventHandler<SchedulerStartingEventArgs>? SchedulerStarting;
+		public event EventHandler<SchedulerStoppingEventArgs>? SchedulerStopping;
 		public event EventHandler<TagSchedulerWaitExceptionEventArgs>? TagSchedulerWaitExceptionEvent;
 		public event EventHandler<DeviceDriverRestartingEventArgs>? EngineRestartingEvent;
 		public event EventHandler<DeviceDriverRestartedEventArgs>? EngineRestartedEvent;
@@ -28,6 +28,8 @@ namespace SmartIOT.Connector.Core.Scheduler
 		public event EventHandler<ExceptionEventArgs>? ExceptionHandler;
 
 		public bool IsPaused { get; set; }
+		public IDeviceDriver DeviceDriver => _tagSchedulerEngine.DeviceDriver;
+		public Device Device => DeviceDriver.Device;
 
 		public TagScheduler(string name, ITagSchedulerEngine tagSchedulerEngine, ITimeService timeService)
 		{
@@ -81,8 +83,6 @@ namespace SmartIOT.Connector.Core.Scheduler
 		{
 			ExceptionHandler?.Invoke(this, e);
 		}
-
-		public IDeviceDriver DeviceDriver => _tagSchedulerEngine.DeviceDriver;
 
 		private void SchedulerThreadRun()
 		{
@@ -177,7 +177,7 @@ namespace SmartIOT.Connector.Core.Scheduler
 
 		public void Start()
 		{
-			SchedulerStarting?.Invoke(this, new EventArgs());
+			SchedulerStarting?.Invoke(this, new SchedulerStartingEventArgs(this));
 
 			_schedulerThread.Start();
 			_monitorThread.Start();
@@ -185,7 +185,7 @@ namespace SmartIOT.Connector.Core.Scheduler
 
 		public void Stop()
 		{
-			SchedulerStopping?.Invoke(this, new EventArgs());
+			SchedulerStopping?.Invoke(this, new SchedulerStoppingEventArgs(this));
 
 			lock (this)
 			{
@@ -202,31 +202,11 @@ namespace SmartIOT.Connector.Core.Scheduler
 			_tagSchedulerEngine.TagWriteEvent -= OnEngineTagWriteEvent;
 		}
 
-		public void AddConnector(IConnector connector)
-		{
-			TagReadEvent += connector.OnTagReadEvent;
-			TagWriteEvent += connector.OnTagWriteEvent;
-			DeviceStatusEvent += connector.OnDeviceStatusEvent;
-			ExceptionHandler += connector.OnException;
-		}
-		public void RemoveConnector(IConnector connector)
-		{
-			TagReadEvent -= connector.OnTagReadEvent;
-			TagWriteEvent -= connector.OnTagWriteEvent;
-			DeviceStatusEvent -= connector.OnDeviceStatusEvent;
-			ExceptionHandler -= connector.OnException;
-		}
-
-		public IList<Device> GetManagedDevices()
-		{
-			return _tagSchedulerEngine.GetManagedDevices();
-		}
-
 		public void RunInitializationAction(Action<IList<DeviceStatusEvent>, IList<TagScheduleEvent>> initializationAction)
 		{
 			lock (_tagSchedulerEngine.DeviceDriver)
 			{
-				initializationAction.Invoke(new List<DeviceStatusEvent>(_lastDeviceStatusEvents.Values), _tagSchedulerEngine.DeviceDriver.GetDevices(true).SelectMany(x => x.Tags.Select(t => new { Device = x, Tag = t })).Select(x => TagScheduleEvent.BuildTagData(x.Device, x.Tag, true)).ToList());
+				initializationAction.Invoke(new List<DeviceStatusEvent>(_lastDeviceStatusEvents.Values), Device.Tags.Select(x => TagScheduleEvent.BuildTagData(Device, x, true)).ToList());
 			}
 		}
 	}

@@ -7,6 +7,7 @@ namespace SmartIOT.Connector.Core.Connector
 		public ConnectorOptions Options { get; }
 
 		public AbstractPublisherConnector(ConnectorOptions options)
+			: base(options.ConnectionString)
 		{
 			Options = options;
 		}

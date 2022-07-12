@@ -11,6 +11,11 @@ namespace SmartIOT.Connector.Core.Scheduler
 		IDeviceDriver DeviceDriver { get; }
 
 		/// <summary>
+		/// Returns the managed device
+		/// </summary>
+		Device Device => DeviceDriver.Device;
+
+		/// <summary>
 		/// Questo metodo ritorna il prossimo tag da schedulare, oppure tira TagSchedulerWaitException se non c'è nulla da schedulare.
 		/// Il metodo esegue la schedulazione del tag che ha ritornato.
 		/// Il parametro scheduleWritesOnly indica se schedulare solo tag in scrittura e non procedere oltre con nuove letture. Questo parametro
@@ -50,10 +55,5 @@ namespace SmartIOT.Connector.Core.Scheduler
 		/// Evento rilanciato quando si verifica una eccezione non gestita durante l'invocazione degli altri eventi
 		/// </summary>
 		event EventHandler<ExceptionEventArgs>? ExceptionHandler;
-
-		/// <summary>
-		/// Ritorna l'elenco dei device gestiti dall'engine
-		/// </summary>
-		IList<Device> GetManagedDevices();
 	}
 }

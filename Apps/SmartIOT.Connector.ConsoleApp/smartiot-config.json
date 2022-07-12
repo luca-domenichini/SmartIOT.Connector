@@ -1,51 +1,47 @@
 {
-  "Logging": {
-	"OutputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3} {Message:lj}{NewLine}{Exception}",
-	"OutputLogFileName": "smartiot-connector.log"
-  },
   "Configuration": {
-	"ConnectorConnectionStrings": [
-	  //"mqttServer://ServerId=MyMqttServer;Port=1883",
-	  "mqttClient://Server=localhost;Port=1883",
-	  //"tcpClient://Server=localhost;Port=1884",
-	  //"tcpServer://Port=1885"
-	],
-	"DeviceConfigurations": [
-	  {
-		"ConnectionString": "snap7://ip=localhost;rack=0;slot=2",
-		"DeviceId": "1",
-		"Enabled": true,
-		"Name": "Test Device",
-		"IsPartialReadsEnabled": false,
-		"IsWriteOptimizationEnabled": true,
-		"Tags": [
-		  {
-			"TagId": "DB2",
-			"TagType": "READ",
-			"ByteOffset": 0,
-			"Size": 100,
-			"Weight": 1
-		  },
-		  {
-			"TagId": "DB3",
-			"TagType": "WRITE",
-			"ByteOffset": 0,
-			"Size": 100,
-			"Weight": 1
-		  }
-		]
-	  }
-	],
-	"SchedulerConfiguration": {
-	  "MaxErrorsBeforeReconnection": 10,
-	  "RestartDeviceInErrorTimeoutMillis": 30000,
-	  "WaitTimeAfterErrorMillis": 1000,
-	  "WaitTimeBetweenEveryScheduleMillis": 0,
-	  "WaitTimeBetweenReadSchedulesMillis": 0
-	}
+    "ConnectorConnectionStrings": [
+      "tcpServer://port=1885"
+    ],
+    "DeviceConfigurations": [
+      {
+        "ConnectionString": "snap7://ip=localhost;rack=0;slot=2",
+        "DeviceId": "1",
+        "Enabled": true,
+        "Name": "Test Device",
+        "IsPartialReadsEnabled": false,
+        "IsWriteOptimizationEnabled": true,
+        "Tags": [
+          {
+            "TagId": "DB2",
+            "TagType": "READ",
+            "ByteOffset": 0,
+            "Size": 100,
+            "Weight": 1
+          },
+          {
+            "TagId": "DB3",
+            "TagType": "WRITE",
+            "ByteOffset": 0,
+            "Size": 100,
+            "Weight": 1
+          }
+        ]
+      }
+    ],
+    "SchedulerConfiguration": {
+      "MaxErrorsBeforeReconnection": 10,
+      "RestartDeviceInErrorTimeoutMillis": 30000,
+      "WaitTimeAfterErrorMillis": 1000,
+      "WaitTimeBetweenEveryScheduleMillis": 0,
+      "WaitTimeBetweenReadSchedulesMillis": 0
+    }
   },
   "PrometheusConfiguration": {
-	"HostName": "+",
-	"Port": 0
+    "HostName": "\u002B",
+    "Port": 0,
+    "Url": "metrics/",
+    "MetricsPrefix": "smartiot_connector",
+    "UseHttps": false
   }
 }

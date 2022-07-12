@@ -1,11 +1,8 @@
-﻿using System.Text.Json.Serialization;
-
-namespace SmartIOT.Connector.Core.Conf
+﻿namespace SmartIOT.Connector.Core.Conf
 {
 	public class TagConfiguration
 	{
 		public string TagId { get; set; } = string.Empty;
-		[JsonConverter(typeof(JsonStringEnumConverter))] 
 		public TagType TagType { get; set; }
 		public int ByteOffset { get; set; }
 		public int Size { get; set; }

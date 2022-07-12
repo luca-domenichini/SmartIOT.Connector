@@ -8,9 +8,9 @@ namespace SmartIOT.Connector.Prometheus
 	{
 		private readonly bool _isManagedServer;
 		private readonly string _metricsPrefix;
-		private Gauge _synchronizationAvgTimeSeconds;
-		private Gauge _synchronizationCount;
-		private Gauge _writesCount;
+		private readonly Gauge _synchronizationAvgTimeSeconds;
+		private readonly Gauge _synchronizationCount;
+		private readonly Gauge _writesCount;
 
 		public IMetricServer MetricServer { get; }
 

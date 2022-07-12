@@ -1,6 +1,4 @@
-﻿using SmartIOT.Connector.Core.Model;
-
-namespace SmartIOT.Connector.Core.Events
+﻿namespace SmartIOT.Connector.Core.Events
 {
 	public class TagScheduleEventArgs : EventArgs
 	{

@@ -11,8 +11,8 @@ namespace SmartIOT.Connector.Tcp.Client
 		public IStreamMessageSerializer MessageSerializer { get; }
 		public TimeSpan PingInterval { get; }
 
-		public TcpClientConnectorOptions(bool isPublishWriteEvents, string serverAddress, int serverPort, TimeSpan reconnectInterval, IStreamMessageSerializer messageSerializer, TimeSpan pingInterval)
-			: base(isPublishWriteEvents)
+		public TcpClientConnectorOptions(string connectionString, bool isPublishWriteEvents, string serverAddress, int serverPort, TimeSpan reconnectInterval, IStreamMessageSerializer messageSerializer, TimeSpan pingInterval)
+			: base(connectionString, isPublishWriteEvents)
 		{
 			ServerAddress = serverAddress;
 			ServerPort = serverPort;

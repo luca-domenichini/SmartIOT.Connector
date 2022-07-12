@@ -5,10 +5,10 @@ namespace SmartIOT.Connector.Plc.Snap7
 {
 	public class Snap7PlcConfiguration : DeviceConfiguration
 	{
-		public string IpAddress { get; init; }
-		public short Rack { get; init; }
-		public short Slot { get; init; }
-		public ConnectionType ConnectionType { get; init; }
+		internal string IpAddress { get; init; }
+		internal short Rack { get; init; }
+		internal short Slot { get; init; }
+		internal S7ConnectionType ConnectionType { get; init; }
 
 		public Snap7PlcConfiguration(DeviceConfiguration configuration) : base(configuration)
 		{
@@ -30,9 +30,9 @@ namespace SmartIOT.Connector.Plc.Snap7
 
 			var sConnectionType = tokens.GetOrDefault("type");
 			if (!string.IsNullOrWhiteSpace(sConnectionType) && Enum.TryParse(sConnectionType, out S7ConnectionType connectionType))
-				ConnectionType = ConnectionType.Of(connectionType);
+				ConnectionType = connectionType;
 			else
-				ConnectionType = ConnectionType.BASIC;
+				ConnectionType = S7ConnectionType.BASIC;
 		}
 	}
 }

@@ -55,5 +55,17 @@ namespace SmartIOT.Connector.Core.Model
 				IsWriteSynchronizationRequested = true;
 			}
 		}
+
+		/// <summary>
+		/// This method returns a copy of the current bytes stored in the tag
+		/// </summary>
+		public byte[] GetData()
+		{
+			var bytes = new byte[Data.Length];
+
+			Array.Copy(Data, bytes, bytes.Length);
+
+			return bytes;
+		}
 	}
 }

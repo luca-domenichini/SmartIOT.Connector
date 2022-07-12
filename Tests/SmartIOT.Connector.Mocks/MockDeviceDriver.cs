@@ -2,12 +2,10 @@
 using SmartIOT.Connector.Core.Model;
 using Moq;
 
-namespace SmartIOT.Connector.Device.Mocks
+namespace SmartIOT.Connector.Mocks
 {
 	public class MockDeviceDriver : Mock<IDeviceDriver>, IDeviceDriver
 	{
-		private readonly IList<Core.Model.Device> _devices = new List<Core.Model.Device>();
-
 		public Core.Model.Device Device { get; }
 		public Action? StartInterfaceCallback { get; set; }
 		public Action<byte[], int, int>? ReadTagCallback { get; set; }
@@ -22,7 +20,6 @@ namespace SmartIOT.Connector.Device.Mocks
 		public MockDeviceDriver(Core.Model.Device device, bool setupDefaults = true)
 		{
 			Device = device;
-			_devices.Add(device);
 
 			if (setupDefaults)
 			{
@@ -34,7 +31,6 @@ namespace SmartIOT.Connector.Device.Mocks
 				Setup(x => x.StopInterface()).Returns(() => StopInterfaceReturns);
 				Setup(x => x.Connect(It.IsAny<Core.Model.Device>())).Returns(() => ConnectReturns);
 				Setup(x => x.Disconnect(It.IsAny<Core.Model.Device>())).Returns(() => DisconnectReturns);
-				Setup(x => x.GetDevices(It.IsAny<bool>())).Returns((bool enabledOnly) => _devices.Where(x => !enabledOnly || x.DeviceStatus != DeviceStatus.DISABLED).ToList());
 				Setup(x => x.GetDeviceDescription(It.IsAny<Core.Model.Device>())).Returns((Core.Model.Device device) => device.Name);
 				Setup(x => x.GetErrorMessage(It.IsAny<int>())).Returns((int err) => $"{err}");
 				Setup(x => x.ReadTag(It.IsAny<Core.Model.Device>(), It.IsAny<Tag>(), It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>())).Returns((Core.Model.Device device, Tag tag, byte[] data, int startOffset, int length) =>
@@ -108,11 +104,6 @@ namespace SmartIOT.Connector.Device.Mocks
 		public string GetErrorMessage(int errorNumber)
 		{
 			return Object.GetErrorMessage(errorNumber);
-		}
-
-		public IList<Core.Model.Device> GetDevices(bool enabledOnly)
-		{
-			return Object.GetDevices(enabledOnly);
 		}
 
 		public int ReadTag(Core.Model.Device device, Tag tag, byte[] data, int startOffset, int length)

@@ -80,7 +80,12 @@ namespace SmartIOT.Connector.TcpClient.Tester
 
 						var msg = _messageSerializer!.DeserializeMessage(_tcpClient.GetStream());
 
-						if (msg is DeviceEvent)
+						if (msg is null)
+						{
+							txtLogs.Dispatcher.Invoke(() => txtLogs.Text += "Disconnected\r\n");
+							break;
+						}
+						else if (msg is DeviceEvent)
 						{
 							string message = JsonSerializer.Serialize(msg);
 							txtLogs.Dispatcher.Invoke(() => txtLogs.Text += $"RECV DeviceStatus {message}\r\n");
@@ -104,6 +109,8 @@ namespace SmartIOT.Connector.TcpClient.Tester
 				{
 					Dispatcher.InvokeAsync(() => txtLogs.Text += $"Exception caught: {ex.Message}\r\n{ex}");
 					_tcpClient?.Close();
+
+					_tcpClient = null;
 				}
 
 			}).Start();

@@ -1,5 +1,5 @@
 ﻿using SmartIOT.Connector.Core.Conf;
-using SmartIOT.Connector.Device.Mocks;
+using SmartIOT.Connector.Mocks;
 using SmartIOT.Connector.Plc.S7Net;
 using SmartIOT.Connector.Plc.Snap7;
 using System;
@@ -71,11 +71,11 @@ namespace SmartIOT.Connector.Core.Tests
 
 			var d0 = drivers[0];
 			var d1 = drivers[1];
-			Assert.IsType<S7NetDriver>(d0.DeviceDriver);
-			Assert.IsType<Snap7Driver>(d1.DeviceDriver);
+			Assert.IsType<Snap7Driver>(d0.DeviceDriver);
+			Assert.IsType<S7NetDriver>(d1.DeviceDriver);
 
-			Assert.Equal(1, d0.GetManagedDevices().Count);
-			var p0 = d0.GetManagedDevices()[0];
+			Assert.NotNull(d0.Device);
+			var p0 = d0.Device;
 
 			Assert.Equal(2, p0.Tags.Count);
 

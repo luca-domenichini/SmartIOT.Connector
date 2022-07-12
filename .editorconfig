@@ -24,6 +24,10 @@ dotnet_diagnostic.CA1822.severity = silent
 dotnet_diagnostic.IDE0039.severity = silent
 csharp_style_throw_expression = true:suggestion
 csharp_style_prefer_null_check_over_type_check = true:suggestion
+csharp_style_prefer_method_group_conversion = true:silent
+
+# IDE0056: Use index operator
+dotnet_diagnostic.IDE0056.severity = silent
 
 [*.{cs,vb}]
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
@@ -83,8 +87,6 @@ dotnet_naming_style.pascal_case.required_suffix =
 dotnet_naming_style.pascal_case.word_separator = 
 dotnet_naming_style.pascal_case.capitalization = pascal_case
 
-# IDE0060: Remove unused parameter
-dotnet_diagnostic.IDE0060.severity = silent
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 dotnet_style_prefer_conditional_expression_over_assignment = true:silent

@@ -2,14 +2,15 @@
 
 namespace SmartIOT.Connector.Core.Connector
 {
-	public abstract class AbstractBufferedAggregatingConnector : IConnector
+	public abstract class AbstractBufferedAggregatingConnector : AbstractConnector
 	{
 		private readonly AggregatingConnectorEventQueue _eventQueue = new AggregatingConnectorEventQueue();
 		private readonly Thread? _thread;
 		private readonly CancellationTokenSource _stopToken = new CancellationTokenSource();
 		public ISmartIOTConnectorInterface? ConnectorInterface { get; private set; }
 
-		public AbstractBufferedAggregatingConnector()
+		public AbstractBufferedAggregatingConnector(string connectionString)
+			: base(connectionString)
 		{
 			_thread = new Thread(RunInnerThread)
 			{
@@ -70,15 +71,15 @@ namespace SmartIOT.Connector.Core.Connector
 				|| tagScheduleEvent.TagScheduleEvent.IsErrorNumberChanged;
 		}
 
-		public virtual void Start(ISmartIOTConnectorInterface connectorInterface)
+		public override void Start(ISmartIOTConnectorInterface connectorInterface)
 		{
 			ConnectorInterface = connectorInterface;
-			ConnectorInterface.OnConnectorStarted(new ConnectorStartedEventArgs(this, $"Connector started"));
+			ConnectorInterface.OnConnectorStarted(new ConnectorStartedEventArgs(this, $"Connector started {ConnectionString}"));
 
 			_thread!.Start();
 		}
 
-		public virtual void Stop()
+		public override void Stop()
 		{
 			_stopToken.Cancel();
 
@@ -91,26 +92,26 @@ namespace SmartIOT.Connector.Core.Connector
 				// ignore
 			}
 
-			ConnectorInterface!.OnConnectorStopped(new ConnectorStoppedEventArgs(this, $"Connector stopped"));
+			ConnectorInterface!.OnConnectorStopped(new ConnectorStoppedEventArgs(this, $"Connector stopped {ConnectionString}"));
 		}
 
 
-		public void OnException(object? sender, ExceptionEventArgs args)
+		public override void OnException(object? sender, ExceptionEventArgs args)
 		{
 			_eventQueue.Push(CompositeConnectorEvent.Exception((sender, args)));
 		}
 
-		public void OnDeviceStatusEvent(object? sender, DeviceStatusEventArgs args)
+		public override void OnDeviceStatusEvent(object? sender, DeviceStatusEventArgs args)
 		{
 			_eventQueue.Push(CompositeConnectorEvent.DeviceStatus((sender, args)));
 		}
 
-		public void OnTagReadEvent(object? sender, TagScheduleEventArgs args)
+		public override void OnTagReadEvent(object? sender, TagScheduleEventArgs args)
 		{
 			_eventQueue.Push(CompositeConnectorEvent.TagRead((sender, args)));
 		}
 
-		public void OnTagWriteEvent(object? sender, TagScheduleEventArgs args)
+		public override void OnTagWriteEvent(object? sender, TagScheduleEventArgs args)
 		{
 			_eventQueue.Push(CompositeConnectorEvent.TagWrite((sender, args)));
 		}

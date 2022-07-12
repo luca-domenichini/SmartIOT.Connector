@@ -1,0 +1,25 @@
+name: .NET Master
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore SmartIOT.Connector.sln
+    - name: Build
+      run: dotnet build -c Release --no-restore SmartIOT.Connector.sln
+    - name: Test
+      run: dotnet test -c Release --no-build --verbosity normal SmartIOT.Connector.sln

@@ -1,9 +1,12 @@
 ﻿using Sharp7;
+using System.Text.RegularExpressions;
 
 namespace SmartIOT.Connector.Plc.Snap7
 {
 	public class Snap7Plc : Core.Model.Device
 	{
+		private static readonly Regex RegexDB = new Regex(@"^DB(?<tag>[0-9]*)$");
+
 		public S7Client S7Client { get; init; }
 		public new Snap7PlcConfiguration Configuration => (Snap7PlcConfiguration)base.Configuration;
 		public bool IsConnected => S7Client.Connected;
@@ -15,7 +18,7 @@ namespace SmartIOT.Connector.Plc.Snap7
 
 		public int Connect()
 		{
-			S7Client.SetConnectionType(Configuration.ConnectionType.Value);
+			S7Client.SetConnectionType((ushort)Configuration.ConnectionType);
 			int err = S7Client.ConnectTo(Configuration.IpAddress, Configuration.Rack, Configuration.Slot);
 
 			if (err == 0)
@@ -37,14 +40,45 @@ namespace SmartIOT.Connector.Plc.Snap7
 			return S7Client.Disconnect();
 		}
 
-		public int ReadBytes(int tagId, int startOffset, byte[] data)
+		public int ReadBytes(string tagId, int startOffset, byte[] data, int length)
 		{
-			return S7Client.DBRead(tagId, startOffset, data.Length, data);
+			if (int.TryParse(tagId, out int t))
+			{
+				return S7Client.DBRead(t, startOffset, length, data);
+			}
+			else
+			{
+				var match = RegexDB.Match(tagId);
+				if (match.Success)
+				{
+					t = int.Parse(match.Groups["tag"].Value);
+					return S7Client.DBRead(t, startOffset, length, data);
+				}
+
+				// other tag types can be supported here..
+				throw new ArgumentException($"TagId {tagId} not handled. TagId must be in the form \"DB<number>\"");
+			}
+
 		}
 
-		public int WriteBytes(int tagId, int startOffset, byte[] data)
+		public int WriteBytes(string tagId, int startOffset, byte[] data)
 		{
-			return S7Client.DBWrite(tagId, startOffset, data.Length, data);
+			if (int.TryParse(tagId, out int t))
+			{
+				return S7Client.DBWrite(t, startOffset, data.Length, data);
+			}
+			else
+			{
+				var match = RegexDB.Match(tagId);
+				if (match.Success)
+				{
+					t = int.Parse(match.Groups["tag"].Value);
+					return S7Client.DBWrite(t, startOffset, data.Length, data);
+				}
+
+				// other tag types can be supported here..
+				throw new ArgumentException($"TagId {tagId} not handled. TagId must be in the form \"DB<number>\"");
+			}
 		}
 
 		public int GetCpuInfo(S7Client.S7CpuInfo info)

@@ -4,6 +4,8 @@ namespace SmartIOT.Connector.Core
 {
 	public interface IConnector
 	{
+		string ConnectionString { get; }
+
 		/// <summary>
 		/// Invocato per indicare all'handler la partenza delle attività
 		/// </summary>

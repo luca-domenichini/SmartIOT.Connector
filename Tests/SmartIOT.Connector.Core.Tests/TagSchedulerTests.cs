@@ -1,7 +1,7 @@
 ﻿using SmartIOT.Connector.Core.Conf;
 using SmartIOT.Connector.Core.Model;
 using SmartIOT.Connector.Core.Scheduler;
-using SmartIOT.Connector.Device.Mocks;
+using SmartIOT.Connector.Mocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;

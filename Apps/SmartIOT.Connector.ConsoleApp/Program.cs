@@ -1,4 +1,6 @@
-﻿using Serilog;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Serilog;
+using SmartIOT.Connector.RestApi;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
@@ -23,7 +25,7 @@ namespace SmartIOT.Connector.ConsoleApp
 				return;
 			}
 
-			var configuration = JsonSerializer.Deserialize<RunnerConfiguration>(File.ReadAllText(path), new JsonSerializerOptions()
+			var configuration = JsonSerializer.Deserialize<AppConfiguration>(File.ReadAllText(path), new JsonSerializerOptions()
 			{
 				ReadCommentHandling = JsonCommentHandling.Skip
 			});
@@ -33,118 +35,75 @@ namespace SmartIOT.Connector.ConsoleApp
 				return;
 			}
 
-			SetupLogger(configuration.LogConfiguration);
+			SetupSerilog();
 
-			WriteInfo($"SmartIOT.Connector v{version}");
+			var builder = WebApplication.CreateBuilder(args);
 
-			var runner = new Runner(configuration
-				, onExceptionDuringDiscovery: exceptions =>
+			// configure logging
+			builder.Logging.ClearProviders();
+			builder.Logging.AddSerilog(dispose: true);
+
+			// Add SmartIOT.Connector services to the container.
+			builder.Services.AddSmartIotConnectorRunner(configuration);
+
+			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+			builder.Services.AddEndpointsApiExplorer();
+			builder.Services.AddSwaggerGen();
+
+			// Add api controllers and versioning
+			builder.Services.AddSmartIotConnectorRestApi(new ConfigurationPersister(configuration, path));
+
+			builder.Services.AddRouting(options =>
+			{
+				options.LowercaseUrls = true;
+				options.LowercaseQueryStrings = true;
+			});
+
+			var app = builder.Build();
+
+			// Configure the HTTP request pipeline.
+			//if (app.Environment.IsDevelopment())
+			//{
+				app.UseSwagger();
+				app.UseSwaggerUI(options =>
 				{
-					WriteError($"Warning: error autodiscoverying dll: [{Environment.NewLine}{string.Join($"{Environment.NewLine}\t", exceptions.Select(x => x.Message))}{Environment.NewLine}]");
+					var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+					foreach (var description in provider.ApiVersionDescriptions)
+					{
+						options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"SmartIOT.Connector API {description.GroupName}");
+					}
 				});
+			//}
 
-			runner.RunAndWaitForShutdown(
-				onStartingHandler: (s, e) => WriteInfo("SmartIOT.Connector starting..")
-				, onStartedHandler: (s, e) => WriteInfo("SmartIOT.Connector started. Press Ctrl-C for graceful stop.")
-				, onStoppingHandler: (s, e) => WriteInfo("SmartIOT.Connector stopping..")
-				, onStoppedHandler: (s, e) => WriteInfo("SmartIOT.Connector stopped")
-				, onExceptionHandler: (s, e) => WriteError($"Exception caught: {e.Exception.Message}", e.Exception)
-				, onTagRead: (s, e) =>
-				{
-					if (e.TagScheduleEvent.Data != null)
-					{
-						// data event
-						if (e.TagScheduleEvent.Data.Length > 0)
-							WriteInfo($"{e.DeviceDriver.Name}: Device {e.TagScheduleEvent.Device.DeviceId}, Tag {e.TagScheduleEvent.Tag.TagId}: received data[{e.TagScheduleEvent.Data.Length}]");
-					}
-					else if (e.TagScheduleEvent.IsErrorNumberChanged)
-					{
-						// status changed
-						WriteInfo($"{e.DeviceDriver.Name}: Device {e.TagScheduleEvent.Device.DeviceId}, Tag {e.TagScheduleEvent.Tag.TagId}: status changed {e.TagScheduleEvent.ErrorNumber} {e.TagScheduleEvent.Description}");
-					}
-				}
-				, onTagWrite: (s, e) =>
-				{
+			app.UseHttpsRedirection();
 
-				}
-				, onSchedulerRestarting: (s, e) => WriteInfo($"{e.DeviceDriver.Name}: Scheduler restarting")
-				, onSchedulerRestarted: (s, e) =>
-				{
-					if (e.IsSuccess)
-						WriteInfo($"{e.DeviceDriver.Name}: Scheduler restarted successfully");
-					else
-						WriteError($"{e.DeviceDriver.Name}: Error during scheduler restart: {e.ErrorDescription}");
-				}
-				, onConnectorStartedHandler: (s, e) =>
-				{
-					WriteInfo($"{e.Connector.GetType().Name}: {e.Info}");
-				}
-				, onConnectorStoppedHandler: (s, e) =>
-				{
-					WriteInfo($"{e.Connector.GetType().Name}: {e.Info}");
-				}
-				, onConnectorConnectedHandler: (s, e) =>
-				{
-					WriteInfo($"{e.Connector.GetType().Name}: {e.Info}");
-				}
-				, onConnectorConnectionFailedHandler: (s, e) =>
-				{
-					WriteError($"{e.Connector.GetType().Name}: {e.Info}", e.Exception);
-				}
-				, onConnectorDisconnectedHandler: (s, e) =>
-				{
-					WriteInfo($"{e.Connector.GetType().Name}: {e.Info}");
-				}
-				, onConnectorExceptionHandler: (s, e) =>
-				{
-					WriteError($"{e.Connector.GetType().Name}: Unexpected exception: {e.Exception.Message}", e.Exception);
-				}
-				);
+			app.UseAuthorization();
+
+			app.MapControllers();
+
+			// Manage lifecycle for Runner
+			app.RegisterSmartIotConnectorRunnerLifetime();
+
+			// log something before the real start
+			var logger = app.Services.GetRequiredService<ILogger<Program>>();
+			logger.LogInformation("{NewLine}{NewLine}  --> SmartIOT.Connector v{version}{NewLine}", Environment.NewLine, Environment.NewLine, version, Environment.NewLine);
+
+			app.Run();
 		}
 
-		private static ILogger SetupLogger(LogConfiguration? logConfiguration)
+		private static void SetupSerilog()
 		{
-			var defaultOutputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3} {Message:lj}{NewLine}{Exception}";
-
-			if (logConfiguration == null)
-			{
-				logConfiguration = new LogConfiguration()
-				{
-					OutputLogFileName = null,
-					OutputTemplate = defaultOutputTemplate
-				};
-			}
-
-			var outputTemplate = string.IsNullOrWhiteSpace(logConfiguration.OutputTemplate) ? defaultOutputTemplate : logConfiguration.OutputTemplate;
+			var configuration = new ConfigurationBuilder()
+				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+				.AddEnvironmentVariables()
+				.Build();
 
 			var conf = new LoggerConfiguration()
-				.WriteTo.Console(outputTemplate: outputTemplate)
-				;
-
-			if (!string.IsNullOrWhiteSpace(logConfiguration.OutputLogFileName))
-			{
-				conf.WriteTo.File(logConfiguration.OutputLogFileName, outputTemplate: outputTemplate, rollingInterval: RollingInterval.Day);
-			}
+				.ReadFrom.Configuration(configuration)
+				.Enrich.FromLogContext();
 
 			Log.Logger = conf.CreateLogger();
-
-			return Log.Logger;
-		}
-
-		public static void WriteInfo(string message)
-		{
-			Log.Logger.Information(message);
-			//Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [INFO] {message}");
-		}
-		public static void WriteError(string message, Exception? exception = null)
-		{
-			Log.Logger.Error(message, exception);
-			//Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [ERROR] {message}");
-			//if (exception != null)
-			//	Console.WriteLine(exception);
 		}
 	}
 }
-
-
-

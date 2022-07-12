@@ -1,15 +1,19 @@
-﻿using SmartIOT.Connector.Core.Events;
+﻿using SmartIOT.Connector.Core.Conf;
+using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Core.Scheduler;
+using SmartIOT.Connector.Core.Util;
 
 namespace SmartIOT.Connector.Core
 {
 	public class SmartIotConnector : ISmartIOTConnectorInterface
 	{
-		private readonly List<ITagScheduler> _schedulers;
-		private readonly List<IConnector> _connectors;
+		private readonly CopyOnWriteArrayList<ITagScheduler> _schedulers = new CopyOnWriteArrayList<ITagScheduler>();
+		private readonly CopyOnWriteArrayList<IConnector> _connectors = new CopyOnWriteArrayList<IConnector>();
 
 		public IReadOnlyList<ITagScheduler> Schedulers => _schedulers;
 		public IReadOnlyList<IConnector> Connectors => _connectors;
+		public SchedulerConfiguration SchedulerConfiguration { get; } = new SchedulerConfiguration();
+		public bool IsStarted { get; private set; }
 
 		public event EventHandler<EventArgs>? Starting;
 		public event EventHandler<EventArgs>? Started;
@@ -22,171 +26,263 @@ namespace SmartIOT.Connector.Core
 		public event EventHandler<ConnectorDisconnectedEventArgs>? ConnectorDisconnected;
 		public event EventHandler<ConnectorExceptionEventArgs>? ConnectorException;
 
-		public event EventHandler<DeviceDriverRestartingEventArgs>? SchedulerRestarting
-		{
-			add
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.EngineRestartingEvent += value;
-				}
-			}
-			remove
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.EngineRestartingEvent -= value;
-				}
-			}
-		}
-		public event EventHandler<DeviceDriverRestartedEventArgs>? SchedulerRestarted
-		{
-			add
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.EngineRestartedEvent += value;
-				}
-			}
-			remove
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.EngineRestartedEvent -= value;
-				}
-			}
-		}
-		public event EventHandler<TagSchedulerWaitExceptionEventArgs>? TagSchedulerWaitExceptionEvent
-		{
-			add
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.TagSchedulerWaitExceptionEvent += value;
-				}
-			}
-			remove
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.TagSchedulerWaitExceptionEvent -= value;
-				}
-			}
-		}
-		public event EventHandler<TagScheduleEventArgs>? TagReadEvent
-		{
-			add
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.TagReadEvent += value;
-				}
-			}
-			remove
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.TagReadEvent -= value;
-				}
-			}
-		}
-		public event EventHandler<TagScheduleEventArgs>? TagWriteEvent
-		{
-			add
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.TagWriteEvent += value;
-				}
-			}
-			remove
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.TagWriteEvent -= value;
-				}
-			}
-		}
-		public event EventHandler<DeviceStatusEventArgs>? DeviceStatusEvent
-		{
-			add
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.DeviceStatusEvent += value;
-				}
-			}
-			remove
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.DeviceStatusEvent -= value;
-				}
-			}
-		}
-		public event EventHandler<ExceptionEventArgs>? ExceptionHandler
-		{
-			add
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.ExceptionHandler += value;
-				}
-			}
-			remove
-			{
-				foreach (var scheduler in Schedulers)
-				{
-					scheduler.ExceptionHandler -= value;
-				}
-			}
-		}
+		public event EventHandler<SchedulerStartingEventArgs>? SchedulerStarting;
+		public event EventHandler<SchedulerStoppingEventArgs>? SchedulerStopping;
+		public event EventHandler<DeviceDriverRestartingEventArgs>? SchedulerRestarting;
+		public event EventHandler<DeviceDriverRestartedEventArgs>? SchedulerRestarted;
+		public event EventHandler<TagSchedulerWaitExceptionEventArgs>? TagSchedulerWaitExceptionEvent;
+
+		public event EventHandler<TagScheduleEventArgs>? TagReadEvent;
+		public event EventHandler<TagScheduleEventArgs>? TagWriteEvent;
+		public event EventHandler<DeviceStatusEventArgs>? DeviceStatusEvent;
+		public event EventHandler<ExceptionEventArgs>? ExceptionHandler;
 
 
-		public SmartIotConnector(IList<ITagScheduler> schedulers)
-			: this(schedulers, new List<IConnector>())
+		public SmartIotConnector()
 		{
 
 		}
-		public SmartIotConnector(IList<ITagScheduler> schedulers, IList<IConnector> connectors)
+		public SmartIotConnector(IList<ITagScheduler> schedulers, IList<IConnector> connectors, SchedulerConfiguration schedulerConfiguration)
 		{
-			_schedulers = new List<ITagScheduler>(schedulers);
-			_connectors = new List<IConnector>(connectors);
+			SchedulerConfiguration = schedulerConfiguration;
+
+			foreach (var connector in connectors)
+			{
+				AddConnector(connector);
+			}
+
+			foreach (var scheduler in schedulers)
+			{
+				AddScheduler(scheduler);
+			}
 		}
 
 		public void Start()
 		{
 			Starting?.Invoke(this, new EventArgs());
 
-			foreach (var connector in _connectors)
+			lock (_connectors)
 			{
-				connector.Start(this);
-			}
+				foreach (var connector in _connectors)
+				{
+					connector.Start(this);
+				}
 
-			foreach (var scheduler in _schedulers)
-			{
-				scheduler.Start();
+				foreach (var scheduler in _schedulers)
+				{
+					scheduler.Start();
+				}
+
+				IsStarted = true;
 			}
 
 			Started?.Invoke(this, new EventArgs());
+		}
+
+		public void Stop()
+		{
+			Stopping?.Invoke(this, new EventArgs());
+
+			foreach (var scheduler in _schedulers)
+			{
+				scheduler.Stop();
+			}
+
+			lock (_connectors)
+			{
+				foreach (var connector in _connectors)
+				{
+					connector.Stop();
+
+					RemoveConnectorEvents(connector);
+				}
+			}
+
+			Stopped?.Invoke(this, new EventArgs());
+		}
+
+		public int AddConnector(IConnector connector)
+		{
+			lock (_connectors)
+			{
+				_connectors.Add(connector);
+
+				AddConnectorEvents(connector);
+
+				if (IsStarted)
+					connector.Start(this);
+
+				return _connectors.IndexOf(connector);
+			}
+		}
+
+		public bool RemoveConnector(int index)
+		{
+			lock (_connectors)
+			{
+				if (_connectors.Count <= index)
+					return false;
+
+				var connector = _connectors[index];
+				_connectors.RemoveAt(index);
+
+				if (IsStarted)
+					connector.Stop();
+
+				RemoveConnectorEvents(connector);
+
+				return true;
+			}
+		}
+		public bool RemoveConnector(IConnector connector)
+		{
+			lock (_connectors)
+			{
+				bool removed = _connectors.Remove(connector);
+
+				if (IsStarted)
+					connector.Stop();
+
+				RemoveConnectorEvents(connector);
+
+				return removed;
+			}
+		}
+
+		public bool ReplaceConnector(int index, IConnector connector)
+		{
+			lock (_connectors)
+			{
+				if (!RemoveConnector(index))
+					return false;
+				
+				_connectors.Insert(index, connector);
+
+				AddConnectorEvents(connector);
+
+				if (IsStarted)
+				{
+					connector.Start(this);
+				}
+
+				return true;
+			}
+		}
+
+		protected void AddConnectorEvents(IConnector connector)
+		{
+			TagReadEvent += connector.OnTagReadEvent;
+			TagWriteEvent += connector.OnTagWriteEvent;
+			DeviceStatusEvent += connector.OnDeviceStatusEvent;
+			ExceptionHandler += connector.OnException;
+		}
+		protected void RemoveConnectorEvents(IConnector connector)
+		{
+			TagReadEvent -= connector.OnTagReadEvent;
+			TagWriteEvent -= connector.OnTagWriteEvent;
+			DeviceStatusEvent -= connector.OnDeviceStatusEvent;
+			ExceptionHandler -= connector.OnException;
+		}
+
+		public void AddScheduler(ITagScheduler scheduler)
+		{
+			_schedulers.Add(scheduler);
+
+			scheduler.TagReadEvent += OnSchedulerTagReadEvent;
+			scheduler.TagWriteEvent += OnSchedulerTagWriteEvent;
+			scheduler.DeviceStatusEvent += OnSchedulerDeviceStatusEvent;
+			scheduler.ExceptionHandler += OnSchedulerException;
+
+			scheduler.EngineRestartingEvent += OnSchedulerRestartingEvent;
+			scheduler.EngineRestartedEvent += OnSchedulerRestartedEvent;
+			scheduler.TagSchedulerWaitExceptionEvent += OnSchedulerWaitExceptionEvent;
+
+			scheduler.SchedulerStarting += OnSchedulerStarting;
+			scheduler.SchedulerStopping += OnSchedulerStopping;
+
+			if (IsStarted)
+				scheduler.Start();
+		}
+
+		public void RemoveScheduler(ITagScheduler scheduler)
+		{
+			_schedulers.Remove(scheduler);
+
+			if (IsStarted)
+				scheduler.Stop();
+
+			scheduler.TagReadEvent -= OnSchedulerTagReadEvent;
+			scheduler.TagWriteEvent -= OnSchedulerTagWriteEvent;
+			scheduler.DeviceStatusEvent -= OnSchedulerDeviceStatusEvent;
+			scheduler.ExceptionHandler -= OnSchedulerException;
+
+			scheduler.EngineRestartingEvent += OnSchedulerRestartingEvent;
+			scheduler.EngineRestartedEvent += OnSchedulerRestartedEvent;
+			scheduler.TagSchedulerWaitExceptionEvent += OnSchedulerWaitExceptionEvent;
+		}
+
+		private void OnSchedulerStopping(object? sender, SchedulerStoppingEventArgs e)
+		{
+			SchedulerStopping?.Invoke(this, e);
+		}
+
+		private void OnSchedulerStarting(object? sender, SchedulerStartingEventArgs e)
+		{
+			SchedulerStarting?.Invoke(this, e);
+		}
+
+		private void OnSchedulerRestartingEvent(object? sender, DeviceDriverRestartingEventArgs e)
+		{
+			SchedulerRestarting?.Invoke(this, e);
+		}
+
+		private void OnSchedulerRestartedEvent(object? sender, DeviceDriverRestartedEventArgs e)
+		{
+			SchedulerRestarted?.Invoke(this, e);
+		}
+
+		private void OnSchedulerWaitExceptionEvent(object? sender, TagSchedulerWaitExceptionEventArgs e)
+		{
+			TagSchedulerWaitExceptionEvent?.Invoke(this, e);
+		}
+
+		private void OnSchedulerTagReadEvent(object? sender, TagScheduleEventArgs e)
+		{
+			TagReadEvent?.Invoke(this, e);
+		}
+
+		private void OnSchedulerTagWriteEvent(object? sender, TagScheduleEventArgs e)
+		{
+			TagWriteEvent?.Invoke(this, e);
+		}
+
+		private void OnSchedulerDeviceStatusEvent(object? sender, DeviceStatusEventArgs e)
+		{
+			DeviceStatusEvent?.Invoke(this, e);
+		}
+
+		private void OnSchedulerException(object? sender, ExceptionEventArgs e)
+		{
+			ExceptionHandler?.Invoke(this, e);
 		}
 
 		public void RequestTagWrite(string deviceId, string tagId, int startOffset, byte[] data)
 		{
 			foreach (var scheduler in Schedulers)
 			{
-				var devices = scheduler.DeviceDriver.GetDevices(true);
-				var tags = devices.Where(x => x.DeviceId == deviceId)
-					.SelectMany(x => x.Tags)
-					.Where(x => string.Equals(x.TagId, tagId, StringComparison.InvariantCultureIgnoreCase) && x.TagType == Conf.TagType.WRITE);
-
-				foreach (var tag in tags)
+				var device = scheduler.Device;
+				if (device.DeviceId.Equals(deviceId, StringComparison.InvariantCultureIgnoreCase))
 				{
-					lock (tag)
+					var tags = device.Tags.Where(x => string.Equals(x.TagId, tagId, StringComparison.InvariantCultureIgnoreCase) && x.TagType == Conf.TagType.WRITE);
+
+					foreach (var tag in tags)
 					{
-						bool changes = MergeData(tag, startOffset, data);
-						if (changes)
-							tag.IsWriteSynchronizationRequested = true;
+						lock (tag)
+						{
+							bool changes = MergeData(tag, startOffset, data);
+							if (changes)
+								tag.IsWriteSynchronizationRequested = true;
+						}
 					}
 				}
 			}
@@ -223,23 +319,6 @@ namespace SmartIOT.Connector.Core
 			{
 				scheduler.RunInitializationAction(initAction);
 			}
-		}
-
-		public void Stop()
-		{
-			Stopping?.Invoke(this, new EventArgs());
-
-			foreach (var scheduler in _schedulers)
-			{
-				scheduler.Stop();
-			}
-
-			foreach (var connector in _connectors)
-			{
-				connector.Stop();
-			}
-
-			Stopped?.Invoke(this, new EventArgs());
 		}
 
 

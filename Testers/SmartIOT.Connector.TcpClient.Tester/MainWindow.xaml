@@ -12,8 +12,8 @@
 		<TextBox x:Name="txtServer" HorizontalAlignment="Left" Margin="227,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.508,0.67" Text="localhost:1883"/>
 		<Label x:Name="label" Content="Insert TCP address:port to connect to" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
 		<Label x:Name="label1" Content="Select the serializer to be used to parse messages" HorizontalAlignment="Left" Margin="376,59,0,0" VerticalAlignment="Top"/>
-		<RadioButton x:Name="rdJsonSerializer" Content="Json serializer" HorizontalAlignment="Left" Margin="376,85,0,0" VerticalAlignment="Top" IsChecked="True"/>
-		<RadioButton x:Name="rdProtobufSerializer" Content="Protobuf serializer" HorizontalAlignment="Left" Margin="376,105,0,0" VerticalAlignment="Top"/>
+		<RadioButton x:Name="rdJsonSerializer" Content="Json serializer" HorizontalAlignment="Left" Margin="376,85,0,0" VerticalAlignment="Top"/>
+		<RadioButton x:Name="rdProtobufSerializer" Content="Protobuf serializer" HorizontalAlignment="Left" Margin="376,105,0,0" VerticalAlignment="Top" IsChecked="True"/>
 		<Button x:Name="btnClearLogs" Content="Clear logs" Margin="0,183,10,0" VerticalAlignment="Top" Height="29" Click="BtnClearLogs_Click" HorizontalAlignment="Right" Width="78"/>
 		<ScrollViewer Margin="10,217,10,0">
 			<TextBlock x:Name="txtLogs"/>
