@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.1.2" />
+    <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="4.3.1.873" />
   </ItemGroup>
 
   <ItemGroup>
