@@ -86,7 +86,7 @@ public class MqttConnectorTests : SmartIOTBaseTests
 
         try
         {
-            await Task.Delay(1000);
+            await Task.Delay(200);
 
             await client.ConnectAsync(mqttClientOptions, CancellationToken.None);
 
@@ -112,7 +112,7 @@ public class MqttConnectorTests : SmartIOTBaseTests
                 }
             }, CancellationToken.None);
 
-            await Task.Delay(1000);
+            await Task.Delay(200);
 
             lock (client)
             {

@@ -25,6 +25,16 @@ public class SchedulerConfiguration
     [JsonIgnore]
     public TimeSpan WaitTimeBetweenReadSchedules => TimeSpan.FromMilliseconds(WaitTimeBetweenReadSchedulesMillis);
 
+    public int TerminateAfterNoWriteRequestsDelayMillis { get; set; } = 3000;
+
+    [JsonIgnore]
+    public TimeSpan TerminateAfterNoWriteRequestsDelay => TimeSpan.FromMilliseconds(TerminateAfterNoWriteRequestsDelayMillis);
+
+    public int TerminateMinimumDelayMillis { get; set; } = 0;
+
+    [JsonIgnore]
+    public TimeSpan TerminateMinimumDelay => TimeSpan.FromMilliseconds(TerminateMinimumDelayMillis);
+
     public void CopyTo(SchedulerConfiguration configuration)
     {
         configuration.MaxErrorsBeforeReconnection = MaxErrorsBeforeReconnection;
@@ -32,5 +42,7 @@ public class SchedulerConfiguration
         configuration.WaitTimeAfterErrorMillis = WaitTimeAfterErrorMillis;
         configuration.WaitTimeBetweenEveryScheduleMillis = WaitTimeBetweenEveryScheduleMillis;
         configuration.WaitTimeBetweenReadSchedulesMillis = WaitTimeBetweenReadSchedulesMillis;
+        configuration.TerminateAfterNoWriteRequestsDelayMillis = TerminateAfterNoWriteRequestsDelayMillis;
+        configuration.TerminateMinimumDelayMillis = TerminateMinimumDelayMillis;
     }
 }

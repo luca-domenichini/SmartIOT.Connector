@@ -42,7 +42,11 @@ public class TagSchedulerTests
     {
         var timeService = new TimeService();
 
-        SchedulerConfiguration schedulerConfiguration = new SchedulerConfiguration();
+        SchedulerConfiguration schedulerConfiguration = new SchedulerConfiguration()
+        {
+            TerminateAfterNoWriteRequestsDelayMillis = 0,
+            TerminateMinimumDelayMillis = 0
+        };
 
 #pragma warning disable S1481 // Unused local variables should be removed
         (TagSchedulerEngine engine, Model.Device device, Tag tag20, Tag? tag21, Tag tag22) = SetupSystem(device => new MockDeviceDriver(device), timeService, schedulerConfiguration, true, false, 0);
@@ -51,7 +55,7 @@ public class TagSchedulerTests
         var schedulerEventListener = new FakeConnector();
         var engineEventListener = new FakeConnector();
 
-        var scheduler = new TagScheduler("TestScheduler", engine, timeService);
+        var scheduler = new TagScheduler("TestScheduler", engine, timeService, schedulerConfiguration);
 
         scheduler.TagReadEvent += schedulerEventListener.OnTagReadEvent;
         scheduler.TagWriteEvent += schedulerEventListener.OnTagWriteEvent;
@@ -63,24 +67,35 @@ public class TagSchedulerTests
         engine.DeviceStatusEvent += engineEventListener.OnDeviceStatusEvent;
         engine.ExceptionHandler += engineEventListener.OnException;
 
+        AutoResetEvent readEvent = new(false);
+        AutoResetEvent deviceStatusEvent = new(false);
+        scheduler.TagReadEvent += (s, args) =>
+        {
+            readEvent.Set();
+        };
+        scheduler.DeviceStatusEvent += (s, args) =>
+        {
+            deviceStatusEvent.Set();
+        };
         scheduler.Start();
-#pragma warning disable S2925 // "Thread.Sleep" should not be used in tests: yep.. should be done another way, but the thread owning device drivers runs on its own.
-        Thread.Sleep(1000);
-#pragma warning restore S2925 // "Thread.Sleep" should not be used in tests
+
+        Assert.True(readEvent.WaitOne(100));
+        Assert.True(deviceStatusEvent.WaitOne(100));
+
         scheduler.Stop();
 
-        Assert.True(schedulerEventListener.TagReadEvents.Count > 0);
+        Assert.NotEmpty(schedulerEventListener.TagReadEvents);
         Assert.Empty(schedulerEventListener.TagWriteEvents);
-        Assert.True(schedulerEventListener.DeviceStatusEvents.Count > 0);
+        Assert.NotEmpty(schedulerEventListener.DeviceStatusEvents);
         Assert.Empty(schedulerEventListener.ExceptionEvents);
 
         var e = schedulerEventListener.ExceptionEvents.FirstOrDefault();
         if (e != null)
-            throw new System.Exception(e.ToString());
+            throw new Exception(e.ToString());
 
-        Assert.True(engineEventListener.TagReadEvents.Count > 0);
+        Assert.NotEmpty(engineEventListener.TagReadEvents);
         Assert.Empty(engineEventListener.TagWriteEvents);
-        Assert.True(engineEventListener.DeviceStatusEvents.Count > 0);
+        Assert.NotEmpty(engineEventListener.DeviceStatusEvents);
         Assert.Empty(engineEventListener.ExceptionEvents);
     }
 }

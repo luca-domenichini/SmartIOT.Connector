@@ -32,6 +32,8 @@
     "RestartDeviceInErrorTimeoutMillis": 30000,
     "WaitTimeAfterErrorMillis": 1000,
     "WaitTimeBetweenEveryScheduleMillis": 0,
-    "WaitTimeBetweenReadSchedulesMillis": 0
+    "WaitTimeBetweenReadSchedulesMillis": 0,
+    "TerminateAfterNoWriteRequestsDelayMillis": 0,
+    "TerminateMinimumDelayMillis": 0
   }
 }

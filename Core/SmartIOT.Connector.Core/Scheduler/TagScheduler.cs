@@ -1,4 +1,5 @@
-﻿using SmartIOT.Connector.Core.Events;
+﻿using SmartIOT.Connector.Core.Conf;
+using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Core.Model;
 using System.Collections.Concurrent;
 
@@ -8,8 +9,7 @@ public class TagScheduler : ITagScheduler
 {
     private readonly ITagSchedulerEngine _tagSchedulerEngine;
     private readonly ITimeService _timeService;
-    private readonly static TimeSpan TerminateAfterNoWriteRequestsDelay = TimeSpan.FromSeconds(3);
-    private readonly static TimeSpan TerminateMinimumDelay = TimeSpan.FromSeconds(3);
+    private readonly SchedulerConfiguration _configuration;
     private readonly CancellationTokenSource _terminatingToken = new CancellationTokenSource();
     private readonly Thread _schedulerThread;
     private readonly Thread _monitorThread;
@@ -39,7 +39,7 @@ public class TagScheduler : ITagScheduler
     public IDeviceDriver DeviceDriver => _tagSchedulerEngine.DeviceDriver;
     public Device Device => DeviceDriver.Device;
 
-    public TagScheduler(string name, ITagSchedulerEngine tagSchedulerEngine, ITimeService timeService)
+    public TagScheduler(string name, ITagSchedulerEngine tagSchedulerEngine, ITimeService timeService, SchedulerConfiguration configuration)
     {
         _tagSchedulerEngine = tagSchedulerEngine;
         _tagSchedulerEngine.RestartingEvent += OnEngineRestartingHandler;
@@ -50,6 +50,7 @@ public class TagScheduler : ITagScheduler
         _tagSchedulerEngine.TagWriteEvent += OnEngineTagWriteEvent;
 
         _timeService = timeService;
+        _configuration = configuration;
 
         _schedulerThread = new Thread(SchedulerThreadRun)
         {
@@ -113,11 +114,11 @@ public class TagScheduler : ITagScheduler
 
             if (_terminatingToken.IsCancellationRequested)
             {
-                var istanteUltimaAzione = _terminatingInstant < _lastWriteOnDevice ? _lastWriteOnDevice : _terminatingInstant;
+                var lastWriteOrTerminateInstant = _terminatingInstant < _lastWriteOnDevice ? _lastWriteOnDevice : _terminatingInstant;
                 var now = _timeService.Now;
 
-                if (_timeService.IsTimeoutElapsed(istanteUltimaAzione, now, TerminateAfterNoWriteRequestsDelay)
-                    && _timeService.IsTimeoutElapsed(_terminatingInstant, now, TerminateMinimumDelay))
+                if (_timeService.IsTimeoutElapsed(lastWriteOrTerminateInstant, now, _configuration.TerminateAfterNoWriteRequestsDelay)
+                    && _timeService.IsTimeoutElapsed(_terminatingInstant, now, _configuration.TerminateMinimumDelay))
                     break;
             }
 
@@ -163,12 +164,12 @@ public class TagScheduler : ITagScheduler
         {
             try
             {
+                _tagSchedulerEngine.RestartDriver();
+
                 if (!_terminatingToken.IsCancellationRequested)
                     _terminatingToken.Token.WaitHandle.WaitOne(500);
                 else
                     break;
-
-                _tagSchedulerEngine.RestartDriver();
             }
             catch (OperationCanceledException)
             {

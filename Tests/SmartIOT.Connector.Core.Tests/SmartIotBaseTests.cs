@@ -66,7 +66,11 @@ public class SmartIOTBaseTests
     {
         return new SmartIotConnectorConfiguration()
         {
-            SchedulerConfiguration = new SchedulerConfiguration(),
+            SchedulerConfiguration = new SchedulerConfiguration()
+            {
+                TerminateAfterNoWriteRequestsDelayMillis = 0,
+                TerminateMinimumDelayMillis = 0
+            },
             DeviceConfigurations = deviceConfigurations
         };
     }
@@ -75,7 +79,11 @@ public class SmartIOTBaseTests
     {
         return new SmartIotConnectorConfiguration()
         {
-            SchedulerConfiguration = new SchedulerConfiguration(),
+            SchedulerConfiguration = new SchedulerConfiguration()
+            {
+                TerminateAfterNoWriteRequestsDelayMillis = 0,
+                TerminateMinimumDelayMillis = 0
+            },
             DeviceConfigurations = new List<DeviceConfiguration>() { deviceConfiguration }
         };
     }

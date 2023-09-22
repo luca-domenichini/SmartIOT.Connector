@@ -7,6 +7,6 @@ public class SchedulerFactory : ISchedulerFactory
 {
     public ITagScheduler CreateScheduler(string name, IDeviceDriver deviceDriver, ITimeService timeService, SchedulerConfiguration configuration)
     {
-        return new TagScheduler(name, new TagSchedulerEngine(deviceDriver, timeService, configuration), timeService);
+        return new TagScheduler(name, new TagSchedulerEngine(deviceDriver, timeService, configuration), timeService, configuration);
     }
 }
