@@ -1,20 +1,19 @@
 ﻿using ProtoBuf;
 
-namespace SmartIOT.Connector.Messages.Serializers
+namespace SmartIOT.Connector.Messages.Serializers;
+
+public class ProtobufSingleMessageSerializer : ISingleMessageSerializer
 {
-    public class ProtobufSingleMessageSerializer : ISingleMessageSerializer
+    public T? DeserializeMessage<T>(byte[] bytes)
     {
-        public T? DeserializeMessage<T>(byte[] bytes)
-        {
-            return (T?)Serializer.Deserialize(typeof(T), new MemoryStream(bytes));
-        }
+        return (T?)Serializer.Deserialize(typeof(T), new MemoryStream(bytes));
+    }
 
-        public byte[] SerializeMessage(object message)
-        {
-            var stream = new MemoryStream();
-            Serializer.Serialize(stream, message);
+    public byte[] SerializeMessage(object message)
+    {
+        var stream = new MemoryStream();
+        Serializer.Serialize(stream, message);
 
-            return stream.ToArray();
-        }
+        return stream.ToArray();
     }
 }

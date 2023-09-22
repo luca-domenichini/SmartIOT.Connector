@@ -1,9 +1,8 @@
-﻿namespace SmartIOT.Connector.Messages.Serializers
-{
-    public interface IStreamMessageSerializer
-    {
-        public void SerializeMessage(Stream stream, object message);
+﻿namespace SmartIOT.Connector.Messages.Serializers;
 
-        public object? DeserializeMessage(Stream stream);
-    }
+public interface IStreamMessageSerializer
+{
+    public void SerializeMessage(Stream stream, object message);
+
+    public object? DeserializeMessage(Stream stream);
 }

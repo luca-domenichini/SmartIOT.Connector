@@ -1,17 +1,16 @@
-﻿namespace SmartIOT.Connector.Core
+﻿namespace SmartIOT.Connector.Core;
+
+public class TimeService : ITimeService
 {
-    public class TimeService : ITimeService
+    public DateTime Now => DateTime.Now;
+
+    public bool IsTimeoutElapsed(DateTime instant, TimeSpan timeout)
     {
-        public DateTime Now => DateTime.Now;
+        return IsTimeoutElapsed(instant, Now, timeout);
+    }
 
-        public bool IsTimeoutElapsed(DateTime instant, TimeSpan timeout)
-        {
-            return IsTimeoutElapsed(instant, Now, timeout);
-        }
-
-        public bool IsTimeoutElapsed(DateTime from, DateTime to, TimeSpan timeout)
-        {
-            return to - from >= timeout || to < from;
-        }
+    public bool IsTimeoutElapsed(DateTime from, DateTime to, TimeSpan timeout)
+    {
+        return to - from >= timeout || to < from;
     }
 }

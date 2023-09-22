@@ -1,72 +1,71 @@
 ﻿using ProtoBuf;
 using System.Text;
 
-namespace SmartIOT.Connector.Messages.Serializers
+namespace SmartIOT.Connector.Messages.Serializers;
+
+public class ProtobufStreamMessageSerializer : IStreamMessageSerializer
 {
-    public class ProtobufStreamMessageSerializer : IStreamMessageSerializer
+    public object? DeserializeMessage(Stream stream)
     {
-        public object? DeserializeMessage(Stream stream)
+        try
         {
-            try
+            byte typeValue;
+            using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true))
             {
-                byte typeValue;
-                using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true))
-                {
-                    typeValue = reader.ReadByte();
-                }
-
-                return typeValue switch
-                {
-                    1 => DeserializeMessage<TagEvent>(stream),
-                    2 => DeserializeMessage<DeviceEvent>(stream),
-                    3 => DeserializeMessage<TagWriteRequestCommand>(stream),
-                    99 => DeserializeMessage<PingMessage>(stream),
-                    _ => throw new InvalidDataException($"Message type {typeValue} is not recognized"),
-                };
+                typeValue = reader.ReadByte();
             }
-            catch (EndOfStreamException)
+
+            return typeValue switch
             {
-                return null;
-            }
+                1 => DeserializeMessage<TagEvent>(stream),
+                2 => DeserializeMessage<DeviceEvent>(stream),
+                3 => DeserializeMessage<TagWriteRequestCommand>(stream),
+                99 => DeserializeMessage<PingMessage>(stream),
+                _ => throw new InvalidDataException($"Message type {typeValue} is not recognized"),
+            };
         }
-
-        private T DeserializeMessage<T>(Stream stream)
+        catch (EndOfStreamException)
         {
-            return Serializer.DeserializeWithLengthPrefix<T>(stream, PrefixStyle.Base128);
+            return null;
         }
+    }
 
-        public void SerializeMessage(Stream stream, object message)
+    private T DeserializeMessage<T>(Stream stream)
+    {
+        return Serializer.DeserializeWithLengthPrefix<T>(stream, PrefixStyle.Base128);
+    }
+
+    public void SerializeMessage(Stream stream, object message)
+    {
+        switch (message)
         {
-            switch (message)
-            {
-                case TagEvent t:
-                    SerializeMessage(1, stream, t);
-                    break;
+            case TagEvent t:
+                SerializeMessage(1, stream, t);
+                break;
 
-                case DeviceEvent d:
-                    SerializeMessage(2, stream, d);
-                    break;
+            case DeviceEvent d:
+                SerializeMessage(2, stream, d);
+                break;
 
-                case TagWriteRequestCommand c:
-                    SerializeMessage(3, stream, c);
-                    break;
+            case TagWriteRequestCommand c:
+                SerializeMessage(3, stream, c);
+                break;
 
-                case PingMessage p:
-                    SerializeMessage(99, stream, p);
-                    break;
+            case PingMessage p:
+                SerializeMessage(99, stream, p);
+                break;
 
-                default:
-                    throw new ArgumentException($"Message type {message.GetType().FullName} is not managed", nameof(message));
-            }
+            default:
+                throw new ArgumentException($"Message type {message.GetType().FullName} is not managed", nameof(message));
         }
+    }
 
-        private void SerializeMessage<T>(byte typeValue, Stream stream, T message)
-        {
-            // serialize the type
-            stream.WriteByte(typeValue);
+    private void SerializeMessage<T>(byte typeValue, Stream stream, T message)
+    {
+        // serialize the type
+        stream.WriteByte(typeValue);
 
-            // serialize length + payload
-            Serializer.SerializeWithLengthPrefix<T>(stream, message, PrefixStyle.Base128);
-        }
+        // serialize length + payload
+        Serializer.SerializeWithLengthPrefix<T>(stream, message, PrefixStyle.Base128);
     }
 }

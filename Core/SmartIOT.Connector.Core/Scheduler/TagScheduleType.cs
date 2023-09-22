@@ -1,8 +1,7 @@
-﻿namespace SmartIOT.Connector.Core.Scheduler
+﻿namespace SmartIOT.Connector.Core.Scheduler;
+
+public enum TagScheduleType
 {
-    public enum TagScheduleType
-    {
-        READ,
-        WRITE
-    }
+    READ,
+    WRITE
 }

@@ -1,28 +1,27 @@
-﻿namespace SmartIOT.Connector.Core.Factory
+﻿namespace SmartIOT.Connector.Core.Factory;
+
+public class ConnectorFactory : IConnectorFactory
 {
-    public class ConnectorFactory : IConnectorFactory
+    private readonly List<IConnectorFactory> _factories = new List<IConnectorFactory>();
+
+    public void Add(IConnectorFactory factory)
     {
-        private readonly List<IConnectorFactory> _factories = new List<IConnectorFactory>();
+        _factories.Add(factory);
+    }
 
-        public void Add(IConnectorFactory factory)
-        {
-            _factories.Add(factory);
-        }
+    public void AddRange(IList<IConnectorFactory> connectorFactories)
+    {
+        _factories.AddRange(connectorFactories);
+    }
 
-        public void AddRange(IList<IConnectorFactory> connectorFactories)
-        {
-            _factories.AddRange(connectorFactories);
-        }
+    public bool Any(Func<IConnectorFactory, bool> predicate)
+    {
+        return _factories.Any(x => predicate(x));
+    }
 
-        public bool Any(Func<IConnectorFactory, bool> predicate)
-        {
-            return _factories.Any(x => predicate(x));
-        }
-
-        public IConnector? CreateConnector(string connectionString)
-        {
-            return _factories.Select(x => x.CreateConnector(connectionString))
-                .FirstOrDefault(x => x != null);
-        }
+    public IConnector? CreateConnector(string connectionString)
+    {
+        return _factories.Select(x => x.CreateConnector(connectionString))
+            .FirstOrDefault(x => x != null);
     }
 }

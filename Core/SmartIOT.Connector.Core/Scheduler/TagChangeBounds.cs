@@ -1,8 +1,7 @@
-﻿namespace SmartIOT.Connector.Core.Scheduler
+﻿namespace SmartIOT.Connector.Core.Scheduler;
+
+internal class TagChangeBounds
 {
-    internal class TagChangeBounds
-    {
-        public int StartOffset { get; set; }
-        public int Length { get; set; }
-    }
+    public int StartOffset { get; set; }
+    public int Length { get; set; }
 }

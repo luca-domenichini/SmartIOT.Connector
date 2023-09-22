@@ -4,48 +4,47 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace SmartIOT.Connector.RestApi
+namespace SmartIOT.Connector.RestApi;
+
+internal class SwaggerVersioningOptions : IConfigureNamedOptions<SwaggerGenOptions>
 {
-    internal class SwaggerVersioningOptions : IConfigureNamedOptions<SwaggerGenOptions>
+    private readonly IApiVersionDescriptionProvider provider;
+
+    public SwaggerVersioningOptions(IApiVersionDescriptionProvider provider)
     {
-        private readonly IApiVersionDescriptionProvider provider;
+        this.provider = provider;
+    }
 
-        public SwaggerVersioningOptions(IApiVersionDescriptionProvider provider)
+    public void Configure(SwaggerGenOptions options)
+    {
+        // add swagger document for every API version discovered
+        foreach (var description in provider.ApiVersionDescriptions)
         {
-            this.provider = provider;
+            options.SwaggerDoc(description.GroupName, CreateVersionInfo(description));
+
+            var filePath = Path.Combine(System.AppContext.BaseDirectory, "SmartIOT.Connector.RestApi.xml");
+            options.IncludeXmlComments(filePath);
+        }
+    }
+
+    public void Configure(string name, SwaggerGenOptions options)
+    {
+        Configure(options);
+    }
+
+    private OpenApiInfo CreateVersionInfo(ApiVersionDescription description)
+    {
+        var info = new OpenApiInfo()
+        {
+            Title = $"SmartIOT.Connector REST API",
+            Version = description.ApiVersion.ToString(),
+        };
+
+        if (description.IsDeprecated)
+        {
+            info.Description += " This API version has been deprecated.";
         }
 
-        public void Configure(SwaggerGenOptions options)
-        {
-            // add swagger document for every API version discovered
-            foreach (var description in provider.ApiVersionDescriptions)
-            {
-                options.SwaggerDoc(description.GroupName, CreateVersionInfo(description));
-
-                var filePath = Path.Combine(System.AppContext.BaseDirectory, "SmartIOT.Connector.RestApi.xml");
-                options.IncludeXmlComments(filePath);
-            }
-        }
-
-        public void Configure(string name, SwaggerGenOptions options)
-        {
-            Configure(options);
-        }
-
-        private OpenApiInfo CreateVersionInfo(ApiVersionDescription description)
-        {
-            var info = new OpenApiInfo()
-            {
-                Title = $"SmartIOT.Connector REST API",
-                Version = description.ApiVersion.ToString(),
-            };
-
-            if (description.IsDeprecated)
-            {
-                info.Description += " This API version has been deprecated.";
-            }
-
-            return info;
-        }
+        return info;
     }
 }

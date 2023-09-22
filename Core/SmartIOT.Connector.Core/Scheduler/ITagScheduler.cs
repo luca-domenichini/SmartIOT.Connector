@@ -1,40 +1,39 @@
 ﻿using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Core.Model;
 
-namespace SmartIOT.Connector.Core.Scheduler
+namespace SmartIOT.Connector.Core.Scheduler;
+
+public interface ITagScheduler
 {
-    public interface ITagScheduler
-    {
-        public event EventHandler<SchedulerStartingEventArgs>? SchedulerStarting;
+    public event EventHandler<SchedulerStartingEventArgs>? SchedulerStarting;
 
-        public event EventHandler<SchedulerStoppingEventArgs>? SchedulerStopping;
+    public event EventHandler<SchedulerStoppingEventArgs>? SchedulerStopping;
 
-        public event EventHandler<DeviceDriverRestartingEventArgs>? EngineRestartingEvent;
+    public event EventHandler<DeviceDriverRestartingEventArgs>? EngineRestartingEvent;
 
-        public event EventHandler<DeviceDriverRestartedEventArgs>? EngineRestartedEvent;
+    public event EventHandler<DeviceDriverRestartedEventArgs>? EngineRestartedEvent;
 
-        public event EventHandler<TagSchedulerWaitExceptionEventArgs>? TagSchedulerWaitExceptionEvent;
+    public event EventHandler<TagSchedulerWaitExceptionEventArgs>? TagSchedulerWaitExceptionEvent;
 
-        public event EventHandler<TagScheduleEventArgs>? TagReadEvent;
+    public event EventHandler<TagScheduleEventArgs>? TagReadEvent;
 
-        public event EventHandler<TagScheduleEventArgs>? TagWriteEvent;
+    public event EventHandler<TagScheduleEventArgs>? TagWriteEvent;
 
-        public event EventHandler<DeviceStatusEventArgs>? DeviceStatusEvent;
+    public event EventHandler<DeviceStatusEventArgs>? DeviceStatusEvent;
 
-        public event EventHandler<ExceptionEventArgs>? ExceptionHandler;
+    public event EventHandler<ExceptionEventArgs>? ExceptionHandler;
 
-        public bool IsPaused { get; set; }
-        public IDeviceDriver DeviceDriver { get; }
-        public Device Device { get; }
+    public bool IsPaused { get; set; }
+    public IDeviceDriver DeviceDriver { get; }
+    public Device Device { get; }
 
-        void Start();
+    void Start();
 
-        void Stop();
+    void Stop();
 
-        /// <summary>
-        /// Questo metodo consente di eseguire una action di inizializzazione,
-        /// consentendo di inviare lo stato dei device e dei tag a un server remoto.
-        /// </summary>
-        Task RunInitializationActionAsync(Func<IList<DeviceStatusEvent>, IList<TagScheduleEvent>, Task> initializationAction);
-    }
+    /// <summary>
+    /// Questo metodo consente di eseguire una action di inizializzazione,
+    /// consentendo di inviare lo stato dei device e dei tag a un server remoto.
+    /// </summary>
+    Task RunInitializationActionAsync(Func<IList<DeviceStatusEvent>, IList<TagScheduleEvent>, Task> initializationAction);
 }
