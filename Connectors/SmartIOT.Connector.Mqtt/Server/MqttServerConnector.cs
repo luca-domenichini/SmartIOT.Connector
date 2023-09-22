@@ -1,5 +1,4 @@
 ﻿using MQTTnet;
-using MQTTnet.Extensions.ManagedClient;
 using MQTTnet.Server;
 using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Connector;
@@ -7,193 +6,200 @@ using SmartIOT.Connector.Core.Events;
 using SmartIOT.Connector.Messages;
 using SmartIOT.Connector.Messages.Serializers;
 
-namespace SmartIOT.Connector.Mqtt.Server
+namespace SmartIOT.Connector.Mqtt.Server;
+
+public class MqttServerConnector : AbstractPublisherConnector
 {
-	public class MqttServerConnector : AbstractPublisherConnector
-	{
-		private new MqttServerConnectorOptions Options => (MqttServerConnectorOptions)base.Options;
-		private readonly IMqttServerOptions _mqttOptions;
-		private readonly IMqttServer _mqttServer;
-		private readonly ISingleMessageSerializer _messageSerializer;
-		private bool _started;
+    private new MqttServerConnectorOptions Options => (MqttServerConnectorOptions)base.Options;
+    private readonly MqttServer _mqttServer;
+    private readonly ISingleMessageSerializer _messageSerializer;
+    private bool _started;
 
-		public MqttServerConnector(MqttServerConnectorOptions options)
-			: base(options)
-		{
-			_messageSerializer = options.MessageSerializer;
+    public MqttServerConnector(MqttServerConnectorOptions options)
+        : base(options)
+    {
+        _messageSerializer = options.MessageSerializer;
 
-			MqttServerOptionsBuilder serverOptions = new MqttServerOptionsBuilder()
-				.WithClientId(Options.ServerId)
-				.WithDefaultEndpointPort(Options.ServerPort);
+        _mqttServer = new MqttFactory().CreateMqttServer(new MqttServerOptionsBuilder()
+            .WithDefaultEndpoint()
+            .WithDefaultEndpointPort(Options.ServerPort)
+            .Build());
 
-			_mqttOptions = serverOptions.Build();
+        _mqttServer.ClientConnectedAsync += OnClientConnected;
+        _mqttServer.ClientDisconnectedAsync += OnClientDisconnected;
+        _mqttServer.InterceptingPublishAsync += OnApplicationMessageReceived;
 
-			_mqttServer = new MqttFactory().CreateMqttServer();
+        _mqttServer.ClientSubscribedTopicAsync += OnClientSubscribedTopic;
 
-			_mqttServer.UseClientConnectedHandler(e => OnClientConnected(e));
-			_mqttServer.UseClientDisconnectedHandler(e => OnClientDisconnected(e));
-			_mqttServer.UseApplicationMessageReceivedHandler(e => OnApplicationMessageReceived(e));
+        _mqttServer.StartedAsync += OnStarted;
+        _mqttServer.StoppedAsync += OnStopped;
+    }
 
-			_mqttServer.ClientSubscribedTopicHandler = new MqttServerClientSubscribedTopicHandlerDelegate(OnClientSubscribedTopic);
+    private async Task OnClientSubscribedTopic(ClientSubscribedTopicEventArgs e)
+    {
+        if (Options.IsDeviceStatusEventsTopicRoot(e.TopicFilter.Topic))
+        {
+            await InvokeInitializationDelegateAsync(true, false);
+        }
+        if (Options.IsTagScheduleEventsTopicRoot(e.TopicFilter.Topic))
+        {
+            await InvokeInitializationDelegateAsync(false, true);
+        }
+    }
 
-			_mqttServer.StartedHandler = new MqttServerStartedHandlerDelegate(OnStarted);
-			_mqttServer.StoppedHandler = new MqttServerStoppedHandlerDelegate(OnStopped);
-		}
+    public override async Task StartAsync(ISmartIOTConnectorInterface connectorInterface)
+    {
+        await base.StartAsync(connectorInterface);
 
-		private void OnClientSubscribedTopic(MqttServerClientSubscribedTopicEventArgs e)
-		{
-			if (Options.IsDeviceStatusEventsTopicRoot(e.TopicFilter.Topic))
-			{
-				InvokeInitializationDelegate(true, false);
-			}
-			if (Options.IsTagScheduleEventsTopicRoot(e.TopicFilter.Topic))
-			{
-				InvokeInitializationDelegate(false, true);
-			}
-		}
+        await _mqttServer.StartAsync();
+    }
 
-		public override void Start(ISmartIOTConnectorInterface connectorInterface)
-		{
-			base.Start(connectorInterface);
+    private Task OnStarted(EventArgs obj)
+    {
+        _started = true;
+        return Task.CompletedTask;
+    }
 
-			_mqttServer.StartAsync(_mqttOptions).Wait();
-		}
+    public override async Task StopAsync()
+    {
+        await base.StopAsync();
 
-		private void OnStarted(EventArgs obj)
-		{
-			_started = true;
-		}
+        await _mqttServer.StopAsync();
+    }
 
-		public override void Stop()
-		{
-			base.Stop();
+    private Task OnStopped(EventArgs obj)
+    {
+        _started = false;
+        return Task.CompletedTask;
+    }
 
-			_mqttServer.StopAsync().Wait();
-		}
+    private Task OnApplicationMessageReceived(InterceptingPublishEventArgs e)
+    {
+        if (e.ApplicationMessage.Topic.StartsWith(Options.TagWriteRequestCommandsTopicRoot, StringComparison.InvariantCultureIgnoreCase))
+        {
+            var command = _messageSerializer.DeserializeMessage<TagWriteRequestCommand>(e.ApplicationMessage.PayloadSegment.Array!);
+            if (command != null)
+                ConnectorInterface!.RequestTagWrite(command.DeviceId, command.TagId, command.StartOffset, command.Data);
+        }
 
-		private void OnStopped(EventArgs obj)
-		{
-			_started = false;
-		}
+        return Task.CompletedTask;
+    }
 
-		private void OnApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs e)
-		{
-			if (e.ApplicationMessage.Topic.StartsWith(Options.TagWriteRequestCommandsTopicRoot, StringComparison.InvariantCultureIgnoreCase))
-			{
-				var command = _messageSerializer.DeserializeMessage<TagWriteRequestCommand>(e.ApplicationMessage.Payload);
-				if (command != null)
-					ConnectorInterface!.RequestTagWrite(command.DeviceId, command.TagId, command.StartOffset, command.Data);
-			}
-		}
+    private Task OnClientConnected(ClientConnectedEventArgs e)
+    {
+        ConnectorInterface!.OnConnectorConnected(new ConnectorConnectedEventArgs(this, $"ClientId {e.ClientId} connected to port {Options.ServerPort}"));
+        return Task.CompletedTask;
+    }
 
-		private void OnClientConnected(MqttServerClientConnectedEventArgs e)
-		{
-			ConnectorInterface!.OnConnectorConnected(new ConnectorConnectedEventArgs(this, $"ClientId {e.ClientId} connected to port {Options.ServerPort}"));
-		}
+    private Task OnClientDisconnected(ClientDisconnectedEventArgs e)
+    {
+        ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"ClientId {e.ClientId} disconnected: {e.DisconnectType}"));
+        return Task.CompletedTask;
+    }
 
-		private void OnClientDisconnected(MqttServerClientDisconnectedEventArgs e)
-		{
-			ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"ClientId {e.ClientId} disconnected: {e.DisconnectType}"));
-		}
+    protected override async Task PublishExceptionAsync(Exception exception)
+    {
+        if (_started)
+        {
+            try
+            {
+                await _mqttServer.InjectApplicationMessage(new InjectedMqttApplicationMessage(
+                    new MqttApplicationMessageBuilder()
+                        .WithTopic(Options.ExceptionsTopicPattern)
+                        .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+                        .WithPayload(_messageSerializer.SerializeMessage(EventExtensions.ToEventMessage(exception)))
+                        .Build())
+                );
+            }
+            catch (Exception ex)
+            {
+                OnException(ex);
+            }
+        }
+    }
 
-		protected override void PublishException(Exception exception)
-		{
-			if (_started)
-			{
-				try
-				{
-					_mqttServer.PublishAsync(b => b
-						.WithTopic(Options.ExceptionsTopicPattern)
-						.WithAtLeastOnceQoS()
-						.WithPayload(_messageSerializer.SerializeMessage(EventExtensions.ToEventMessage(exception)))
-					).Wait();
-				}
-				catch (Exception ex)
-				{
-					OnException(ex);
-				}
-			}
-		}
+    protected override async Task PublishDeviceStatusEventAsync(DeviceStatusEvent e)
+    {
+        if (_started)
+        {
+            try
+            {
+                await _mqttServer.InjectApplicationMessage(new InjectedMqttApplicationMessage(
+                    new MqttApplicationMessageBuilder()
+                        .WithTopic(Options.GetDeviceStatusEventsTopic(e.Device.DeviceId))
+                        .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+                        .WithPayload(_messageSerializer.SerializeMessage(EventExtensions.ToEventMessage(e)))
+                        .Build())
+                );
+            }
+            catch (Exception ex)
+            {
+                OnException(ex);
+            }
+        }
+    }
 
-		protected override void PublishDeviceStatusEvent(DeviceStatusEvent e)
-		{
-			if (_started)
-			{
-				try
-				{
-					_mqttServer.PublishAsync(b => b
-						.WithTopic(Options.GetDeviceStatusEventsTopic(e.Device.DeviceId))
-						.WithAtLeastOnceQoS()
-						.WithPayload(_messageSerializer.SerializeMessage(EventExtensions.ToEventMessage(e)))
-					).Wait();
-				}
-				catch (Exception ex)
-				{
-					OnException(ex);
-				}
-			}
-		}
+    protected override async Task PublishTagScheduleEventAsync(TagScheduleEvent e)
+    {
+        await PublishTagScheduleEvent(e, false);
+    }
 
-		protected override void PublishTagScheduleEvent(TagScheduleEvent e)
-		{
-			PublishTagScheduleEvent(e, false);
-		}
-		private void PublishTagScheduleEvent(TagScheduleEvent e, bool isInitializationData)
-		{
-			if (_started)
-			{
-				var evt = !Options.IsPublishPartialReads && e.Data != null ? TagScheduleEvent.BuildTagData(e.Device, e.Tag, e.IsErrorNumberChanged) : e;
+    private async Task PublishTagScheduleEvent(TagScheduleEvent e, bool isInitializationData)
+    {
+        if (_started)
+        {
+            var evt = !Options.IsPublishPartialReads && e.Data != null ? TagScheduleEvent.BuildTagData(e.Device, e.Tag, e.IsErrorNumberChanged) : e;
 
-				var message = evt.ToEventMessage(isInitializationData);
+            var message = evt.ToEventMessage(isInitializationData);
 
-				try
-				{
-					_mqttServer.PublishAsync(b => b
-						.WithTopic(Options.GetTagScheduleEventsTopic(e.Device.DeviceId, e.Tag.TagId))
-						.WithAtLeastOnceQoS()
-						.WithPayload(_messageSerializer.SerializeMessage(message))
-					).Wait();
-				}
-				catch (Exception ex)
-				{
-					OnException(ex);
-				}
-			}
-		}
+            try
+            {
+                await _mqttServer.InjectApplicationMessage(new InjectedMqttApplicationMessage(
+                    new MqttApplicationMessageBuilder()
+                        .WithTopic(Options.GetTagScheduleEventsTopic(e.Device.DeviceId, e.Tag.TagId))
+                        .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+                        .WithPayload(_messageSerializer.SerializeMessage(message))
+                        .Build())
+                );
+            }
+            catch (Exception ex)
+            {
+                OnException(ex);
+            }
+        }
+    }
 
-		private void InvokeInitializationDelegate(bool publishDeviceStatusEvents, bool publishTagScheduleEvents)
-		{
-			ConnectorInterface!.RunInitializationAction(
-				initAction: (deviceEvents, tagEvents) =>
-				{
-					if (publishDeviceStatusEvents)
-					{
-						foreach (var deviceEvent in deviceEvents)
-						{
-							PublishDeviceStatusEvent(deviceEvent);
-						}
-					}
-					if (publishTagScheduleEvents)
-					{
-						foreach (var tagEvent in tagEvents)
-						{
-							PublishTagScheduleEvent(tagEvent, true);
-						}
-					}
-				});
-		}
+    private async Task InvokeInitializationDelegateAsync(bool publishDeviceStatusEvents, bool publishTagScheduleEvents)
+    {
+        await ConnectorInterface!.RunInitializationActionAsync(
+            initAction: async (deviceEvents, tagEvents) =>
+            {
+                if (publishDeviceStatusEvents)
+                {
+                    foreach (var deviceEvent in deviceEvents)
+                    {
+                        await PublishDeviceStatusEventAsync(deviceEvent);
+                    }
+                }
+                if (publishTagScheduleEvents)
+                {
+                    foreach (var tagEvent in tagEvents)
+                    {
+                        await PublishTagScheduleEvent(tagEvent, true);
+                    }
+                }
+            });
+    }
 
-		private void OnException(Exception ex)
-		{
-			try
-			{
-				ConnectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
-			}
-			catch
-			{
-				// ignoring this
-			}
-		}
-
-	}
+    private void OnException(Exception ex)
+    {
+        try
+        {
+            ConnectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
+        }
+        catch
+        {
+            // ignoring this
+        }
+    }
 }

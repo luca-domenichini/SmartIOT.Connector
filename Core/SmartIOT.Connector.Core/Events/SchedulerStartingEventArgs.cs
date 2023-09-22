@@ -1,14 +1,13 @@
 ﻿using SmartIOT.Connector.Core.Scheduler;
 
-namespace SmartIOT.Connector.Core.Events
-{
-	public class SchedulerStartingEventArgs : EventArgs
-	{
-		public ITagScheduler Scheduler { get; }
+namespace SmartIOT.Connector.Core.Events;
 
-		public SchedulerStartingEventArgs(ITagScheduler scheduler)
-		{
-			Scheduler = scheduler;
-		}
-	}
+public class SchedulerStartingEventArgs : EventArgs
+{
+    public ITagScheduler Scheduler { get; }
+
+    public SchedulerStartingEventArgs(ITagScheduler scheduler)
+    {
+        Scheduler = scheduler;
+    }
 }

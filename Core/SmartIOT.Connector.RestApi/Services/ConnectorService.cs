@@ -1,42 +1,41 @@
 ﻿using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Factory;
 
-namespace SmartIOT.Connector.RestApi.Services
+namespace SmartIOT.Connector.RestApi.Services;
+
+public class ConnectorService : IConnectorService
 {
-	public class ConnectorService : IConnectorService
-	{
-        private readonly SmartIotConnector _smartiotConnector;
-		private readonly IConnectorFactory _connectorFactory;
+    private readonly SmartIotConnector _smartiotConnector;
+    private readonly IConnectorFactory _connectorFactory;
 
-		public ConnectorService(SmartIotConnector smartiotConnector, IConnectorFactory connectorFactory)
-		{
-			_smartiotConnector = smartiotConnector;
-			_connectorFactory = connectorFactory;
-		}
+    public ConnectorService(SmartIotConnector smartiotConnector, IConnectorFactory connectorFactory)
+    {
+        _smartiotConnector = smartiotConnector;
+        _connectorFactory = connectorFactory;
+    }
 
-		public Model.Connector? AddConnector(string connectionString)
-		{
-			var connector = _connectorFactory.CreateConnector(connectionString);
-			if (connector == null)
-				return null;
-			
-			int index = _smartiotConnector.AddConnector(connector);
+    public async Task<Model.Connector?> AddConnectorAsync(string connectionString)
+    {
+        var connector = _connectorFactory.CreateConnector(connectionString);
+        if (connector == null)
+            return null;
 
-			return new Model.Connector(index, connectionString);
-		}
+        int index = await _smartiotConnector.AddConnectorAsync(connector);
 
-		public bool DeleteConnector(int id)
-		{
-			return _smartiotConnector.RemoveConnector(id);
-		}
+        return new Model.Connector(index, connectionString);
+    }
 
-		public bool ReplaceConnector(int id, string connectionString)
-		{
-			var connector = _connectorFactory.CreateConnector(connectionString);
-			if (connector == null)
-				return false;
+    public Task<bool> DeleteConnectorAsync(int id)
+    {
+        return _smartiotConnector.RemoveConnectorAsync(id);
+    }
 
-			return _smartiotConnector.ReplaceConnector(id, connector);
-		}
-	}
+    public async Task<bool> ReplaceConnectorAsync(int id, string connectionString)
+    {
+        var connector = _connectorFactory.CreateConnector(connectionString);
+        if (connector == null)
+            return false;
+
+        return await _smartiotConnector.ReplaceConnectorAsync(id, connector);
+    }
 }

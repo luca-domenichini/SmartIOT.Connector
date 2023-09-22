@@ -5,105 +5,102 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 
-namespace SmartIOT.Connector.ConsoleApp
+namespace SmartIOT.Connector.ConsoleApp;
+
+public class Program
 {
-	public class Program
-	{
-		public static void Main(string[] args)
-		{
-			Assembly assembly = Assembly.GetExecutingAssembly();
-			FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
-			var version = fileVersionInfo.ProductVersion ?? "--Unknown";
+    protected Program()
+    {
+    }
 
-			if (args.Length == 0)
-				args = new[] { "smartiot-config.json" };
+    public static void Main(string[] args)
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+        var version = fileVersionInfo.ProductVersion ?? "--Unknown";
 
-			string path = args[0];
-			if (!File.Exists(path))
-			{
-				Console.WriteLine($"Configuration file {path} does not exists");
-				return;
-			}
+        if (args.Length == 0)
+            args = new[] { "smartiot-config.json" };
 
-			var configuration = JsonSerializer.Deserialize<AppConfiguration>(File.ReadAllText(path), new JsonSerializerOptions()
-			{
-				ReadCommentHandling = JsonCommentHandling.Skip
-			});
-			if (configuration == null)
-			{
-				Console.WriteLine($"Configuration not valid for file {path}");
-				return;
-			}
+        string path = args[0];
+        if (!File.Exists(path))
+        {
+            Console.WriteLine($"Configuration file {path} does not exists");
+            return;
+        }
 
-			SetupSerilog();
+        var configuration = JsonSerializer.Deserialize<AppConfiguration>(File.ReadAllText(path), new JsonSerializerOptions()
+        {
+            ReadCommentHandling = JsonCommentHandling.Skip
+        });
+        if (configuration == null)
+        {
+            Console.WriteLine($"Configuration not valid for file {path}");
+            return;
+        }
 
-			var builder = WebApplication.CreateBuilder(args);
+        SetupSerilog();
 
-			// configure logging
-			builder.Logging.ClearProviders();
-			builder.Logging.AddSerilog(dispose: true);
+        var builder = WebApplication.CreateBuilder(args);
 
-			// Add SmartIOT.Connector services to the container.
-			builder.Services.AddSmartIotConnectorRunner(configuration);
+        // configure logging
+        builder.Logging.ClearProviders();
+        builder.Logging.AddSerilog(dispose: true);
 
-			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-			builder.Services.AddEndpointsApiExplorer();
-			builder.Services.AddSwaggerGen();
+        // Add SmartIOT.Connector services to the container.
+        builder.Services.AddSmartIotConnectorRunner(configuration);
 
-			// Add api controllers and versioning
-			builder.Services.AddSmartIotConnectorRestApi(new ConfigurationPersister(configuration, path));
+        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
 
-			builder.Services.AddRouting(options =>
-			{
-				options.LowercaseUrls = true;
-				options.LowercaseQueryStrings = true;
-			});
+        // Add api controllers and versioning
+        builder.Services.AddSmartIotConnectorRestApi(new ConfigurationPersister(configuration, path));
 
-			var app = builder.Build();
+        builder.Services.AddRouting(options =>
+        {
+            options.LowercaseUrls = true;
+            options.LowercaseQueryStrings = true;
+        });
 
-			// Configure the HTTP request pipeline.
-			//if (app.Environment.IsDevelopment())
-			//{
-				app.UseSwagger();
-				app.UseSwaggerUI(options =>
-				{
-					var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+        var app = builder.Build();
 
-					foreach (var description in provider.ApiVersionDescriptions)
-					{
-						options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"SmartIOT.Connector API {description.GroupName}");
-					}
-				});
-			//}
+        // Configure the HTTP request pipeline.
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+        {
+            var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
-			app.UseHttpsRedirection();
+            foreach (var name in provider.ApiVersionDescriptions.Select(x => x.GroupName))
+            {
+                options.SwaggerEndpoint($"/swagger/{name}/swagger.json", $"SmartIOT.Connector API {name}");
+            }
+        });
 
-			app.UseAuthorization();
+        app.UseHttpsRedirection();
 
-			app.MapControllers();
+        app.UseAuthorization();
 
-			// Manage lifecycle for Runner
-			app.RegisterSmartIotConnectorRunnerLifetime();
+        app.MapControllers();
 
-			// log something before the real start
-			var logger = app.Services.GetRequiredService<ILogger<Program>>();
-			logger.LogInformation("{NewLine}{NewLine}  --> SmartIOT.Connector v{version}{NewLine}", Environment.NewLine, Environment.NewLine, version, Environment.NewLine);
+        // log something before the real start
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("{NewLine}{NewLine}  --> SmartIOT.Connector v{version}{NewLine}", Environment.NewLine, Environment.NewLine, version, Environment.NewLine);
 
-			app.Run();
-		}
+        app.Run();
+    }
 
-		private static void SetupSerilog()
-		{
-			var configuration = new ConfigurationBuilder()
-				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-				.AddEnvironmentVariables()
-				.Build();
+    private static void SetupSerilog()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddEnvironmentVariables()
+            .Build();
 
-			var conf = new LoggerConfiguration()
-				.ReadFrom.Configuration(configuration)
-				.Enrich.FromLogContext();
+        var conf = new LoggerConfiguration()
+            .ReadFrom.Configuration(configuration)
+            .Enrich.FromLogContext();
 
-			Log.Logger = conf.CreateLogger();
-		}
-	}
+        Log.Logger = conf.CreateLogger();
+    }
 }

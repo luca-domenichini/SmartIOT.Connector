@@ -5,269 +5,267 @@ using SmartIOT.Connector.Messages;
 using SmartIOT.Connector.Messages.Serializers;
 using System.Net.Sockets;
 
-namespace SmartIOT.Connector.Tcp.Client
+namespace SmartIOT.Connector.Tcp.Client;
+
+public class TcpClientConnector : AbstractPublisherConnector
 {
-	public class TcpClientConnector : AbstractPublisherConnector
-	{
-		private new TcpClientConnectorOptions Options => (TcpClientConnectorOptions)base.Options;
+    private new TcpClientConnectorOptions Options => (TcpClientConnectorOptions)base.Options;
 
-		private TcpClient? _tcpClient;
-		private readonly IStreamMessageSerializer _messageSerializer;
-		private readonly CancellationTokenSource _stopToken = new CancellationTokenSource();
-		private readonly ManualResetEventSlim _reconnectTaskTerminated = new ManualResetEventSlim();
-		private readonly CountdownLatch _clients = new CountdownLatch();
+    private TcpClient? _tcpClient;
+    private readonly IStreamMessageSerializer _messageSerializer;
+    private readonly CancellationTokenSource _stopToken = new CancellationTokenSource();
+    private readonly ManualResetEventSlim _reconnectTaskTerminated = new ManualResetEventSlim();
+    private readonly CountdownLatch _clients = new CountdownLatch();
 
-		public TcpClientConnector(TcpClientConnectorOptions options)
-			: base(options)
-		{
-			_messageSerializer = options.MessageSerializer;
-		}
+    public TcpClientConnector(TcpClientConnectorOptions options)
+        : base(options)
+    {
+        _messageSerializer = options.MessageSerializer;
+    }
 
+    protected override async Task PublishDeviceStatusEventAsync(DeviceStatusEvent e)
+    {
+        await PublishDeviceStatusEvent(e, _tcpClient);
+    }
 
-		protected override void PublishDeviceStatusEvent(DeviceStatusEvent e)
-		{
-			PublishDeviceStatusEvent(e, _tcpClient);
-		}
-		private void PublishDeviceStatusEvent(DeviceStatusEvent e, TcpClient? tcpClient)
-		{
-			SendMessage(tcpClient, e.ToEventMessage());
-		}
+    private Task PublishDeviceStatusEvent(DeviceStatusEvent e, TcpClient? tcpClient)
+    {
+        SendMessage(tcpClient, e.ToEventMessage());
+        return Task.CompletedTask;
+    }
 
-		protected override void PublishException(Exception exception)
-		{
-			PublishException(exception, _tcpClient);
-		}
-		private void PublishException(Exception exception, TcpClient? tcpClient)
-		{
-			SendMessage(tcpClient, new ExceptionEvent(exception.Message, exception.ToString()));
-		}
+    protected override async Task PublishExceptionAsync(Exception exception)
+    {
+        await PublishException(exception, _tcpClient);
+    }
 
-		protected override void PublishTagScheduleEvent(TagScheduleEvent e)
-		{
-			PublishTagScheduleEvent(e, _tcpClient, false);
-		}
-		private void PublishTagScheduleEvent(TagScheduleEvent e, TcpClient? tcpClient, bool isInitializationData)
-		{
-			SendMessage(tcpClient, e.ToEventMessage(isInitializationData));
-		}
+    private Task PublishException(Exception exception, TcpClient? tcpClient)
+    {
+        SendMessage(tcpClient, new ExceptionEvent(exception.Message, exception.ToString()));
+        return Task.CompletedTask;
+    }
 
-		private void SendMessage(TcpClient? tcpClient, object message)
-		{
-			if (tcpClient != null && tcpClient.Connected)
-			{
-				try
-				{
-					// locking on tcpClient to handle concurrency on message events vs initialization
-					lock (tcpClient)
-					{
-						_messageSerializer.SerializeMessage(tcpClient.GetStream(), message);
-					}
-				}
-				catch (Exception ex)
-				{
-					tcpClient.Close();
-					ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"Disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
-				}
-			}
-		}
+    protected override async Task PublishTagScheduleEventAsync(TagScheduleEvent e)
+    {
+        await PublishTagScheduleEvent(e, _tcpClient, false);
+    }
 
-		public override void Start(ISmartIOTConnectorInterface connectorInterface)
-		{
-			base.Start(connectorInterface);
+    private Task PublishTagScheduleEvent(TagScheduleEvent e, TcpClient? tcpClient, bool isInitializationData)
+    {
+        SendMessage(tcpClient, e.ToEventMessage(isInitializationData));
+        return Task.CompletedTask;
+    }
 
-			Task.Factory.StartNew(async () =>
-			{
-				try
-				{
-					while (!_stopToken.IsCancellationRequested)
-					{
-						try
-						{
-							if (!(_tcpClient?.Connected ?? true))
-							{
-								_tcpClient?.Close();
-								_tcpClient = null;
-							}
+    private void SendMessage(TcpClient? tcpClient, object message)
+    {
+        if (tcpClient != null && tcpClient.Connected)
+        {
+            try
+            {
+                // locking on tcpClient to handle concurrency on message events vs initialization
+                lock (tcpClient)
+                {
+                    _messageSerializer.SerializeMessage(tcpClient.GetStream(), message);
+                }
+            }
+            catch (Exception ex)
+            {
+                tcpClient.Close();
+                ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"Disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
+            }
+        }
+    }
 
-							if (_tcpClient == null)
-							{
-								var tcpClient = new TcpClient();
-								ConfigureTcpClient(tcpClient);
+    public override async Task StartAsync(ISmartIOTConnectorInterface connectorInterface)
+    {
+        await base.StartAsync(connectorInterface);
 
-								try
-								{
-									await tcpClient.ConnectAsync(Options.ServerAddress, Options.ServerPort, _stopToken.Token);
-								}
-								catch (Exception ex)
-								{
-									tcpClient.Close();
-									tcpClient = null;
+        _ = Task.Factory.StartNew(async () =>
+        {
+            try
+            {
+                while (!_stopToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        if (!(_tcpClient?.Connected ?? true))
+                        {
+                            _tcpClient?.Close();
+                            _tcpClient = null;
+                        }
 
-									if (ex is not OperationCanceledException)
-										connectorInterface.OnConnectorConnectionFailed(new ConnectorConnectionFailedEventArgs(this, $"TcpClient Connector failed to connect to host {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
-								}
+                        if (_tcpClient == null)
+                        {
+                            var tcpClient = new TcpClient();
 
-								if (tcpClient != null && tcpClient.Connected)
-								{
-									try
-									{
-										// locking on tcpClient to handle concurrency on message events vs initialization
-										lock (tcpClient)
-										{
-											_tcpClient = tcpClient;
+                            try
+                            {
+                                await tcpClient.ConnectAsync(Options.ServerAddress, Options.ServerPort, _stopToken.Token);
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                throw;
+                            }
+                            catch (Exception ex)
+                            {
+                                tcpClient.Close();
+                                tcpClient = null;
 
-											// send initialization events
-											connectorInterface.RunInitializationAction((deviceStatusEvents, tagEvents) =>
-											{
-												foreach (var e in deviceStatusEvents)
-												{
-													PublishDeviceStatusEvent(e, tcpClient);
-												}
-												foreach (var e in tagEvents)
-												{
-													PublishTagScheduleEvent(e, tcpClient, true);
-												}
-											});
+                                connectorInterface.OnConnectorConnectionFailed(new ConnectorConnectionFailedEventArgs(this, $"TcpClient Connector failed to connect to host {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
+                            }
 
-											connectorInterface.OnConnectorConnected(new ConnectorConnectedEventArgs(this, $"Connected to server {Options.ServerAddress}:{Options.ServerPort}"));
+                            if (tcpClient != null && tcpClient.Connected)
+                            {
+                                try
+                                {
+                                    // send initialization events
+                                    await connectorInterface.RunInitializationActionAsync(async (deviceStatusEvents, tagEvents) =>
+                                    {
+                                        foreach (var e in deviceStatusEvents)
+                                        {
+                                            await PublishDeviceStatusEvent(e, tcpClient);
+                                        }
+                                        foreach (var e in tagEvents)
+                                        {
+                                            await PublishTagScheduleEvent(e, tcpClient, true);
+                                        }
+                                    });
 
-											StartHandlingTcpClient(tcpClient);
-										}
-									}
-									catch (Exception ex)
-									{
-										tcpClient.Close();
-										tcpClient = null;
+                                    connectorInterface.OnConnectorConnected(new ConnectorConnectedEventArgs(this, $"Connected to server {Options.ServerAddress}:{Options.ServerPort}"));
 
-										ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"Disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
-									}
-								}
-							}
+                                    StartHandlingTcpClient(tcpClient);
+                                }
+                                catch (Exception ex)
+                                {
+                                    tcpClient.Close();
+                                    tcpClient = null;
 
-							await Task.Delay(Options.ReconnectInterval, _stopToken.Token);
-						}
-						catch (OperationCanceledException)
-						{
-							// stop request: do nothing
-						}
-						catch (Exception ex)
-						{
-							// unhandled exception: signal via interface
-							try
-							{
-								ConnectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
-							}
-							catch
-							{
-								// ignore this exception
-							}
-						}
-					}
-				}
-				finally
-				{
-					_reconnectTaskTerminated.Set();
-				}
-			});
-		}
+                                    ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"Disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
+                                }
+                            }
+                        }
 
-		private void StartHandlingTcpClient(TcpClient tcpClient)
-		{
-			_clients.Increment();
+                        await Task.Delay(Options.ReconnectInterval, _stopToken.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // stop request: do nothing
+                    }
+                    catch (Exception ex)
+                    {
+                        // unhandled exception: signal via interface
+                        try
+                        {
+                            ConnectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
+                        }
+                        catch
+                        {
+                            // ignore this exception
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                _reconnectTaskTerminated.Set();
+            }
+        });
+    }
 
-			// processing thread
-			new Thread(() =>
-			{
-				try
-				{
-					while (!_stopToken.IsCancellationRequested)
-					{
-						object? message = _messageSerializer.DeserializeMessage(tcpClient.GetStream());
-						// null here means "EOF": socket is closed
-						if (message == null)
-							break;
+    private void StartHandlingTcpClient(TcpClient tcpClient)
+    {
+        _tcpClient = tcpClient;
+        _clients.Increment();
 
-						HandleMessage(message);
-					}
-				}
-				catch (Exception ex)
-				{
-					if (tcpClient.Connected)
-					{
-						tcpClient.Close();
+        // processing thread
+        new Thread(() =>
+        {
+            try
+            {
+                while (!_stopToken.IsCancellationRequested)
+                {
+                    object? message = _messageSerializer.DeserializeMessage(tcpClient.GetStream());
+                    // null here means "EOF": socket is closed
+                    if (message == null)
+                        break;
 
-						ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"Disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
-					}
-				}
-				finally
-				{
-					_clients.Decrement();
-				}
-			})
-			{
-				Name = "TcpClient.Reader"
-			}.Start();
+                    HandleMessage(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (tcpClient.Connected)
+                {
+                    tcpClient.Close();
 
-			// ping thread
-			if (Options.PingInterval > TimeSpan.Zero)
-			{
-				new Thread(() =>
-				{
-					try
-					{
-						while (!_stopToken.Token.WaitHandle.WaitOne(5000))
-						{
-							lock (tcpClient)
-							{
-								_messageSerializer.SerializeMessage(tcpClient.GetStream(), new PingMessage());
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						ConnectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
-					}
-				})
-				{
-					Name = "TcpClient.Ping",
-					IsBackground = true
-				}.Start();
-			}
-		}
+                    ConnectorInterface!.OnConnectorDisconnected(new ConnectorDisconnectedEventArgs(this, $"Disconnected from server {Options.ServerAddress}:{Options.ServerPort}: {ex.Message}", ex));
+                }
+            }
+            finally
+            {
+                _clients.Decrement();
+            }
+        })
+        {
+            Name = "TcpClient.Reader"
+        }.Start();
 
-		private void HandleMessage(object message)
-		{
-			switch (message)
-			{
-				case TagWriteRequestCommand c:
-					HandleTagWriteRequestCommand(c);
-					break;
-				case PingMessage:
-					break;
-				default:
-					throw new InvalidOperationException($"Message type {message.GetType().FullName} not managed");
-			}
-		}
+        // ping thread
+        if (Options.PingInterval > TimeSpan.Zero)
+        {
+            new Thread(() =>
+            {
+                try
+                {
+                    while (!_stopToken.Token.WaitHandle.WaitOne(5000))
+                    {
+                        lock (tcpClient)
+                        {
+                            _messageSerializer.SerializeMessage(tcpClient.GetStream(), new PingMessage());
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ConnectorInterface!.OnConnectorException(new ConnectorExceptionEventArgs(this, ex));
+                }
+            })
+            {
+                Name = "TcpClient.Ping",
+                IsBackground = true
+            }.Start();
+        }
+    }
 
-		private void HandleTagWriteRequestCommand(TagWriteRequestCommand c)
-		{
-			ConnectorInterface!.RequestTagWrite(c.DeviceId, c.TagId, c.StartOffset, c.Data);
-		}
+    private void HandleMessage(object message)
+    {
+        switch (message)
+        {
+            case TagWriteRequestCommand c:
+                HandleTagWriteRequestCommand(c);
+                break;
 
-		private void ConfigureTcpClient(TcpClient tcpClient)
-		{
-			
-		}
+            case PingMessage:
+                break;
 
-		public override void Stop()
-		{
-			base.Stop();
+            default:
+                throw new InvalidOperationException($"Message type {message.GetType().FullName} not managed");
+        }
+    }
 
-			_stopToken.Cancel();
-			_tcpClient?.Close();
+    private void HandleTagWriteRequestCommand(TagWriteRequestCommand c)
+    {
+        ConnectorInterface!.RequestTagWrite(c.DeviceId, c.TagId, c.StartOffset, c.Data);
+    }
 
-			_clients.WaitUntilZero();
-			_reconnectTaskTerminated.Wait();
-		}
-	}
+    public override async Task StopAsync()
+    {
+        await base.StopAsync();
+
+        _stopToken.Cancel();
+        _tcpClient?.Close();
+
+        _clients.WaitUntilZero();
+        _reconnectTaskTerminated.Wait();
+    }
 }

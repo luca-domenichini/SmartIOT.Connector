@@ -104,7 +104,9 @@ This section is an object that provides the following informations ([here](../Co
 		"RestartDeviceInErrorTimeoutMillis": 30000,
 		"WaitTimeAfterErrorMillis": 1000,
 		"WaitTimeBetweenEveryScheduleMillis": 0,
-		"WaitTimeBetweenReadSchedulesMillis": 0
+		"WaitTimeBetweenReadSchedulesMillis": 0,
+		"TerminateAfterNoWriteRequestsDelayMillis": 3000,
+		"TerminateMinimumDelayMillis": 0
 	}
 ```
 
@@ -117,3 +119,7 @@ This section is an object that provides the following informations ([here](../Co
 ```WaitTimeBetweenEveryScheduleMillis```: This key is the time in milliseconds to wait between every schedule between every tag defined in a scheduler (read or write).
 
 ```WaitTimeBetweenReadSchedulesMillis```: This key is the time in milliseconds to wait between every read schedule for a single tag.
+
+```TerminateAfterNoWriteRequestsDelayMillis```: This key is the minimum time in milliseconds to wait before terminating the scheduler after receiving the last write request from any connector.
+
+```TerminateMinimumDelayMillis```: This is key is the minimum time to wait in milliseconds to wait before terminating the scheduler when requested, despite any write request incoming or not.

@@ -57,7 +57,9 @@ For message formats, read the docs [here for project SmartIOT.Connector.Messages
 		"RestartDeviceInErrorTimeoutMillis": 30000,
 		"WaitTimeAfterErrorMillis": 1000,
 		"WaitTimeBetweenEveryScheduleMillis": 0,
-		"WaitTimeBetweenReadSchedulesMillis": 0
+		"WaitTimeBetweenReadSchedulesMillis": 0,
+		"TerminateAfterNoWriteRequestsDelayMillis": 3000,
+		"TerminateMinimumDelayMillis": 0
 	}
 }
 ```
