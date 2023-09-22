@@ -3,8 +3,6 @@ name: .NET Release
 on:
   push:
     branches: [ "release" ]
-  pull_request:
-    branches: [ "release" ]
 
 env:
   VERSION_MAJOR: 0

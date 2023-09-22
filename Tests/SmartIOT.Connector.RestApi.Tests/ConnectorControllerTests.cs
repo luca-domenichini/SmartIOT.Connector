@@ -1,106 +1,104 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartIOT.Connector.Core;
-using SmartIOT.Connector.Mocks;
 using SmartIOT.Connector.RestApi.Controllers.V1;
 using SmartIOT.Connector.RestApi.Services;
 
-namespace SmartIOT.Connector.RestApi.Tests
+namespace SmartIOT.Connector.RestApi.Tests;
+
+public class ConnectorControllerTests
 {
-	public class ConnectorControllerTests
-	{
-		private ConnectorController SetupController()
-		{
-			var builder = new SmartIotConnectorBuilder()
-				.WithAutoDiscoverConnectorFactories()
-				.WithAutoDiscoverDeviceDriverFactories()
-				.WithConfigurationJsonFilePath("test-config.json");
+    private ConnectorController SetupController()
+    {
+        var builder = new SmartIotConnectorBuilder()
+            .WithAutoDiscoverConnectorFactories()
+            .WithAutoDiscoverDeviceDriverFactories()
+            .WithConfigurationJsonFilePath("test-config.json");
 
-			var sic = builder.Build();
+        var sic = builder.Build();
 
-			var service = new ConnectorService(sic, builder.ConnectorFactory);
+        var service = new ConnectorService(sic, builder.ConnectorFactory);
 
-			return new ConnectorController(sic, service);
-		}
+        return new ConnectorController(sic, service);
+    }
 
-		[Fact]
-		public void Test_GetConnectors()
-		{
-			var controller = SetupController();
+    [Fact]
+    public void Test_GetConnectors()
+    {
+        var controller = SetupController();
 
-			var list = controller.GetConnectors();
+        var list = controller.GetConnectors();
 
-			Assert.Single(list);
+        Assert.Single(list);
 
-			var c = list[0];
+        var c = list[0];
 
-			Assert.Equal(0, c.Index);
-			Assert.Equal("fake://", c.ConnectionString);
-		}
-		
-		[Fact]
-		public void Test_GetConnector_ok()
-		{
-			var controller = SetupController();
+        Assert.Equal(0, c.Index);
+        Assert.Equal("fake://", c.ConnectionString);
+    }
 
-			var r = controller.GetConnector(0);
+    [Fact]
+    public void Test_GetConnector_ok()
+    {
+        var controller = SetupController();
 
-			OkObjectResult ok = (OkObjectResult)r;
+        var r = controller.GetConnector(0);
 
-			Model.Connector c = (Model.Connector)ok.Value!;
+        OkObjectResult ok = (OkObjectResult)r;
 
-			Assert.Equal(0, c.Index);
-			Assert.Equal("fake://", c.ConnectionString);
-		}
-		[Fact]
-		public void Test_GetConnector_notfound()
-		{
-			var controller = SetupController();
+        Model.Connector c = (Model.Connector)ok.Value!;
 
-			var r = controller.GetConnector(1);
+        Assert.Equal(0, c.Index);
+        Assert.Equal("fake://", c.ConnectionString);
+    }
 
-			Assert.IsType<NotFoundResult>(r);
-		}
-		
-		[Fact]
-		public void Test_AddConnector()
-		{
-			var controller = SetupController();
+    [Fact]
+    public void Test_GetConnector_notfound()
+    {
+        var controller = SetupController();
 
-			var r = controller.AddConnector("mock://");
+        var r = controller.GetConnector(1);
 
-			OkObjectResult ok = (OkObjectResult)r;
+        Assert.IsType<NotFoundResult>(r);
+    }
 
-			Model.Connector c = (Model.Connector)ok.Value!;
+    [Fact]
+    public async Task Test_AddConnector()
+    {
+        var controller = SetupController();
 
-			Assert.Equal(1, c.Index);
-			Assert.Equal("mock://", c.ConnectionString);
-		}
+        var r = await controller.AddConnector("mock://");
 
-		[Fact]
-		public void Test_UpdateConnector()
-		{
-			var controller = SetupController();
+        OkObjectResult ok = (OkObjectResult)r;
 
-			var r = controller.UpdateConnector(0, "mock://");
+        Model.Connector c = (Model.Connector)ok.Value!;
 
-			OkObjectResult ok = (OkObjectResult)r;
+        Assert.Equal(1, c.Index);
+        Assert.Equal("mock://", c.ConnectionString);
+    }
 
-			Model.Connector c = (Model.Connector)ok.Value!;
+    [Fact]
+    public async Task Test_UpdateConnector()
+    {
+        var controller = SetupController();
 
-			Assert.Equal(0, c.Index);
-			Assert.Equal("mock://", c.ConnectionString);
-		}
-		
-		[Fact]
-		public void Test_RemoveConnector()
-		{
-			var controller = SetupController();
+        var r = await controller.UpdateConnector(0, "mock://");
 
-			var r = controller.RemoveConnector(0);
+        OkObjectResult ok = (OkObjectResult)r;
 
-			Assert.IsType<OkResult>(r);
-			Assert.Empty(controller.GetConnectors());
-		}
+        Model.Connector c = (Model.Connector)ok.Value!;
 
-	}
+        Assert.Equal(0, c.Index);
+        Assert.Equal("mock://", c.ConnectionString);
+    }
+
+    [Fact]
+    public async Task Test_RemoveConnector()
+    {
+        var controller = SetupController();
+
+        var r = await controller.RemoveConnector(0);
+
+        Assert.IsType<OkResult>(r);
+        Assert.Empty(controller.GetConnectors());
+    }
 }

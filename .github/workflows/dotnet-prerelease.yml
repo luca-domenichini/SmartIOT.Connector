@@ -3,8 +3,6 @@ name: .NET Prerelease
 on:
   push:
     branches: [ "prerelease" ]
-  pull_request:
-    branches: [ "prerelease" ]
 
 env:
   VERSION_MAJOR: 0

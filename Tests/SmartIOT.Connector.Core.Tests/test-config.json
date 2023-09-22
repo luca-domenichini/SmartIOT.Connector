@@ -1,38 +1,40 @@
 {
   "ConnectorConnectionStrings": [
-	"fake://fake"
+    "fake://fake"
   ],
   "DeviceConfigurations": [
-	{
-	  "ConnectionString": "mock://mock",
-	  "DeviceId": "1",
-	  "Enabled": true,
-	  "Name": "Test Device",
-	  "IsPartialReadsEnabled": false,
-	  "IsWriteOptimizationEnabled": true,
-	  "Tags": [
-		{
-		  "TagId": "DB20",
-		  "TagType": "READ",
-		  "ByteOffset": 0,
-		  "Size": 100,
-		  "Weight": 1
-		},
-		{
-		  "TagId": "DB22",
-		  "TagType": "WRITE",
-		  "ByteOffset": 0,
-		  "Size": 100,
-		  "Weight": 1
-		}
-	  ]
-	}
+    {
+      "ConnectionString": "mock://mock",
+      "DeviceId": "1",
+      "Enabled": true,
+      "Name": "Test Device",
+      "IsPartialReadsEnabled": false,
+      "IsWriteOptimizationEnabled": true,
+      "Tags": [
+        {
+          "TagId": "DB20",
+          "TagType": "READ",
+          "ByteOffset": 0,
+          "Size": 100,
+          "Weight": 1
+        },
+        {
+          "TagId": "DB22",
+          "TagType": "WRITE",
+          "ByteOffset": 0,
+          "Size": 100,
+          "Weight": 1
+        }
+      ]
+    }
   ],
   "SchedulerConfiguration": {
-	"MaxErrorsBeforeReconnection": 10,
-	"RestartDeviceInErrorTimeoutMillis": 30000,
-	"WaitTimeAfterErrorMillis": 1000,
-	"WaitTimeBetweenEveryScheduleMillis": 0,
-	"WaitTimeBetweenReadSchedulesMillis": 0
+    "MaxErrorsBeforeReconnection": 10,
+    "RestartDeviceInErrorTimeoutMillis": 30000,
+    "WaitTimeAfterErrorMillis": 1000,
+    "WaitTimeBetweenEveryScheduleMillis": 0,
+    "WaitTimeBetweenReadSchedulesMillis": 0,
+    "TerminateAfterNoWriteRequestsDelayMillis": 0,
+    "TerminateMinimumDelayMillis": 0
   }
 }

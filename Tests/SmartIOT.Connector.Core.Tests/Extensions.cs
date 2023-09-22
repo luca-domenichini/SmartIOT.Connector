@@ -2,15 +2,14 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.ExceptionServices;
 
-namespace SmartIOT.Connector.Core.Tests
+namespace SmartIOT.Connector.Core.Tests;
+
+public static class Extensions
 {
-	public static class Extensions
-	{
-		[DoesNotReturn]
-		public static void Rethrow(this Exception ex)
-		{
-			ExceptionDispatchInfo.Throw(ex);
-			throw ex;
-		}
-	}
+    [DoesNotReturn]
+    public static void Rethrow(this Exception ex)
+    {
+        ExceptionDispatchInfo.Throw(ex);
+        throw ex;
+    }
 }

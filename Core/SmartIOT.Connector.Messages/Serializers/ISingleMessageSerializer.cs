@@ -1,8 +1,8 @@
-﻿namespace SmartIOT.Connector.Messages.Serializers
+﻿namespace SmartIOT.Connector.Messages.Serializers;
+
+public interface ISingleMessageSerializer
 {
-	public interface ISingleMessageSerializer
-	{
-		public byte[] SerializeMessage(object message);
-		public T? DeserializeMessage<T>(byte[] bytes);
-	}
+    public byte[] SerializeMessage(object message);
+
+    public T? DeserializeMessage<T>(byte[] bytes);
 }
