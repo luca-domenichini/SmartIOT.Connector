@@ -1,241 +1,311 @@
 ﻿using System.Collections;
 
+#pragma warning disable S2551 // Shared resources should not be used for locking: we purposefully lock on "this", so that clients can sync on mutative multiple methods too.
+
 namespace SmartIOT.Connector.Core.Util
 {
-	internal class CopyOnWriteArrayList<T> : IList<T>, IReadOnlyList<T>, IList
-	{
-		private volatile T[] _data;
+    internal class CopyOnWriteArrayList<T> : IList<T>, IReadOnlyList<T>, IList
+    {
+        private volatile T[] _data;
 
-		public CopyOnWriteArrayList()
-		{
-			_data = Array.Empty<T>();
-		}
-		public CopyOnWriteArrayList(IEnumerable<T> collection)
-		{
-			_data = collection.ToArray();
-		}
+        public CopyOnWriteArrayList()
+        {
+            _data = Array.Empty<T>();
+        }
 
-		public T this[int index]
-		{
-			get => _data[index];
-			set
-			{
-				lock (this)
-				{
-					var data = new T[_data.Length];
-					Array.Copy(_data, data, _data.Length);
+        public CopyOnWriteArrayList(IEnumerable<T> collection)
+        {
+            _data = collection.ToArray();
+        }
 
-					data[index] = value;
+        public T this[int index]
+        {
+            get => _data[index];
+            set
+            {
+                lock (this)
+                {
+                    var data = new T[_data.Length];
+                    Array.Copy(_data, data, _data.Length);
 
-					_data = data;
-				}
-			}
-		}
-		object? IList.this[int index]
-		{
-			get => _data[index];
-			set
-			{
-				((IList<T>)this)[index] = (T)value!;
-			}
-		}
+                    data[index] = value;
 
-		public int Count => _data.Length;
+                    _data = data;
+                }
+            }
+        }
 
-		public bool IsReadOnly => false;
+        object? IList.this[int index]
+        {
+            get => _data[index];
+            set
+            {
+                ((IList<T>)this)[index] = (T)value!;
+            }
+        }
 
-		public bool IsFixedSize => false;
+        public int Count => _data.Length;
 
-		public bool IsSynchronized => true;
+        public bool IsReadOnly => false;
 
-		public object SyncRoot => this;
+        public bool IsFixedSize => false;
 
-		public void Add(T item)
-		{
-			InternalAdd(item);
-		}
-		public int Add(object? value)
-		{
-			return InternalAdd((T)value!);
-		}
-		private int InternalAdd(T item)
-		{
-			lock (this)
-			{
-				var data = new T[_data.Length + 1];
-				Array.Copy(_data, data, _data.Length);
+        public bool IsSynchronized => true;
 
-				data[data.Length - 1] = item;
+        public object SyncRoot => this;
 
-				_data = data;
+        void ICollection<T>.Add(T item)
+        {
+            InternalAdd(item);
+        }
 
-				return data.Length - 1;
-			}
-		}
+        public int Add(T item)
+        {
+            return InternalAdd(item);
+        }
 
-		public void Clear()
-		{
-			_data = Array.Empty<T>();
-		}
+        public int Add(object? value)
+        {
+            return InternalAdd((T)value!);
+        }
 
-		public bool Contains(T item)
-		{
-			return _data.Contains(item);
-		}
-		public bool Contains(object? value)
-		{
-			return _data.Contains((T)value!);
-		}
+        private int InternalAdd(T item)
+        {
+            lock (this)
+            {
+                var data = new T[_data.Length + 1];
+                Array.Copy(_data, data, _data.Length);
 
-		public void CopyTo(T[] array, int arrayIndex)
-		{
-			if (array == null)
-				throw new ArgumentNullException(nameof(array));
+                data[data.Length - 1] = item;
 
-			var data = _data;
+                _data = data;
 
-			Array.Copy(data, 0, array, arrayIndex, data.Length);
-		}
-		public void CopyTo(Array array, int index)
-		{
-			if (array == null)
-				throw new ArgumentNullException(nameof(array));
+                return data.Length - 1;
+            }
+        }
 
-			var data = _data;
-			Array.Copy(data, array, data.Length);
-		}
+        public void Clear()
+        {
+            _data = Array.Empty<T>();
+        }
 
-		public IEnumerator<T> GetEnumerator()
-		{
-			foreach (var t in _data)
-			{
-				yield return t;
-			}
-		}
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			foreach (var t in _data)
-			{
-				yield return t;
-			}
-		}
+        public bool Contains(T item)
+        {
+            return _data.Contains(item);
+        }
 
-		public int IndexOf(T item)
-		{
-			var data = _data;
+        public bool Contains(object? value)
+        {
+            return _data.Contains((T)value!);
+        }
 
-			var comparer = EqualityComparer<T>.Default;
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            if (array == null)
+                throw new ArgumentNullException(nameof(array));
 
-			for (int i = 0; i < data.Length; i++)
-			{
-				var t = data[i];
-				if (comparer.Equals(item, t))
-					return i;
-			}
+            var data = _data;
 
-			return -1;
-		}
-		public int IndexOf(object? value)
-		{
-			return IndexOf((T)value!);
-		}
+            Array.Copy(data, 0, array, arrayIndex, data.Length);
+        }
 
-		public void Insert(int index, T item)
-		{
-			if (index > _data.Length)
-				throw new ArgumentOutOfRangeException(nameof(index), $"index > size {_data.Length}");
-			if (index < 0)
-				throw new ArgumentOutOfRangeException(nameof(index), "index < 0");
+        public void CopyTo(Array array, int index)
+        {
+            if (array == null)
+                throw new ArgumentNullException(nameof(array));
 
-			lock (this)
-			{
-				var data = new T[_data.Length + 1];
+            var data = _data;
+            Array.Copy(data, array, data.Length);
+        }
 
-				if (index > 0)
-					Array.Copy(_data, 0, data, 0, index);
+        public IEnumerator<T> GetEnumerator()
+        {
+            foreach (var t in _data)
+            {
+                yield return t;
+            }
+        }
 
-				data[index] = item;
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            foreach (var t in _data)
+            {
+                yield return t;
+            }
+        }
 
-				if (index < _data.Length)
-					Array.Copy(_data, index, data, index + 1, _data.Length - index);
+        public int IndexOf(T item)
+        {
+            var data = _data;
 
-				_data = data;
-			}
-		}
-		public void Insert(int index, object? value)
-		{
-			Insert(index, (T)value!);
-		}
+            var comparer = EqualityComparer<T>.Default;
 
-		public bool Remove(T item)
-		{
-			bool found = false;
+            for (int i = 0; i < data.Length; i++)
+            {
+                var t = data[i];
+                if (comparer.Equals(item, t))
+                    return i;
+            }
 
-			lock (this)
-			{
-				var data = new T[_data.Length - 1];
+            return -1;
+        }
 
-				var comparer = EqualityComparer<T>.Default;
+        public int IndexOf(object? value)
+        {
+            return IndexOf((T)value!);
+        }
 
-				int j = 0;
-				for (int i = 0; i < _data.Length; i++)
-				{
-					T? t = _data[i];
+        public void Insert(int index, T item)
+        {
+            lock (this)
+            {
+                if (index > _data.Length)
+                    throw new ArgumentOutOfRangeException(nameof(index), $"index > size {_data.Length}");
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), "index < 0");
 
-					if (found || !comparer.Equals(t, item))
-					{
-						data[j] = t;
-						j++;
-					}
-					else
-					{
-						found = true;
-					}
-				}
+                var data = new T[_data.Length + 1];
 
-				if (found)
-					_data = data;
-			}
+                if (index > 0)
+                    Array.Copy(_data, 0, data, 0, index);
 
-			return found;
-		}
-		public void Remove(object? value)
-		{
-			Remove((T)value!);
-		}
-		public void RemoveAt(int index)
-		{
-			if (index >= _data.Length)
-				throw new ArgumentOutOfRangeException(nameof(index), $"index >= size {_data.Length}");
-			if (index < 0)
-				throw new ArgumentOutOfRangeException(nameof(index), "index < 0");
-			
-			lock (this)
-			{
-				var data = new T[_data.Length - 1];
+                data[index] = item;
 
-				if (index > 0)
-					Array.Copy(_data, 0, data, 0, index);
+                if (index < _data.Length)
+                    Array.Copy(_data, index, data, index + 1, _data.Length - index);
 
-				if (index < _data.Length - 1)
-					Array.Copy(_data, index + 1, data, index, _data.Length - index - 1);
+                _data = data;
+            }
+        }
 
-				_data = data;
-			}
-		}
+        public void Insert(int index, object? value)
+        {
+            Insert(index, (T)value!);
+        }
 
-		public bool Replace(T replaced, T replacing)
-		{
-			lock (this)
-			{
-				var index = IndexOf(replaced);
-				if (index < 0)
-					return false;
+        public bool Remove(T item)
+        {
+            bool found = false;
 
-				this[index] = replacing;
+            if (_data.Length <= 0)
+                return false;
 
-				return true;
-			}
-		}
-	}
+            lock (this)
+            {
+                var data = new T[_data.Length - 1];
+
+                var comparer = EqualityComparer<T>.Default;
+
+                int j = 0;
+                for (int i = 0; i < _data.Length; i++)
+                {
+                    T? t = _data[i];
+
+                    if (found || !comparer.Equals(t, item))
+                    {
+                        data[j] = t;
+                        j++;
+                    }
+                    else
+                    {
+                        found = true;
+                    }
+                }
+
+                if (found)
+                    _data = data;
+            }
+
+            return found;
+        }
+
+        public void Remove(object? value)
+        {
+            Remove((T)value!);
+        }
+
+        public void RemoveAt(int index)
+        {
+            lock (this)
+            {
+                if (index >= _data.Length)
+                    throw new ArgumentOutOfRangeException(nameof(index), $"index >= size {_data.Length}");
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), "index < 0");
+
+                var data = new T[_data.Length - 1];
+                if (index > 0)
+                    Array.Copy(_data, 0, data, 0, index);
+
+                if (index < _data.Length - 1)
+                    Array.Copy(_data, index + 1, data, index, _data.Length - index - 1);
+
+                _data = data;
+            }
+        }
+
+        /// <summary>
+        /// This method tries to remove at the specified index, returning false if index bounds are not ok, instead
+        /// of throwing <see cref="IndexOutOfRangeException"/>.
+        /// </summary>
+        public bool TryRemoveAt(int index, out T? item)
+        {
+            lock (this)
+            {
+                if (index >= _data.Length || index < 0)
+                {
+                    item = default;
+                    return false;
+                }
+
+                item = _data[index];
+
+                var data = new T[_data.Length - 1];
+                if (index > 0)
+                    Array.Copy(_data, 0, data, 0, index);
+
+                if (index < _data.Length - 1)
+                    Array.Copy(_data, index + 1, data, index, _data.Length - index - 1);
+
+                _data = data;
+
+                return true;
+            }
+        }
+
+        public bool Replace(T replaced, T replacing)
+        {
+            lock (this)
+            {
+                var index = IndexOf(replaced);
+                if (index < 0)
+                    return false;
+
+                this[index] = replacing;
+
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// This method tries to replace item at specified index, without throwing an <see cref="IndexOutOfRangeException"/>
+        /// if the bounds are not ok.
+        /// </summary>
+        public bool TryReplaceAt(int index, T replacing, out T? replaced)
+        {
+            lock (this)
+            {
+                if (index >= _data.Length || index < 0)
+                {
+                    replaced = default;
+                    return false;
+                }
+
+                replaced = this[index];
+                this[index] = replacing;
+
+                return true;
+            }
+        }
+    }
 }

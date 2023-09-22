@@ -35,25 +35,23 @@ namespace SmartIOT.Connector.Mqtt.Server
             _mqttServer.StoppedAsync += OnStopped;
         }
 
-        private Task OnClientSubscribedTopic(ClientSubscribedTopicEventArgs e)
+        private async Task OnClientSubscribedTopic(ClientSubscribedTopicEventArgs e)
         {
             if (Options.IsDeviceStatusEventsTopicRoot(e.TopicFilter.Topic))
             {
-                InvokeInitializationDelegate(true, false);
+                await InvokeInitializationDelegateAsync(true, false);
             }
             if (Options.IsTagScheduleEventsTopicRoot(e.TopicFilter.Topic))
             {
-                InvokeInitializationDelegate(false, true);
+                await InvokeInitializationDelegateAsync(false, true);
             }
-
-            return Task.CompletedTask;
         }
 
-        public override void Start(ISmartIOTConnectorInterface connectorInterface)
+        public override async Task StartAsync(ISmartIOTConnectorInterface connectorInterface)
         {
-            base.Start(connectorInterface);
+            await base.StartAsync(connectorInterface);
 
-            _mqttServer.StartAsync().Wait();
+            await _mqttServer.StartAsync();
         }
 
         private Task OnStarted(EventArgs obj)
@@ -62,11 +60,11 @@ namespace SmartIOT.Connector.Mqtt.Server
             return Task.CompletedTask;
         }
 
-        public override void Stop()
+        public override async Task StopAsync()
         {
-            base.Stop();
+            await base.StopAsync();
 
-            _mqttServer.StopAsync().Wait();
+            await _mqttServer.StopAsync();
         }
 
         private Task OnStopped(EventArgs obj)
@@ -99,19 +97,19 @@ namespace SmartIOT.Connector.Mqtt.Server
             return Task.CompletedTask;
         }
 
-        protected override void PublishException(Exception exception)
+        protected override async Task PublishExceptionAsync(Exception exception)
         {
             if (_started)
             {
                 try
                 {
-                    _mqttServer.InjectApplicationMessage(new InjectedMqttApplicationMessage(
+                    await _mqttServer.InjectApplicationMessage(new InjectedMqttApplicationMessage(
                         new MqttApplicationMessageBuilder()
                             .WithTopic(Options.ExceptionsTopicPattern)
                             .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
                             .WithPayload(_messageSerializer.SerializeMessage(EventExtensions.ToEventMessage(exception)))
                             .Build())
-                    ).Wait();
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -120,19 +118,19 @@ namespace SmartIOT.Connector.Mqtt.Server
             }
         }
 
-        protected override void PublishDeviceStatusEvent(DeviceStatusEvent e)
+        protected override async Task PublishDeviceStatusEventAsync(DeviceStatusEvent e)
         {
             if (_started)
             {
                 try
                 {
-                    _mqttServer.InjectApplicationMessage(new InjectedMqttApplicationMessage(
+                    await _mqttServer.InjectApplicationMessage(new InjectedMqttApplicationMessage(
                         new MqttApplicationMessageBuilder()
                             .WithTopic(Options.GetDeviceStatusEventsTopic(e.Device.DeviceId))
                             .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
                             .WithPayload(_messageSerializer.SerializeMessage(EventExtensions.ToEventMessage(e)))
                             .Build())
-                    ).Wait();
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -141,12 +139,12 @@ namespace SmartIOT.Connector.Mqtt.Server
             }
         }
 
-        protected override void PublishTagScheduleEvent(TagScheduleEvent e)
+        protected override async Task PublishTagScheduleEventAsync(TagScheduleEvent e)
         {
-            PublishTagScheduleEvent(e, false);
+            await PublishTagScheduleEvent(e, false);
         }
 
-        private void PublishTagScheduleEvent(TagScheduleEvent e, bool isInitializationData)
+        private async Task PublishTagScheduleEvent(TagScheduleEvent e, bool isInitializationData)
         {
             if (_started)
             {
@@ -156,13 +154,13 @@ namespace SmartIOT.Connector.Mqtt.Server
 
                 try
                 {
-                    _mqttServer.InjectApplicationMessage(new InjectedMqttApplicationMessage(
+                    await _mqttServer.InjectApplicationMessage(new InjectedMqttApplicationMessage(
                         new MqttApplicationMessageBuilder()
                             .WithTopic(Options.GetTagScheduleEventsTopic(e.Device.DeviceId, e.Tag.TagId))
                             .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
                             .WithPayload(_messageSerializer.SerializeMessage(message))
                             .Build())
-                    ).Wait();
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -171,23 +169,23 @@ namespace SmartIOT.Connector.Mqtt.Server
             }
         }
 
-        private void InvokeInitializationDelegate(bool publishDeviceStatusEvents, bool publishTagScheduleEvents)
+        private async Task InvokeInitializationDelegateAsync(bool publishDeviceStatusEvents, bool publishTagScheduleEvents)
         {
-            ConnectorInterface!.RunInitializationAction(
-                initAction: (deviceEvents, tagEvents) =>
+            await ConnectorInterface!.RunInitializationActionAsync(
+                initAction: async (deviceEvents, tagEvents) =>
                 {
                     if (publishDeviceStatusEvents)
                     {
                         foreach (var deviceEvent in deviceEvents)
                         {
-                            PublishDeviceStatusEvent(deviceEvent);
+                            await PublishDeviceStatusEventAsync(deviceEvent);
                         }
                     }
                     if (publishTagScheduleEvents)
                     {
                         foreach (var tagEvent in tagEvents)
                         {
-                            PublishTagScheduleEvent(tagEvent, true);
+                            await PublishTagScheduleEvent(tagEvent, true);
                         }
                     }
                 });

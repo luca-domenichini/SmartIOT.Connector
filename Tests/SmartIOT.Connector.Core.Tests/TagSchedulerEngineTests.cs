@@ -93,7 +93,7 @@ namespace SmartIOT.Connector.Core.Tests
 			Assert.Equal(tag20.TagId, tag1!.Tag.TagId);
 			engine.ScheduleTag(tag1!);
 
-			Assert.Equal(1, eventListener.TagReadEvents.Count);
+			Assert.Single(eventListener.TagReadEvents);
 			Assert.Single(eventListener.TagReadEvents.Where(x => x.Tag.TagId == tag20.TagId));
 			Assert.Empty(eventListener.TagReadEvents.Where(x => x.Tag.TagId == tag21.TagId));
 			Assert.Empty(eventListener.TagReadEvents.Where(x => x.Tag.TagId == tag22.TagId));
@@ -109,7 +109,7 @@ namespace SmartIOT.Connector.Core.Tests
 			Assert.Equal(tag21.TagId, tag2!.Tag.TagId);
 			engine.ScheduleTag(tag2!);
 
-			Assert.Equal(1, eventListener.TagReadEvents.Count);
+			Assert.Single(eventListener.TagReadEvents);
 			Assert.Empty(eventListener.TagReadEvents.Where(x => x.Tag.TagId == tag20.TagId));
 			Assert.Single(eventListener.TagReadEvents.Where(x => x.Tag.TagId == tag21.TagId));
 			Assert.Empty(eventListener.TagReadEvents.Where(x => x.Tag.TagId == tag22.TagId));
@@ -142,7 +142,7 @@ namespace SmartIOT.Connector.Core.Tests
 			Assert.Equal(tag20.TagId, tag4!.Tag.TagId);
 			engine.ScheduleTag(tag4!);
 
-			Assert.Equal(1, eventListener.TagReadEvents.Count);
+			Assert.Single(eventListener.TagReadEvents);
 			Assert.Single(eventListener.TagReadEvents.Where(x => x.Tag.TagId == tag20.TagId));
 			Assert.Empty(eventListener.TagReadEvents.Where(x => x.Tag.TagId == tag21.TagId));
 			Assert.Empty(eventListener.TagReadEvents.Where(x => x.Tag.TagId == tag22.TagId));

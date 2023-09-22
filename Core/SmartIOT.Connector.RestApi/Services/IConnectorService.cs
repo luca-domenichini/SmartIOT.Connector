@@ -1,9 +1,11 @@
 ﻿namespace SmartIOT.Connector.RestApi.Services
 {
-	public interface IConnectorService
-	{
-		Model.Connector? AddConnector(string connectionString);
-		bool ReplaceConnector(int id, string connectionString);
-		bool DeleteConnector(int id);
-	}
+    public interface IConnectorService
+    {
+        Task<Model.Connector?> AddConnectorAsync(string connectionString);
+
+        Task<bool> ReplaceConnectorAsync(int id, string connectionString);
+
+        Task<bool> DeleteConnectorAsync(int id);
+    }
 }

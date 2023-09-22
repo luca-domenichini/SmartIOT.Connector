@@ -82,7 +82,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
             MockDeviceDriver driver = (MockDeviceDriver)module.Schedulers[0].DeviceDriver;
             driver.SetupReadTagAsRandomData(15, 10);
 
-            module.Start();
+            await module.StartAsync();
             try
             {
                 await Task.Delay(1000);
@@ -152,7 +152,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
             }
             finally
             {
-                module.Stop();
+                await module.StopAsync();
 
                 await client.DisconnectAsync(new MqttClientDisconnectOptions()
                 {
@@ -236,8 +236,8 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
             var connectorInterface = new Mock<ISmartIOTConnectorInterface>();
 
-            connectorInterface.Setup(x => x.RunInitializationAction(It.IsAny<Action<IList<DeviceStatusEvent>, IList<TagScheduleEvent>>>()))
-                .Callback((Action<IList<DeviceStatusEvent>, IList<TagScheduleEvent>> initAction) =>
+            connectorInterface.Setup(x => x.RunInitializationActionAsync(It.IsAny<Func<IList<DeviceStatusEvent>, IList<TagScheduleEvent>, Task>>()))
+                .Returns(async (Func<IList<DeviceStatusEvent>, IList<TagScheduleEvent>, Task> initAction) =>
                 {
                     var listDeviceEvents = new List<DeviceStatusEvent>();
                     var listTagEvents = new List<TagScheduleEvent>();
@@ -247,7 +247,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
                     listTagEvents.Add(TagScheduleEvent.BuildTagData(device, tag, false));
 
-                    initAction.Invoke(listDeviceEvents, listTagEvents);
+                    await initAction.Invoke(listDeviceEvents, listTagEvents);
                 });
 
             connectorInterface.Setup(x => x.OnConnectorConnected(It.IsAny<ConnectorConnectedEventArgs>()))
@@ -260,7 +260,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
             try
             {
-                connector.Start(connectorInterface.Object);
+                await connector.StartAsync(connectorInterface.Object);
 
                 var mqttClientOptions = new MqttClientOptionsBuilder()
                     .WithTcpServer("localhost", 1883)
@@ -345,7 +345,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
             }
             finally
             {
-                connector.Stop();
+                await connector.StopAsync();
 
                 await client.DisconnectAsync(new MqttClientDisconnectOptions()
                 {
@@ -422,7 +422,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
 
             try
             {
-                module.Start();
+                await module.StartAsync();
                 await Task.Delay(1000);
 
                 // il server parte dopo aver fatto partire il client: in questo modo sto testando anche il fatto che il client si riconnetta in automatico
@@ -464,7 +464,7 @@ namespace SmartIOT.Connector.Mqtt.Tests
             }
             finally
             {
-                module.Stop();
+                await module.StopAsync();
                 await server.StopAsync();
             }
         }
