@@ -1,6 +1,6 @@
 ﻿namespace SmartIOT.Connector.Tcp.Client
 {
-	internal class CountdownLatch
+    internal class CountdownLatch
     {
         private int _count;
         private readonly ManualResetEventSlim _nothingRunning = new ManualResetEventSlim(true);

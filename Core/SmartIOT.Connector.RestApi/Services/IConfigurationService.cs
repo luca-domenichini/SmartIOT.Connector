@@ -2,9 +2,10 @@
 
 namespace SmartIOT.Connector.RestApi.Services
 {
-	public interface IConfigurationService
-	{
-		public SmartIotConnectorConfiguration GetConfiguration();
-		public void SaveConfiguration();
-	}
+    public interface IConfigurationService
+    {
+        public SmartIotConnectorConfiguration GetConfiguration();
+
+        public void SaveConfiguration();
+    }
 }

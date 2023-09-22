@@ -3,14 +3,14 @@ using SmartIOT.Connector.Core.Factory;
 
 namespace SmartIOT.Connector.Mocks
 {
-	public class FakeConnectorFactory : IConnectorFactory
-	{
-		public IConnector? CreateConnector(string connectionString)
-		{
-			if (connectionString.StartsWith("fake://"))
-				return new FakeConnector();
+    public class FakeConnectorFactory : IConnectorFactory
+    {
+        public IConnector? CreateConnector(string connectionString)
+        {
+            if (connectionString.StartsWith("fake://"))
+                return new FakeConnector();
 
-			return null;
-		}
-	}
+            return null;
+        }
+    }
 }

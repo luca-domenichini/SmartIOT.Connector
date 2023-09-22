@@ -2,10 +2,10 @@
 
 namespace SmartIOT.Connector.Messages
 {
-	public enum DeviceStatus
-	{
-		[ProtoEnum] UNINITIALIZED,
-		[ProtoEnum] OK,
-		[ProtoEnum] ERROR
-	}
+    public enum DeviceStatus
+    {
+        [ProtoEnum] UNINITIALIZED,
+        [ProtoEnum] OK,
+        [ProtoEnum] ERROR
+    }
 }

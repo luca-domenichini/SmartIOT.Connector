@@ -2,13 +2,13 @@
 
 namespace SmartIOT.Connector.Core.Events
 {
-	public class TagSchedulerWaitExceptionEventArgs : EventArgs
-	{
-		public TimeSpan WaitTime { get; }
+    public class TagSchedulerWaitExceptionEventArgs : EventArgs
+    {
+        public TimeSpan WaitTime { get; }
 
-		public TagSchedulerWaitExceptionEventArgs(TagSchedulerWaitException exception)
-		{
-			WaitTime = exception.WaitTime;
-		}
-	}
+        public TagSchedulerWaitExceptionEventArgs(TagSchedulerWaitException exception)
+        {
+            WaitTime = exception.WaitTime;
+        }
+    }
 }

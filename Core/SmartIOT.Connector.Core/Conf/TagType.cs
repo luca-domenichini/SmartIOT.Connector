@@ -2,10 +2,10 @@
 
 namespace SmartIOT.Connector.Core.Conf
 {
-	[JsonConverter(typeof(JsonStringEnumConverter))]
-	public enum TagType
-	{
-		READ,
-		WRITE
-	}
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum TagType
+    {
+        READ,
+        WRITE
+    }
 }

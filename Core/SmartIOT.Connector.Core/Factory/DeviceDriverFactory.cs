@@ -1,41 +1,35 @@
 ﻿using SmartIOT.Connector.Core.Conf;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SmartIOT.Connector.Core.Factory
 {
-	public class DeviceDriverFactory : IDeviceDriverFactory
-	{
-		private readonly List<IDeviceDriverFactory> _factories = new List<IDeviceDriverFactory>();
+    public class DeviceDriverFactory : IDeviceDriverFactory
+    {
+        private readonly List<IDeviceDriverFactory> _factories = new List<IDeviceDriverFactory>();
 
-		public void Add(IDeviceDriverFactory factory)
-		{
-			_factories.Add(factory);
-		}
+        public void Add(IDeviceDriverFactory factory)
+        {
+            _factories.Add(factory);
+        }
 
-		public void AddRange(IList<IDeviceDriverFactory> deviceDriverFactories)
-		{
-			_factories.AddRange(deviceDriverFactories);
-		}
+        public void AddRange(IList<IDeviceDriverFactory> deviceDriverFactories)
+        {
+            _factories.AddRange(deviceDriverFactories);
+        }
 
-		public bool Any() => _factories.Any();
+        public bool Any() => _factories.Any();
 
-		public bool Any(Func<object, bool> predicate) => _factories.Any(predicate);
+        public bool Any(Func<object, bool> predicate) => _factories.Any(predicate);
 
-		public IDeviceDriver? CreateDriver(DeviceConfiguration deviceConfiguration)
-		{
-			foreach (var factory in _factories)
-			{
-				var d = factory.CreateDriver(deviceConfiguration);
-				if (d != null)
-					return d;
-			}
+        public IDeviceDriver? CreateDriver(DeviceConfiguration deviceConfiguration)
+        {
+            foreach (var factory in _factories)
+            {
+                var d = factory.CreateDriver(deviceConfiguration);
+                if (d != null)
+                    return d;
+            }
 
-			return null;
-		}
-
-	}
+            return null;
+        }
+    }
 }

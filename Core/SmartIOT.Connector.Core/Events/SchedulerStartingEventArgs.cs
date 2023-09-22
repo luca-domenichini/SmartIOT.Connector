@@ -2,13 +2,13 @@
 
 namespace SmartIOT.Connector.Core.Events
 {
-	public class SchedulerStartingEventArgs : EventArgs
-	{
-		public ITagScheduler Scheduler { get; }
+    public class SchedulerStartingEventArgs : EventArgs
+    {
+        public ITagScheduler Scheduler { get; }
 
-		public SchedulerStartingEventArgs(ITagScheduler scheduler)
-		{
-			Scheduler = scheduler;
-		}
-	}
+        public SchedulerStartingEventArgs(ITagScheduler scheduler)
+        {
+            Scheduler = scheduler;
+        }
+    }
 }

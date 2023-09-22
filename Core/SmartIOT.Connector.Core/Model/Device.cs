@@ -3,300 +3,305 @@ using SmartIOT.Connector.Core.Util;
 
 namespace SmartIOT.Connector.Core.Model
 {
-	public class Device
-	{
-		public DeviceConfiguration Configuration { get; }
+    public class Device
+    {
+        public DeviceConfiguration Configuration { get; }
 
-		public DeviceStatus DeviceStatus { get; internal set; }
-		public string Name => Configuration.Name;
-		public string DeviceId => Configuration.DeviceId;
-		public int ErrorCode { get; internal set; }
-		public int ErrorCount { get; internal set; }
-		public IReadOnlyList<Tag> Tags => _tags;
+        public DeviceStatus DeviceStatus { get; internal set; }
+        public string Name => Configuration.Name;
+        public string DeviceId => Configuration.DeviceId;
+        public int ErrorCode { get; internal set; }
+        public int ErrorCount { get; internal set; }
+        public IReadOnlyList<Tag> Tags => _tags;
 
-		public bool IsPartialReadsEnabled => Configuration.IsPartialReadsEnabled;
-		public int SinglePDUReadBytes { get; set; }
-		public bool IsWriteOptimizationEnabled => Configuration.IsWriteOptimizationEnabled;
-		public int SinglePDUWriteBytes { get; set; }
-		public int PDULength { get; set; }
+        public bool IsPartialReadsEnabled => Configuration.IsPartialReadsEnabled;
+        public int SinglePDUReadBytes { get; set; }
+        public bool IsWriteOptimizationEnabled => Configuration.IsWriteOptimizationEnabled;
+        public int SinglePDUWriteBytes { get; set; }
+        public int PDULength { get; set; }
 
-		private readonly CopyOnWriteArrayList<Tag> _tags = new CopyOnWriteArrayList<Tag>();
+        private readonly CopyOnWriteArrayList<Tag> _tags = new CopyOnWriteArrayList<Tag>();
 
-		private int _weightMCMRead;
-		private int _weightMCMWrite;
+        private int _weightMCMRead;
+        private int _weightMCMWrite;
 
-		public Device(DeviceConfiguration deviceConfiguration)
-		{
-			Configuration = deviceConfiguration;
-			DeviceStatus = deviceConfiguration.Enabled ? DeviceStatus.UNINITIALIZED : DeviceStatus.DISABLED;
+        public Device(DeviceConfiguration deviceConfiguration)
+        {
+            Configuration = deviceConfiguration;
+            DeviceStatus = deviceConfiguration.Enabled ? DeviceStatus.UNINITIALIZED : DeviceStatus.DISABLED;
 
-			foreach (var tagConfiguration in deviceConfiguration.Tags)
-			{
-				InternalAddTag(tagConfiguration);
-			}
-		}
+            foreach (var tagConfiguration in deviceConfiguration.Tags)
+            {
+                InternalAddTag(tagConfiguration);
+            }
+        }
 
-		public bool IsEnabled()
-		{
-			return DeviceStatus != DeviceStatus.DISABLED;
-		}
-		public void SetEnabled(bool enabled)
-		{
-			bool wasEnabled = DeviceStatus != DeviceStatus.DISABLED;
+        public bool IsEnabled()
+        {
+            return DeviceStatus != DeviceStatus.DISABLED;
+        }
 
-			if (enabled != wasEnabled)
-			{
-				if (DeviceStatus == DeviceStatus.DISABLED)
-				{
-					DeviceStatus = DeviceStatus.UNINITIALIZED;
-				}
-				else
-				{
-					DeviceStatus = DeviceStatus.DISABLED;
-				}
+        public void SetEnabled(bool enabled)
+        {
+            bool wasEnabled = DeviceStatus != DeviceStatus.DISABLED;
 
-				Configuration.Enabled = enabled;
-			}
-		}
+            if (enabled != wasEnabled)
+            {
+                if (DeviceStatus == DeviceStatus.DISABLED)
+                {
+                    DeviceStatus = DeviceStatus.UNINITIALIZED;
+                }
+                else
+                {
+                    DeviceStatus = DeviceStatus.DISABLED;
+                }
 
-		private void InternalAddTag(TagConfiguration tagConfiguration)
-		{
-			var tag = new Tag(tagConfiguration);
-			_tags.Add(tag);
+                Configuration.Enabled = enabled;
+            }
+        }
 
-			switch (tag.TagType)
-			{
-				case TagType.READ:
-					_weightMCMRead = CalculateMCM(TagType.READ);
-					break;
-				case TagType.WRITE:
-					_weightMCMWrite = CalculateMCM(TagType.WRITE);
-					break;
-			}
-		}
-		public void AddTag(TagConfiguration tagConfiguration)
-		{
-			lock (_tags)
-			{
-				Configuration.Tags.Add(tagConfiguration);
-				InternalAddTag(tagConfiguration);
-			}
-		}
-		
-		public void RemoveTag(Tag tag)
-		{
-			lock (_tags)
-			{
-				var tc = Configuration.Tags.FirstOrDefault(x => x.TagId.Equals(tag.TagId, StringComparison.InvariantCultureIgnoreCase));
-				if (tc != null)
-					Configuration.Tags.Remove(tc);
+        private void InternalAddTag(TagConfiguration tagConfiguration)
+        {
+            var tag = new Tag(tagConfiguration);
+            _tags.Add(tag);
 
-				_tags.Remove(tag);
+            switch (tag.TagType)
+            {
+                case TagType.READ:
+                    _weightMCMRead = CalculateMCM(TagType.READ);
+                    break;
 
-				switch (tag.TagType)
-				{
-					case TagType.READ:
-						_weightMCMRead = CalculateMCM(TagType.READ);
-						break;
-					case TagType.WRITE:
-						_weightMCMWrite = CalculateMCM(TagType.WRITE);
-						break;
-				}
-			}
-		}
-		
-		public bool UpdateTag(TagConfiguration tagConfiguration)
-		{
-			lock (_tags)
-			{
-				var index = Configuration.Tags.Where(x => x.TagId.Equals(tagConfiguration.TagId, StringComparison.InvariantCultureIgnoreCase))
-					.Select((tag, index) => index)
-					.FirstOrDefault(-1);
+                case TagType.WRITE:
+                    _weightMCMWrite = CalculateMCM(TagType.WRITE);
+                    break;
+            }
+        }
 
-				if (index < 0)
-					return false;
+        public void AddTag(TagConfiguration tagConfiguration)
+        {
+            lock (_tags)
+            {
+                Configuration.Tags.Add(tagConfiguration);
+                InternalAddTag(tagConfiguration);
+            }
+        }
 
-				Configuration.Tags[index] = tagConfiguration;
+        public void RemoveTag(Tag tag)
+        {
+            lock (_tags)
+            {
+                var tc = Configuration.Tags.FirstOrDefault(x => x.TagId.Equals(tag.TagId, StringComparison.InvariantCultureIgnoreCase));
+                if (tc != null)
+                    Configuration.Tags.Remove(tc);
 
-				var old = _tags.First(x => x.TagId.Equals(tagConfiguration.TagId, StringComparison.InvariantCultureIgnoreCase));
+                _tags.Remove(tag);
 
-				var tag = new Tag(tagConfiguration);
-				_tags.Replace(old, tag);
+                switch (tag.TagType)
+                {
+                    case TagType.READ:
+                        _weightMCMRead = CalculateMCM(TagType.READ);
+                        break;
 
-				switch (tag.TagType)
-				{
-					case TagType.READ:
-						_weightMCMRead = CalculateMCM(TagType.READ);
-						break;
-					case TagType.WRITE:
-						_weightMCMWrite = CalculateMCM(TagType.WRITE);
-						break;
-				}
+                    case TagType.WRITE:
+                        _weightMCMWrite = CalculateMCM(TagType.WRITE);
+                        break;
+                }
+            }
+        }
 
-				return true;
-			}
-		}
+        public bool UpdateTag(TagConfiguration tagConfiguration)
+        {
+            lock (_tags)
+            {
+                var index = Configuration.Tags.Where(x => x.TagId.Equals(tagConfiguration.TagId, StringComparison.InvariantCultureIgnoreCase))
+                    .Select((tag, index) => index)
+                    .FirstOrDefault(-1);
 
-		internal void IncrementOrReseDeviceErrorCode(int err)
-		{
-			ErrorCode = err;
-			if (err != 0)
-			{
-				ErrorCount++;
-				DeviceStatus = DeviceStatus.ERROR;
-			}
-			else
-			{
-				ErrorCount = 0;
-				DeviceStatus = DeviceStatus.OK;
-			}
-		}
+                if (index < 0)
+                    return false;
 
-		internal void SetTagSynchronized(Tag tag, DateTime instant)
-		{
-			tag.LastDeviceSynchronization = instant;
+                Configuration.Tags[index] = tagConfiguration;
 
-			TagType type = tag.TagType;
+                var old = _tags.First(x => x.TagId.Equals(tagConfiguration.TagId, StringComparison.InvariantCultureIgnoreCase));
 
-			if (type == TagType.READ)
-			{
-				tag.Points += tag.Weight;
+                var tag = new Tag(tagConfiguration);
+                _tags.Replace(old, tag);
 
-				int minPunti = GetMinPoints(type);
-				while (minPunti > 0 && minPunti % GetWeightMCM(type) == 0)
-				{
-					foreach (Tag t in _tags)
-					{
-						if (t.TagType == type)
-						{
-							t.Points -= GetWeightMCM(type);
-							if (t.Points < 0)
-								t.Points = 0;
-						}
-					}
-					minPunti = GetMinPoints(type);
-				}
+                switch (tag.TagType)
+                {
+                    case TagType.READ:
+                        _weightMCMRead = CalculateMCM(TagType.READ);
+                        break;
 
-				bool riscalaturaPossibile = true;
-				int maxPunti = int.MaxValue;
+                    case TagType.WRITE:
+                        _weightMCMWrite = CalculateMCM(TagType.WRITE);
+                        break;
+                }
 
-				while (riscalaturaPossibile && maxPunti > 0)
-				{
-					maxPunti = GetMaxPoints(type);
-					List<Tag> list = GetTagsInRange(type, maxPunti - GetWeightMCM(type), maxPunti);
+                return true;
+            }
+        }
 
-					int min = int.MaxValue;
-					foreach (Tag t in list)
-					{
-						if (t.Points < min)
-							min = t.Points;
-					}
+        internal void IncrementOrReseDeviceErrorCode(int err)
+        {
+            ErrorCode = err;
+            if (err != 0)
+            {
+                ErrorCount++;
+                DeviceStatus = DeviceStatus.ERROR;
+            }
+            else
+            {
+                ErrorCount = 0;
+                DeviceStatus = DeviceStatus.OK;
+            }
+        }
 
-					if (min - GetWeightMCM(type) < 0)
-					{
-						riscalaturaPossibile = false;
-						continue;
-					}
+        internal void SetTagSynchronized(Tag tag, DateTime instant)
+        {
+            tag.LastDeviceSynchronization = instant;
 
-					list = GetTagsInRange(type, min - GetWeightMCM(type), min);
+            TagType type = tag.TagType;
 
-					foreach (Tag t in list)
-					{
-						if (t.Points != min)
-						{
-							riscalaturaPossibile = false;
-							break;
-						}
-					}
+            if (type == TagType.READ)
+            {
+                tag.Points += tag.Weight;
 
-					if (riscalaturaPossibile)
-					{
-						foreach (Tag t in _tags)
-						{
-							if (t.Points >= min)
-							{
-								t.Points -= GetWeightMCM(type);
-							}
-							if (t.Points < 0)
-								t.Points = 0;
-						}
-					}
-				}
-			}
-		}
+                int minPunti = GetMinPoints(type);
+                while (minPunti > 0 && minPunti % GetWeightMCM(type) == 0)
+                {
+                    foreach (Tag t in _tags)
+                    {
+                        if (t.TagType == type)
+                        {
+                            t.Points -= GetWeightMCM(type);
+                            if (t.Points < 0)
+                                t.Points = 0;
+                        }
+                    }
+                    minPunti = GetMinPoints(type);
+                }
 
-		private List<Tag> GetTagsInRange(TagType type, int minPoints, int maxPoints)
-		{
-			var list = new List<Tag>();
-			foreach (Tag t in _tags)
-			{
-				if (t.TagType == type && t.Points >= minPoints && t.Points <= maxPoints)
-					list.Add(t);
-			}
-			return list;
-		}
+                bool riscalaturaPossibile = true;
+                int maxPunti = int.MaxValue;
 
-		private int GetMaxPoints(TagType type)
-		{
-			int max = int.MinValue;
-			foreach (Tag t in _tags)
-			{
-				if (t.TagType == type && t.Points > max)
-					max = t.Points;
-			}
-			return max;
-		}
+                while (riscalaturaPossibile && maxPunti > 0)
+                {
+                    maxPunti = GetMaxPoints(type);
+                    List<Tag> list = GetTagsInRange(type, maxPunti - GetWeightMCM(type), maxPunti);
 
-		private int GetMinPoints(TagType type)
-		{
-			int min = int.MaxValue;
-			foreach (Tag t in _tags)
-			{
-				if (t.TagType == type && t.Points < min)
-					min = t.Points;
-			}
-			return min;
-		}
+                    int min = int.MaxValue;
+                    foreach (Tag t in list)
+                    {
+                        if (t.Points < min)
+                            min = t.Points;
+                    }
 
-		private int GetWeightMCM(TagType type)
-		{
-			if (type == TagType.READ)
-				return _weightMCMRead;
-			else
-				return _weightMCMWrite;
-		}
+                    if (min - GetWeightMCM(type) < 0)
+                    {
+                        riscalaturaPossibile = false;
+                        continue;
+                    }
 
-		private int CalculateMCM(TagType type)
-		{
-			int max = int.MinValue;
+                    list = GetTagsInRange(type, min - GetWeightMCM(type), min);
 
-			foreach (Tag t in _tags)
-			{
-				if (t.TagType == type && t.Weight > max)
-					max = t.Weight;
-			}
+                    foreach (Tag t in list)
+                    {
+                        if (t.Points != min)
+                        {
+                            riscalaturaPossibile = false;
+                            break;
+                        }
+                    }
 
-			bool mcmTrovato = false;
-			while (!mcmTrovato)
-			{
-				mcmTrovato = true;
+                    if (riscalaturaPossibile)
+                    {
+                        foreach (Tag t in _tags)
+                        {
+                            if (t.Points >= min)
+                            {
+                                t.Points -= GetWeightMCM(type);
+                            }
+                            if (t.Points < 0)
+                                t.Points = 0;
+                        }
+                    }
+                }
+            }
+        }
 
-				foreach (Tag t in _tags)
-				{
-					if (t.TagType == type && max % t.Weight != 0)
-					{
-						mcmTrovato = false;
-						break;
-					}
-				}
+        private List<Tag> GetTagsInRange(TagType type, int minPoints, int maxPoints)
+        {
+            var list = new List<Tag>();
+            foreach (Tag t in _tags)
+            {
+                if (t.TagType == type && t.Points >= minPoints && t.Points <= maxPoints)
+                    list.Add(t);
+            }
+            return list;
+        }
 
-				if (mcmTrovato)
-					break;
+        private int GetMaxPoints(TagType type)
+        {
+            int max = int.MinValue;
+            foreach (Tag t in _tags)
+            {
+                if (t.TagType == type && t.Points > max)
+                    max = t.Points;
+            }
+            return max;
+        }
 
-				max++;
-			}
+        private int GetMinPoints(TagType type)
+        {
+            int min = int.MaxValue;
+            foreach (Tag t in _tags)
+            {
+                if (t.TagType == type && t.Points < min)
+                    min = t.Points;
+            }
+            return min;
+        }
 
-			return max;
-		}
-	}
+        private int GetWeightMCM(TagType type)
+        {
+            if (type == TagType.READ)
+                return _weightMCMRead;
+            else
+                return _weightMCMWrite;
+        }
+
+        private int CalculateMCM(TagType type)
+        {
+            int max = int.MinValue;
+
+            foreach (Tag t in _tags)
+            {
+                if (t.TagType == type && t.Weight > max)
+                    max = t.Weight;
+            }
+
+            bool mcmTrovato = false;
+            while (!mcmTrovato)
+            {
+                mcmTrovato = true;
+
+                foreach (Tag t in _tags)
+                {
+                    if (t.TagType == type && max % t.Weight != 0)
+                    {
+                        mcmTrovato = false;
+                        break;
+                    }
+                }
+
+                if (mcmTrovato)
+                    break;
+
+                max++;
+            }
+
+            return max;
+        }
+    }
 }

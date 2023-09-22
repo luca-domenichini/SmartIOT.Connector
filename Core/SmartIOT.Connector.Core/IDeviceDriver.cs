@@ -2,8 +2,8 @@
 
 namespace SmartIOT.Connector.Core
 {
-	public interface IDeviceDriver
-	{
+    public interface IDeviceDriver
+    {
         /// <summary>
         /// Questa property ritorna un nome descrittivo del driver, eventualmente basato sui device in esso contenuti
         /// </summary>
@@ -18,6 +18,7 @@ namespace SmartIOT.Connector.Core
         /// Metodo di start generale dell'interfaccia del driver
         /// </summary>
         public int StartInterface();
+
         /// <summary>
         /// Metodo di stop generale dell'interfaccia del driver
         /// </summary>
@@ -27,6 +28,7 @@ namespace SmartIOT.Connector.Core
         /// Metodo di connessione al singolo device
         /// </summary>
         public int Connect(Device device);
+
         /// <summary>
         /// Metodo di disconnessione dal singolo device
         /// </summary>
