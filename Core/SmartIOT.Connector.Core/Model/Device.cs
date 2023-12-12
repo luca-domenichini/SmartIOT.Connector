@@ -142,7 +142,7 @@ public class Device
         }
     }
 
-    internal void IncrementOrReseDeviceErrorCode(int err)
+    internal void IncrementOrResetDeviceErrorCode(int err)
     {
         ErrorCode = err;
         if (err != 0)
