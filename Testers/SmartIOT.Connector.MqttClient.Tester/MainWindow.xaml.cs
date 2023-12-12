@@ -203,7 +203,7 @@ public partial class MainWindow : Window
     {
         TagWriteRequestCommand msg = new TagWriteRequestCommand(deviceId, tagId, offset, data);
 
-        _mqttClient.PublishAsync(new MqttApplicationMessageBuilder()
+        _mqttClient!.PublishAsync(new MqttApplicationMessageBuilder()
             .WithTopic(topic)
             .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
             .WithPayload(_messageSerializer!.SerializeMessage(msg))

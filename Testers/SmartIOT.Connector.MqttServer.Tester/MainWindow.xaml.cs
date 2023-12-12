@@ -16,7 +16,7 @@ namespace SmartIOT.Connector.MqttServer.Tester;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private MQTTnet.Server.MqttServer _mqttServer;
+    private MQTTnet.Server.MqttServer? _mqttServer;
     private ISingleMessageSerializer? _messageSerializer;
     private string? _deviceStatusTopic;
     private string? _tagReadTopic;
@@ -214,7 +214,7 @@ public partial class MainWindow : Window
     {
         TagWriteRequestCommand msg = new TagWriteRequestCommand(deviceId, tagId, offset, data);
 
-        _mqttServer.InjectApplicationMessage(new InjectedMqttApplicationMessage(
+        _mqttServer!.InjectApplicationMessage(new InjectedMqttApplicationMessage(
             new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
                 .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)

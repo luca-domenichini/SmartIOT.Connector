@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Asp.Versioning.ApiExplorer;
 using Serilog;
 using SmartIOT.Connector.RestApi;
 using System.Diagnostics;
