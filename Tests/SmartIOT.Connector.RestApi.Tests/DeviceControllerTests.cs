@@ -118,7 +118,7 @@ public class DeviceControllerTests
         TagData data = (TagData)r.Value!;
 
         Assert.Equal(0, data.StartOffset);
-        Assert.Equal(100, data.Bytes.Length);
+        Assert.Equal(100, data.Bytes!.Length);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class DeviceControllerTests
         TagData data = (TagData)r.Value!;
 
         Assert.Equal(0, data.StartOffset);
-        Assert.Equal(100, data.Bytes.Length);
+        Assert.Equal(100, data.Bytes!.Length);
 
         Assert.IsType<OkResult>(controller.SetTagData("1", "DB20", new TagData(10, new byte[] { 1, 2, 3 })));
 
@@ -138,7 +138,7 @@ public class DeviceControllerTests
         data = (TagData)r.Value!;
 
         Assert.Equal(0, data.StartOffset);
-        Assert.Equal(100, data.Bytes.Length);
+        Assert.Equal(100, data.Bytes!.Length);
         Assert.Equal(1, data.Bytes[10]);
         Assert.Equal(2, data.Bytes[11]);
         Assert.Equal(3, data.Bytes[12]);

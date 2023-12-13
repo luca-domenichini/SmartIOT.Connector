@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -16,16 +16,16 @@
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<Copyright>Luca Domenichini</Copyright>
 	<AssemblyVersion>1.0.0.0</AssemblyVersion>
-	<UserSecretsId>test</UserSecretsId>
+	<OpenApiGenerateDocumentsOnBuild>false</OpenApiGenerateDocumentsOnBuild> <!-- Starting with .NET7, we need this -->
   </PropertyGroup>
 
   <ItemGroup>
     <!--<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.1" />-->
-    <PackageReference Include="Serilog" Version="3.0.1" />
+    <PackageReference Include="Serilog" Version="3.1.1" />
     <PackageReference Include="Serilog.Enrichers.Context" Version="4.6.5" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="7.0.0" />
-    <PackageReference Include="Serilog.Settings.Configuration" Version="7.0.1" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
@@ -38,6 +38,7 @@
     <ProjectReference Include="..\..\Core\SmartIOT.Connector.RestApi\SmartIOT.Connector.RestApi.csproj" />
     <ProjectReference Include="..\..\Devices\SmartIOT.Connector.Plc.S7Net\SmartIOT.Connector.Plc.S7Net.csproj" />
     <ProjectReference Include="..\..\Devices\SmartIOT.Connector.Plc.Snap7\SmartIOT.Connector.Plc.Snap7.csproj" />
+    <ProjectReference Include="..\..\Devices\SmartIOT.Connector.Plc.SnapModBus\SmartIOT.Connector.Plc.SnapModBus.csproj" />
   </ItemGroup>
 
 </Project>

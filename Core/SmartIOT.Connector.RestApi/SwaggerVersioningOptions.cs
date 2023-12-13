@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ApiExplorer;
+﻿using Asp.Versioning.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
@@ -27,7 +27,7 @@ internal class SwaggerVersioningOptions : IConfigureNamedOptions<SwaggerGenOptio
         }
     }
 
-    public void Configure(string name, SwaggerGenOptions options)
+    public void Configure(string? name, SwaggerGenOptions options)
     {
         Configure(options);
     }

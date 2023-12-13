@@ -40,7 +40,7 @@
     }
   },
   "PrometheusConfiguration": {
-    "HostName": "\u002B",
+    "HostName": "+",
     "Port": 0,
     "Url": "metrics/",
     "MetricsPrefix": "smartiot_connector",

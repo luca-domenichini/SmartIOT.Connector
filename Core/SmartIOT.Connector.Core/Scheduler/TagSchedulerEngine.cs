@@ -580,14 +580,14 @@ public class TagSchedulerEngine : ITagSchedulerEngine
                 success = false;
                 message = description;
 
-                device.IncrementOrReseDeviceErrorCode(err);
+                device.IncrementOrResetDeviceErrorCode(err);
 
                 OnDeviceStatusEvent(new DeviceStatusEvent(device, device.DeviceStatus, err, description));
             }
             else
             {
                 (err, description) = TryWithDeviceDriver(x => x.Connect(device));
-                device.IncrementOrReseDeviceErrorCode(err);
+                device.IncrementOrResetDeviceErrorCode(err);
 
                 if (err != 0)
                 {

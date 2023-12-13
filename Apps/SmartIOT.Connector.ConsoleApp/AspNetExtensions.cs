@@ -15,7 +15,9 @@ public static class AspNetExtensions
         services.AddSingleton<ISchedulerFactory>(s => s.GetRequiredService<Runner>().SchedulerFactory);
         services.AddSingleton<ITimeService>(s => s.GetRequiredService<Runner>().TimeService);
 
-        services.AddHostedService<Runner>();
+        // add custom Runner as a singleton and as a hosted service
+        services.AddSingleton<Runner>();
+        services.AddHostedService<Runner>(sp => sp.GetRequiredService<Runner>());
 
         return services;
     }
