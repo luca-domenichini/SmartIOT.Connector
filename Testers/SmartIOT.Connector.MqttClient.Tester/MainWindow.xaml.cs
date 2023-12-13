@@ -4,6 +4,7 @@ using MQTTnet.Packets;
 using SmartIOT.Connector.Messages;
 using SmartIOT.Connector.Messages.Serializers;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,7 @@ public partial class MainWindow : Window
     private string? _deviceStatusTopic;
     private string? _tagReadTopic;
     private string? _tagWriteTopic;
+    private ConcurrentDictionary<string, byte[]> _data = new();
 
     public MainWindow()
     {
@@ -69,6 +71,15 @@ public partial class MainWindow : Window
                             var msg = _messageSerializer.DeserializeMessage<TagEvent>(e.ApplicationMessage.PayloadSegment.Array!);
                             string message = JsonSerializer.Serialize(msg);
                             txtLogs.Dispatcher.Invoke(() => txtLogs.Text += $"RECV TagRead {message}\r\n");
+
+                            if (msg?.Data is not null)
+                            {
+                                _data.AddOrUpdate(msg.DeviceId + "_" + msg.TagId, msg.Data, (_, old) =>
+                                {
+                                    Array.Copy(msg.Data, 0, old, 0, msg.Data.Length);
+                                    return old;
+                                });
+                            }
                         }
                         else if (IsTopicRoot(_tagWriteTopic, e.ApplicationMessage.Topic))
                         {
@@ -236,6 +247,39 @@ public partial class MainWindow : Window
                 .ToArray();
 
             DoWriteData(deviceId, tagId, topic, offset, data);
+        }
+        catch (Exception ex)
+        {
+            txtLogs.Text += $"Exception caught: {ex.Message}\r\n{ex}\r\n";
+        }
+    }
+
+    private void BtnRequestRead_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (_mqttClient == null || !_mqttClient.IsConnected)
+            {
+                txtLogs.Text += "Mqtt client is not connected. Connect it first";
+                return;
+            }
+
+            string deviceId = TxtDeviceId.Text;
+            string tagId = TxtTagId.Text;
+            var topic = txtTagWriteTopic.Text;
+            if (topic.Contains('/'))
+                topic = topic[..topic.IndexOf('/')];
+            int offset = int.Parse(TxtByteOffset.Text);
+            int length = int.Parse(TxtReadLength.Text);
+
+            if (_data.TryGetValue(deviceId + "_" + tagId, out var data))
+            {
+                TxtData.Text = string.Join(" ", data);
+            }
+            else
+            {
+                TxtData.Text = "no data";
+            }
         }
         catch (Exception ex)
         {

@@ -10,7 +10,7 @@
 	<PackageProjectUrl>https://github.com/luca-domenichini/SmartIOT.Connector</PackageProjectUrl>
 	<RepositoryUrl>https://github.com/luca-domenichini/SmartIOT.Connector.git</RepositoryUrl>
 	<RepositoryType>git</RepositoryType>
-	<PackageTags>iot;mqtt;scheduler;connector;automation;snap7;s7net;azure;automation;siemens;plc;s7300;s71200;s71500</PackageTags>
+	<PackageTags>iot;mqtt;scheduler;connector;automation;snap7;s7net;azure;automation;siemens;plc;s7300;s71200;s71500;modbus</PackageTags>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<Copyright>Luca Domenichini</Copyright>
 	<AssemblyVersion>1.0.0.0</AssemblyVersion>

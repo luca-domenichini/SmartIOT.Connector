@@ -16,6 +16,16 @@ public class Snap7Driver : IDeviceDriver
         Device = plc;
     }
 
+    public int StartInterface()
+    {
+        return 0;
+    }
+
+    public int StopInterface()
+    {
+        return 0;
+    }
+
     public int Connect(Device device)
     {
         lock (device)
@@ -32,6 +42,31 @@ public class Snap7Driver : IDeviceDriver
             Snap7Plc p = (Snap7Plc)device;
             return p.Disconnect();
         }
+    }
+
+    public int ReadTag(Device device, Tag tag, byte[] data, int startOffset, int length)
+    {
+        Snap7Plc p = (Snap7Plc)device;
+
+        var bytes = new byte[length];
+
+        int ret = p.ReadBytes(tag.TagId, startOffset, bytes, length);
+        if (ret != 0)
+            return ret;
+
+        Array.Copy(bytes, 0, data, startOffset - tag.ByteOffset, length);
+
+        return 0;
+    }
+
+    public int WriteTag(Device device, Tag tag, byte[] data, int startOffset, int length)
+    {
+        byte[] bytes = new byte[length];
+        Array.Copy(data, startOffset - tag.ByteOffset, bytes, 0, length);
+
+        Snap7Plc p = (Snap7Plc)device;
+
+        return p.WriteBytes(tag.TagId, startOffset, bytes);
     }
 
     public string GetErrorMessage(int errorNumber)
@@ -68,40 +103,5 @@ public class Snap7Driver : IDeviceDriver
             else
                 return "PLC not connected";
         }
-    }
-
-    public int ReadTag(Device device, Tag tag, byte[] data, int startOffset, int length)
-    {
-        Snap7Plc p = (Snap7Plc)device;
-
-        var bytes = new byte[length];
-
-        int ret = p.ReadBytes(tag.TagId, startOffset, bytes, length);
-        if (ret != 0)
-            return ret;
-
-        Array.Copy(bytes, 0, data, startOffset - tag.ByteOffset, length);
-
-        return 0;
-    }
-
-    public int StartInterface()
-    {
-        return 0;
-    }
-
-    public int StopInterface()
-    {
-        return 0;
-    }
-
-    public int WriteTag(Device device, Tag tag, byte[] data, int startOffset, int length)
-    {
-        byte[] bytes = new byte[length];
-        Array.Copy(data, startOffset - tag.ByteOffset, bytes, 0, length);
-
-        Snap7Plc p = (Snap7Plc)device;
-
-        return p.WriteBytes(tag.TagId, startOffset, bytes);
     }
 }

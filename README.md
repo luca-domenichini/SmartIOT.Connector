@@ -17,50 +17,51 @@ SmartIOT.Connector is a good fit for industrial and automation needs, where deve
 
 The following quick start creates an SmartIOT.Connector instance that connects to a device (namely a Siemens PLC) and reads 100 bytes from Tag 20.<br/>
 Whenever a change is detected in the tag, a message is published to the Mqtt Server specified in the connection string below.<br/>
-It also listens for incoming messages in topic <code>tagWrite</code> and tries to write data to tag 22.<br/>
+It also listens for incoming messages in topic `tagWrite` and tries to write data to tag 22.<br/>
 For message formats, read the docs [here for project SmartIOT.Connector.Messages](./Core/SmartIOT.Connector.Messages/README.md). JSON serializer is used by default, but Protobuf can also be used, or even your own serializer.
 
 1. Create a configuration json file (see [this file](./Docs/Configuration.md) for configuration reference):
+
 ```json
 {
-	"ConnectorConnectionStrings": [
-		"mqttClient://Server=<IpAddress or hostname>;ClientId=MyClient;Port=1883"
-	],
-	"DeviceConfigurations": [
-		{
-			"ConnectionString": "snap7://Ip=<IpAddress>;Rack=0;Slot=0;Type=PG",
-			"DeviceId": "1",
-			"Enabled": true,
-			"Name": "Test Device",
-			"IsPartialReadsEnabled": false,
-			"IsWriteOptimizationEnabled": true,
-			"Tags": [
-				{
-					"TagId": "DB20",
-					"TagType": "READ",
-					"ByteOffset": 0,
-					"Size": 100,
-					"Weight": 1
-				},
-				{
-					"TagId": "DB22",
-					"TagType": "WRITE",
-					"ByteOffset": 0,
-					"Size": 100,
-					"Weight": 1
-				}
-			]
-		}
-	],
-	"SchedulerConfiguration": {
-		"MaxErrorsBeforeReconnection": 10,
-		"RestartDeviceInErrorTimeoutMillis": 30000,
-		"WaitTimeAfterErrorMillis": 1000,
-		"WaitTimeBetweenEveryScheduleMillis": 0,
-		"WaitTimeBetweenReadSchedulesMillis": 0,
-		"TerminateAfterNoWriteRequestsDelayMillis": 3000,
-		"TerminateMinimumDelayMillis": 0
-	}
+    "ConnectorConnectionStrings": [
+        "mqttClient://Server=<IpAddress or hostname>;ClientId=MyClient;Port=1883"
+    ],
+    "DeviceConfigurations": [
+        {
+            "ConnectionString": "snap7://Ip=<IpAddress>;Rack=0;Slot=0;Type=PG",
+            "DeviceId": "1",
+            "Enabled": true,
+            "Name": "Test Device",
+            "IsPartialReadsEnabled": false,
+            "IsWriteOptimizationEnabled": true,
+            "Tags": [
+                {
+                    "TagId": "DB20",
+                    "TagType": "READ",
+                    "ByteOffset": 0,
+                    "Size": 100,
+                    "Weight": 1
+                },
+                {
+                    "TagId": "DB22",
+                    "TagType": "WRITE",
+                    "ByteOffset": 0,
+                    "Size": 100,
+                    "Weight": 1
+                }
+            ]
+        }
+    ],
+    "SchedulerConfiguration": {
+        "MaxErrorsBeforeReconnection": 10,
+        "RestartDeviceInErrorTimeoutMillis": 30000,
+        "WaitTimeAfterErrorMillis": 1000,
+        "WaitTimeBetweenEveryScheduleMillis": 0,
+        "WaitTimeBetweenReadSchedulesMillis": 0,
+        "TerminateAfterNoWriteRequestsDelayMillis": 3000,
+        "TerminateMinimumDelayMillis": 0
+    }
 }
 ```
 
@@ -69,10 +70,10 @@ For message formats, read the docs [here for project SmartIOT.Connector.Messages
 ```csharp
 // Build SmartIOT.Connector and bind it to your DI container or wherever you can do this:
 var smartiot = new SmartIOT.Connector.Core.SmartIotConnectorBuilder()
-	.WithAutoDiscoverDeviceDriverFactories()
-	.WithAutoDiscoverConnectorFactories()
-	.WithConfigurationJsonFilePath("smartiot-config.json")
-	.Build();
+    .WithAutoDiscoverDeviceDriverFactories()
+    .WithAutoDiscoverConnectorFactories()
+    .WithConfigurationJsonFilePath("smartiot-config.json")
+    .Build();
 
 // Start SmartIOT.Connector whenever you need it to run
 smartiot.Start();
@@ -83,65 +84,70 @@ smartiot.Stop();
 
 ## Documentation
 
- - [Configuration guide](./Docs/Configuration.md)
-   - [Configure the devices](./Docs/Configuration.md#configuring-the-devices)
-   - [Configure the connectors](./Docs/Configuration.md#configuring-the-connectors)
-   - [Configure the scheduler main properties](./Docs/Configuration.md#configuring-the-scheduler-main-properties)
- - [Snap7 PLC configuration guide](./Devices/SmartIOT.Connector.Plc.Snap7/README.md)
- - [S7Net PLC configuration guide](./Devices/SmartIOT.Connector.Plc.S7Net/README.md)
- - [Connectors guide](./Docs/Connectors.md)
- - [REST API guide](./Core/SmartIOT.Connector.RestApi/README.md)
- - [Customization guide](./Docs/Customize.md)
+- [Configuration guide](./Docs/Configuration.md)
+  - [Configure the devices](./Docs/Configuration.md#configuring-the-devices)
+  - [Configure the connectors](./Docs/Configuration.md#configuring-the-connectors)
+  - [Configure the scheduler main properties](./Docs/Configuration.md#configuring-the-scheduler-main-properties)
+- Supported devices
+  - [Snap7 PLC configuration guide](./Devices/SmartIOT.Connector.Plc.Snap7/README.md)
+  - [S7Net PLC configuration guide](./Devices/SmartIOT.Connector.Plc.S7Net/README.md)
+  - [SnapModBus device configuration guide](./Devices/SmartIOT.Connector.Plc.SnapModBus/README.md)
+- [Connectors guide](./Docs/Connectors.md)
+- [REST API guide](./Core/SmartIOT.Connector.RestApi/README.md)
+- [Customization guide](./Docs/Customize.md)
 
 ## SmartIOT.Connector.ConsoleApp and Docker integration
 
 If you want to run SmartIOT.Connector as a standalone application or as a Docker container, see project [SmartIOT.Connector.ConsoleApp](./Apps/SmartIOT.Connector.ConsoleApp/README.md) for further details.
 
-Here is a quick link to the Docker image repository: https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp
+Here is a quick link to the Docker image repository: <https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp>
 
 ## Nuget packages
 
 You can find SmartIOT.Connector packages on nuget.org site and on Visual Studio Package Manager:
-https://www.nuget.org/packages?q=SmartIOT.Connector
+<https://www.nuget.org/packages?q=SmartIOT.Connector>
 
 ## Credits
 
-Currently Siemens PLCs support is provided by Snap7 library (http://snap7.sourceforge.net/) and S7Net library (https://github.com/S7NetPlus/s7netplus), so the same PLCs families supported by those libraries are also supported here.
+These libraries provide connectivity with underlying devices:
+
+- Snap7 for Siemens S7 plc family, S7300, S71200, S71500 <http://snap7.sourceforge.net/>
+- SnapModbus for devices on ModBus network <https://snapmodbus.sourceforge.io/>
+- S7NetPlus for Siemens S7 plc family, S7300, S71200, S71500 <https://github.com/S7NetPlus/s7netplus> 
 
 ## Disclaimer
 
 As of version 0.x, interfaces and implementation details are subject to change without notice.
 I will do my best to keep the interfaces stable, but there are possibilities to incur in such breaking changes.
 
-**currently Siemens PLCs are the only supported devices
+## Roadmap to 1.0 - Features TODO list
 
-## Roadmap to 1.0 - Features TODO list:
-
- - [X] REST Api (included in default CosoleApp project)
- - [ ] GRPC Server Connector
- - [X] TCP Server Connector
- - [X] TCP Client Connector
- - [ ] Web app with monitoring capabilities (included in default ConsoleApp project)
- - [X] Nuget packages on nuget.org - https://www.nuget.org/packages?q=SmartIOT.Connector
- - [X] Docker runner image on dockerhub - https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp
- - [ ] Apps
-   - [X] Run SmartIOT.Connector as a console app
-   - [X] Run SmartIOT.Connector as a Docker image
-   - [ ] Run SmartIOT.Connector as a WPF app
-   - [ ] Run SmartIOT.Connector as a WinService
- - [ ] Testers: connector counterpart as WPF app
-   - [ ] GRPC Client
-   - [X] TCP client
-   - [X] TCP server
+- [X] REST Api (included in default CosoleApp project)
+- [ ] GRPC Server Connector
+- [X] TCP Server Connector
+- [X] TCP Client Connector
+- [ ] Web app with monitoring capabilities (included in default ConsoleApp project)
+- [X] Nuget packages on nuget.org - <https://www.nuget.org/packages?q=SmartIOT.Connector>
+- [X] Docker runner image on dockerhub - <https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp>
+- [ ] Apps
+  - [X] Run SmartIOT.Connector as a console app
+  - [X] Run SmartIOT.Connector as a Docker image
+  - [ ] Run SmartIOT.Connector as a WPF app
+  - [ ] Run SmartIOT.Connector as a WinService
+- [ ] Testers: connector counterpart as WPF app
+  - [ ] GRPC Client
+  - [X] TCP client
+  - [X] TCP server
 
 ## Docs TODO list
 
- - [ ] Extensibility docs
- - [ ] Comment public classes and interfaces
+- [ ] Extensibility docs
+- [ ] Comment public classes and interfaces
 
 ## Technical TODO list
 
- - [ ] Leverage the async pattern for Connectors and Devices:
-	   introduce <code>IAsyncDeviceDriver</code> and <code>IAsyncConnector</code> and add support to autodiscover and run them
- - [ ] The proto files should be part of SmartIOT.Connector.Messages project
- - [ ] Build and push docker image with github workflow
+- [ ] Leverage the async pattern for Devices:
+      introduce `IAsyncDeviceDriver` and add support to autodiscover and run them
+- [ ] The proto files should be part of SmartIOT.Connector.Messages project
+- [ ] Build and push docker image with github workflow
+- [ ] Use ActivatorUtilities from DI container to create device factories instead of default constructor

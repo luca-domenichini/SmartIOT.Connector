@@ -38,6 +38,7 @@
     <ProjectReference Include="..\..\Core\SmartIOT.Connector.RestApi\SmartIOT.Connector.RestApi.csproj" />
     <ProjectReference Include="..\..\Devices\SmartIOT.Connector.Plc.S7Net\SmartIOT.Connector.Plc.S7Net.csproj" />
     <ProjectReference Include="..\..\Devices\SmartIOT.Connector.Plc.Snap7\SmartIOT.Connector.Plc.Snap7.csproj" />
+    <ProjectReference Include="..\..\Devices\SmartIOT.Connector.Plc.SnapModBus\SmartIOT.Connector.Plc.SnapModBus.csproj" />
   </ItemGroup>
 
 </Project>

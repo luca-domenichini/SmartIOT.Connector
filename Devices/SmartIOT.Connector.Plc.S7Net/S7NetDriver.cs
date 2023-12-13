@@ -14,6 +14,16 @@ public class S7NetDriver : IDeviceDriver
         Device = plc;
     }
 
+    public int StartInterface()
+    {
+        return 0;
+    }
+
+    public int StopInterface()
+    {
+        return 0;
+    }
+
     public int Connect(Device device)
     {
         try
@@ -50,16 +60,6 @@ public class S7NetDriver : IDeviceDriver
         }
     }
 
-    public string GetErrorMessage(int errorNumber)
-    {
-        return $"Error {errorNumber}";
-    }
-
-    public string GetDeviceDescription(Device device)
-    {
-        return device.Name;
-    }
-
     public int ReadTag(Device device, Tag tag, byte[] data, int startOffset, int length)
     {
         try
@@ -78,16 +78,6 @@ public class S7NetDriver : IDeviceDriver
         {
             throw new DeviceDriverException(ex.GetErrorMessage(), ex);
         }
-    }
-
-    public int StartInterface()
-    {
-        return 0;
-    }
-
-    public int StopInterface()
-    {
-        return 0;
     }
 
     public int WriteTag(Device device, Tag tag, byte[] data, int startOffset, int length)
@@ -109,5 +99,15 @@ public class S7NetDriver : IDeviceDriver
         {
             throw new DeviceDriverException(ex.GetErrorMessage(), ex);
         }
+    }
+
+    public string GetErrorMessage(int errorNumber)
+    {
+        return $"Error {errorNumber}";
+    }
+
+    public string GetDeviceDescription(Device device)
+    {
+        return device.Name;
     }
 }

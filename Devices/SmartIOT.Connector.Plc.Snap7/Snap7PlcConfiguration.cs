@@ -5,10 +5,10 @@ namespace SmartIOT.Connector.Plc.Snap7;
 
 public class Snap7PlcConfiguration : DeviceConfiguration
 {
-    internal string IpAddress { get; init; }
-    internal short Rack { get; init; }
-    internal short Slot { get; init; }
-    internal S7ConnectionType ConnectionType { get; init; }
+    public string IpAddress { get; }
+    public short Rack { get; }
+    public short Slot { get; }
+    public S7ConnectionType ConnectionType { get; }
 
     public Snap7PlcConfiguration(DeviceConfiguration configuration) : base(configuration)
     {

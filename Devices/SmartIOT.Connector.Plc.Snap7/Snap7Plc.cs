@@ -7,7 +7,7 @@ public class Snap7Plc : Core.Model.Device
 {
     private static readonly Regex RegexDB = new Regex(@"^DB(?<tag>[0-9]*)$");
 
-    public S7Client S7Client { get; init; }
+    public S7Client S7Client { get; }
     public new Snap7PlcConfiguration Configuration => (Snap7PlcConfiguration)base.Configuration;
     public bool IsConnected => S7Client.Connected;
 

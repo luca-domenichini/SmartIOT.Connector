@@ -63,7 +63,7 @@ public class Runner : IHostedService
         SmartIotConnector.TagWriteEvent += (s, e) =>
         {
         };
-        SmartIotConnector.ExceptionHandler += (s, e) => _logger.LogError(e.Exception, $"Exception caught: {e.Exception.Message}");
+        SmartIotConnector.ExceptionHandler += (s, e) => _logger.LogError(e.Exception, "Exception caught: {message}", e.Exception.Message);
         SmartIotConnector.Starting += (s, e) => _logger.LogInformation("SmartIOT.Connector starting..");
         SmartIotConnector.Started += (s, e) => _logger.LogInformation("SmartIOT.Connector started. Press Ctrl-C for graceful stop.");
         SmartIotConnector.Stopping += (s, e) => _logger.LogInformation("SmartIOT.Connector stopping..");
