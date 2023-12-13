@@ -331,9 +331,9 @@ public class MqttConnectorTests : SmartIOTBaseTests
             Assert.Single(deviceStatusEvents);
             Assert.True(deviceStatusEvents.All(x => x.DeviceId == "1" && x.DeviceStatus == DeviceStatus.OK && x.ErrorNumber == 0 && string.IsNullOrEmpty(x.Description)));
 
-            engine.ScheduleNextTag(false);
-
             tagEvent.Reset();
+
+            engine.ScheduleNextTag(false);
 
             Assert.True(tagEvent.Wait(1000));
 
