@@ -22,7 +22,11 @@ jobs:
       id: version
       run: echo "::set-output name=PRODUCT_VERSION::${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${{ steps.date.outputs.date }}.${{ github.run_attempt }}${{ env.VERSION_SUFFIX }}"
     - uses: actions/checkout@v3
-    - name: Setup .NET
+    - name: Setup .NET6
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Setup .NET8
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 8.0.x
