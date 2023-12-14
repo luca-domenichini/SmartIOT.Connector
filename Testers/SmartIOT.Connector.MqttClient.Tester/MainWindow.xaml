@@ -35,7 +35,5 @@
         <TextBox x:Name="TxtData" HorizontalAlignment="Left" Margin="56,189,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="252" />
         <Button x:Name="BtnRequestWrite" Content="Write" HorizontalAlignment="Left" Margin="314,167,0,0" VerticalAlignment="Top" Height="38" RenderTransformOrigin="0.519,0.545" Width="68" Click="BtnRequestWrite_Click" />
         <Button x:Name="BtnRequestRead" Content="Read" HorizontalAlignment="Left" Margin="388,167,0,0" VerticalAlignment="Top" Height="38" RenderTransformOrigin="0.519,0.545" Width="68" Click="BtnRequestRead_Click" />
-        <Label x:Name="label2_Copy4" Content="Length" HorizontalAlignment="Left" Margin="461,173,0,0" VerticalAlignment="Top" RenderTransformOrigin="0,0.052" />
-        <TextBox x:Name="TxtReadLength" HorizontalAlignment="Left" Margin="512,177,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="38" />
     </Grid>
 </Window>

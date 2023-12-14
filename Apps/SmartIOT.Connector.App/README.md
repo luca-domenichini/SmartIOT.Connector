@@ -1,4 +1,4 @@
-# SmartIOT.Connector.ConsoleApp
+# SmartIOT.Connector.App
 
 This project implements a simple SmartIOT.Connector runner able to run a SmartIOT.Connector instance as a console application.
 
@@ -11,15 +11,15 @@ The sample configuration will log to the console and to daily rolling file <code
 The Console runner can also be run on Docker. You just need to map a volume pointing the configuration folder <code>/SmartIOT.Connector</code> and expose the ports needed for external communications.<br>
 The container image will look for configuration file at <code>/SmartIOT.Connector/smartiot-config.json</code>
 
-A prebuilt Docker image is also available on Docker Hub. Use the following command to pull the latest image, or browse https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp for available tags.
+A prebuilt Docker image is also available on Docker Hub. Use the following command to pull the latest image, or browse https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-app for available tags.
 
-<pre>docker pull lucadomenichini/smartiot-connector-consoleapp:latest</pre>
+<pre>docker pull lucadomenichini/smartiot-connector-app:latest</pre>
 
 ### Building the Docker image from source
 
 Provided you installed docker on your machine, go to SmartIOT.Connector root project folder and type:
 
-<pre>docker build -t smartiot-connector -f Apps/SmartIOT.Connector.ConsoleApp/Dockerfile .</pre>
+<pre>docker build -t smartiot-connector -f Apps/SmartIOT.Connector.App/Dockerfile .</pre>
 
 ### Running the container
 
@@ -32,6 +32,6 @@ Type this to run the container and expose ports on the host machine:
 docker run -it --rm -v /path/to/smartiot-connector/configuration/folder:/SmartIOT.Connector -p 9001:9001 -p 1883:1883 smartiot-connector
 </pre>
 
-Suppose you have downloaded the solution on Windows on folder C:\develop\SmartIOT.Connector. You will have an <code>smartiot-config.json</code> file under the <code>SmartIOT.Connector.ConsoleApp</code> project folder.<br>
+Suppose you have downloaded the solution on Windows on folder C:\develop\SmartIOT.Connector. You will have an <code>smartiot-config.json</code> file under the <code>SmartIOT.Connector.App</code> project folder.<br>
 Type this to use that configuration file:<pre>
-docker run -it --rm -v C:\develop\SmartIOT.Connector\Apps\SmartIOT.Connector.ConsoleApp:/SmartIOT.Connector -p 9001:9001 -p 1883:1883 smartiot-connector</pre>
+docker run -it --rm -v C:\develop\SmartIOT.Connector\Apps\SmartIOT.Connector.App:/SmartIOT.Connector -p 9001:9001 -p 1883:1883 smartiot-connector</pre>

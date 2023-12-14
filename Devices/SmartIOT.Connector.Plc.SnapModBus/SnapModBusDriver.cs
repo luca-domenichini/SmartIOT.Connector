@@ -10,9 +10,13 @@ public class SnapModBusDriver : IDeviceDriver
     public string Name => $"{nameof(SnapModBusDriver)}.{Device.Name}";
     public Device Device { get; }
 
+    private ushort[] _tmp;
+
     public SnapModBusDriver(SnapModBusNode node)
     {
         Device = node;
+
+        _tmp = new ushort[node.Tags.Max(x => x.TagConfiguration.Size / 2 + 1)]; // allocating words from bytes, +1 to handle odd sizes..
     }
 
     public int StartInterface()
@@ -68,17 +72,15 @@ public class SnapModBusDriver : IDeviceDriver
         int endAddress = (startOffset + length - 1) / 2;
         ushort amount = (ushort)(endAddress - address + 1);
 
-        var words = new ushort[amount];
-
         // address is 1-based
-        int ret = node.ReadRegisters((ushort)(address + 1), amount, words);
+        int ret = node.ReadRegisters((ushort)(address + 1), amount, _tmp);
         if (ret != 0)
             return ret;
 
         if (node.Configuration.SwapBytes)
-            CopyArrayAndSwapBytes(words, startOffset % 2, data, startOffset - tag.ByteOffset, length);
+            CopyArrayAndSwapBytes(_tmp, startOffset % 2, data, startOffset - tag.ByteOffset, length);
         else
-            Buffer.BlockCopy(words, startOffset % 2, data, startOffset - tag.ByteOffset, length);
+            Buffer.BlockCopy(_tmp, startOffset % 2, data, startOffset - tag.ByteOffset, length);
 
         return 0;
     }
@@ -111,21 +113,20 @@ public class SnapModBusDriver : IDeviceDriver
         int startRemainder = startOffset % 2;
         int endRemainder = (startOffset + length) % 2;
 
-        var words = new ushort[amount];
         if (node.Configuration.SwapBytes)
-            CopyArrayAndSwapBytes(data, startOffset - tag.ByteOffset - startRemainder, words, 0, length + startRemainder + endRemainder);
+            CopyArrayAndSwapBytes(data, startOffset - tag.ByteOffset - startRemainder, _tmp, 0, length + startRemainder + endRemainder);
         else
-            Buffer.BlockCopy(data, startOffset - tag.ByteOffset - startRemainder, words, 0, length + startRemainder + endRemainder);
+            Buffer.BlockCopy(data, startOffset - tag.ByteOffset - startRemainder, _tmp, 0, length + startRemainder + endRemainder);
 
         // address is 1-based
-        return node.WriteRegisters((ushort)(address + 1), words);
+        return node.WriteRegisters((ushort)(address + 1), _tmp, amount);
     }
 
     private void CopyArrayAndSwapBytes(byte[] source, int srcIndex, ushort[] target, int targetIndex, int length)
     {
         for (int i = 0; i < length; i += 2)
         {
-            target[targetIndex + i] = (ushort)((source[srcIndex + i] << 8) + source[srcIndex + i + 1]);
+            target[targetIndex + i / 2] = (ushort)((source[srcIndex + i] << 8) + source[srcIndex + i + 1]);
         }
     }
 

@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "SmartIOT.Connector.ConsoleApp": {
+    "SmartIOT.Connector.App": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",

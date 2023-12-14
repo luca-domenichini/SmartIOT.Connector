@@ -74,11 +74,8 @@ public partial class MainWindow : Window
 
                             if (msg?.Data is not null)
                             {
-                                _data.AddOrUpdate(msg.DeviceId + "_" + msg.TagId, msg.Data, (_, old) =>
-                                {
-                                    Array.Copy(msg.Data, 0, old, 0, msg.Data.Length);
-                                    return old;
-                                });
+                                var bytes = _data.GetOrAdd(msg.DeviceId + "_" + msg.TagId, _ => new byte[20]);
+                                Array.Copy(msg.Data, 0, bytes, msg.StartOffset, msg.Data.Length);
                             }
                         }
                         else if (IsTopicRoot(_tagWriteTopic, e.ApplicationMessage.Topic))
@@ -266,11 +263,6 @@ public partial class MainWindow : Window
 
             string deviceId = TxtDeviceId.Text;
             string tagId = TxtTagId.Text;
-            var topic = txtTagWriteTopic.Text;
-            if (topic.Contains('/'))
-                topic = topic[..topic.IndexOf('/')];
-            int offset = int.Parse(TxtByteOffset.Text);
-            int length = int.Parse(TxtReadLength.Text);
 
             if (_data.TryGetValue(deviceId + "_" + tagId, out var data))
             {

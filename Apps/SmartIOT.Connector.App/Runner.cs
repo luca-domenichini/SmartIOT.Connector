@@ -2,7 +2,7 @@
 using SmartIOT.Connector.Core.Factory;
 using SmartIOT.Connector.Prometheus;
 
-namespace SmartIOT.Connector.ConsoleApp;
+namespace SmartIOT.Connector.App;
 
 public class Runner : IHostedService
 {
@@ -95,7 +95,8 @@ public class Runner : IHostedService
 
         if (builder.AutoDiscoveryExceptions.Any())
         {
-            _logger.LogWarning($"Error autodiscoverying dll: [{Environment.NewLine}{string.Join($"{Environment.NewLine}\t", builder.AutoDiscoveryExceptions.Select(x => x.Message))}{Environment.NewLine}]");
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug($"Error autodiscoverying dll: [{Environment.NewLine}{string.Join($"{Environment.NewLine}\t", builder.AutoDiscoveryExceptions.Select(x => x.Message))}{Environment.NewLine}]");
         }
     }
 

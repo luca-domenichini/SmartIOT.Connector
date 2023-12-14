@@ -7,9 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.dockerignore = .dockerignore
 		.editorconfig = .editorconfig
-		docker-build-consoleapp.bat = docker-build-consoleapp.bat
-		docker-push-consoleapp.bat = docker-push-consoleapp.bat
-		docker-run-consoleapp.bat = docker-run-consoleapp.bat
+		docker-build-app.bat = docker-build-app.bat
+		docker-push-app.bat = docker-push-app.bat
+		docker-run-app.bat = docker-run-app.bat
 		dotnet-build-and-push.bat = dotnet-build-and-push.bat
 		.github\workflows\dotnet-develop.yml = .github\workflows\dotnet-develop.yml
 		.github\workflows\dotnet-master.yml = .github\workflows\dotnet-master.yml
@@ -55,8 +55,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.TcpServe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Apps", "Apps", "{56D33DD2-28C6-45C5-B994-54FA4D8055F5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.ConsoleApp", "Apps\SmartIOT.Connector.ConsoleApp\SmartIOT.Connector.ConsoleApp.csproj", "{B6B46E61-F57A-4843-BEF6-180C82382E15}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Mocks", "Tests\SmartIOT.Connector.Mocks\SmartIOT.Connector.Mocks.csproj", "{442D217B-E924-4A67-BE4F-FE68D8471C11}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.RestApi", "Core\SmartIOT.Connector.RestApi\SmartIOT.Connector.RestApi.csproj", "{E39654FA-5AA3-4C69-94B8-0BEF1272349C}"
@@ -64,6 +62,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.RestApi.Tests", "Tests\SmartIOT.Connector.RestApi.Tests\SmartIOT.Connector.RestApi.Tests.csproj", "{4EC87D61-7FC7-413A-9B35-7D15AAB2308F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Plc.SnapModBus", "Devices\SmartIOT.Connector.Plc.SnapModBus\SmartIOT.Connector.Plc.SnapModBus.csproj", "{BA4F5CF9-A2F9-4CA4-BAE1-27AEF1EC2800}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.App", "Apps\SmartIOT.Connector.App\SmartIOT.Connector.App.csproj", "{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -131,10 +131,6 @@ Global
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B6B46E61-F57A-4843-BEF6-180C82382E15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B6B46E61-F57A-4843-BEF6-180C82382E15}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B6B46E61-F57A-4843-BEF6-180C82382E15}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B6B46E61-F57A-4843-BEF6-180C82382E15}.Release|Any CPU.Build.0 = Release|Any CPU
 		{442D217B-E924-4A67-BE4F-FE68D8471C11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{442D217B-E924-4A67-BE4F-FE68D8471C11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{442D217B-E924-4A67-BE4F-FE68D8471C11}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -151,6 +147,10 @@ Global
 		{BA4F5CF9-A2F9-4CA4-BAE1-27AEF1EC2800}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA4F5CF9-A2F9-4CA4-BAE1-27AEF1EC2800}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA4F5CF9-A2F9-4CA4-BAE1-27AEF1EC2800}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -164,9 +164,9 @@ Global
 		{58E07F42-929C-40B0-A61B-C9AC8B88855C} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
 		{57778892-A6E7-410D-86C8-5CF061F40DF6} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
 		{AEA92EE6-91CC-4D88-AF51-2B5A2714B328} = {805C2ECD-B0EB-4021-B040-DB1C487D132A}
-		{B6B46E61-F57A-4843-BEF6-180C82382E15} = {56D33DD2-28C6-45C5-B994-54FA4D8055F5}
 		{442D217B-E924-4A67-BE4F-FE68D8471C11} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
 		{4EC87D61-7FC7-413A-9B35-7D15AAB2308F} = {E8D19B9A-719C-4FCF-931B-2492F32063D4}
+		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349} = {56D33DD2-28C6-45C5-B994-54FA4D8055F5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {72862639-80E2-4903-910B-7FC4EC818672}

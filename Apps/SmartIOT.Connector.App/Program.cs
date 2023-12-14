@@ -2,10 +2,9 @@ using Asp.Versioning.ApiExplorer;
 using Serilog;
 using SmartIOT.Connector.RestApi;
 using System.Diagnostics;
-using System.Reflection;
 using System.Text.Json;
 
-namespace SmartIOT.Connector.ConsoleApp;
+namespace SmartIOT.Connector.App;
 
 public class Program
 {
@@ -15,12 +14,13 @@ public class Program
 
     public static void Main(string[] args)
     {
-        Assembly assembly = Assembly.GetExecutingAssembly();
-        FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
-        var version = fileVersionInfo.ProductVersion ?? "--Unknown";
+        FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(Process.GetCurrentProcess().MainModule?.FileName!);
+        var version = fileVersionInfo?.ProductVersion ?? "--Unknown";
+
+        Environment.CurrentDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName!)!;
 
         if (args.Length == 0)
-            args = new[] { "smartiot-config.json" };
+            args = ["smartiot-config.json"];
 
         string path = args[0];
         if (!File.Exists(path))
@@ -61,6 +61,12 @@ public class Program
         {
             options.LowercaseUrls = true;
             options.LowercaseQueryStrings = true;
+        });
+
+        // setup winservice
+        builder.Services.AddWindowsService(o =>
+        {
+            o.ServiceName = typeof(Program).Assembly.GetName().Name!;
         });
 
         var app = builder.Build();
