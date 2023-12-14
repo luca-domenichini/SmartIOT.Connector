@@ -11,9 +11,13 @@ public class Snap7Driver : IDeviceDriver
     public string Name => $"{nameof(Snap7Driver)}.{Device.Name}";
     public Device Device { get; }
 
+    private byte[] _tmp;
+
     public Snap7Driver(Snap7Plc plc)
     {
         Device = plc;
+
+        _tmp = new byte[plc.Tags.Max(x => x.TagConfiguration.Size)];
     }
 
     public int StartInterface()
@@ -48,25 +52,22 @@ public class Snap7Driver : IDeviceDriver
     {
         Snap7Plc p = (Snap7Plc)device;
 
-        var bytes = new byte[length];
-
-        int ret = p.ReadBytes(tag.TagId, startOffset, bytes, length);
+        int ret = p.ReadBytes(tag.TagId, startOffset, _tmp, length);
         if (ret != 0)
             return ret;
 
-        Array.Copy(bytes, 0, data, startOffset - tag.ByteOffset, length);
+        Array.Copy(_tmp, 0, data, startOffset - tag.ByteOffset, length);
 
         return 0;
     }
 
     public int WriteTag(Device device, Tag tag, byte[] data, int startOffset, int length)
     {
-        byte[] bytes = new byte[length];
-        Array.Copy(data, startOffset - tag.ByteOffset, bytes, 0, length);
+        Array.Copy(data, startOffset - tag.ByteOffset, _tmp, 0, length);
 
         Snap7Plc p = (Snap7Plc)device;
 
-        return p.WriteBytes(tag.TagId, startOffset, bytes);
+        return p.WriteBytes(tag.TagId, startOffset, _tmp, length);
     }
 
     public string GetErrorMessage(int errorNumber)

@@ -60,11 +60,11 @@ public class Snap7Plc : Core.Model.Device
         }
     }
 
-    public int WriteBytes(string tagId, int startOffset, byte[] data)
+    public int WriteBytes(string tagId, int startOffset, byte[] data, int length)
     {
         if (int.TryParse(tagId, out int t))
         {
-            return S7Client.DBWrite(t, startOffset, data.Length, data);
+            return S7Client.DBWrite(t, startOffset, length, data);
         }
         else
         {
@@ -72,7 +72,7 @@ public class Snap7Plc : Core.Model.Device
             if (match.Success)
             {
                 t = int.Parse(match.Groups["tag"].Value);
-                return S7Client.DBWrite(t, startOffset, data.Length, data);
+                return S7Client.DBWrite(t, startOffset, length, data);
             }
 
             // other tag types can be supported here..

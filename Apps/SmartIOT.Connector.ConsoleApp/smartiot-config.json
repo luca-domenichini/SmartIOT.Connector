@@ -1,11 +1,11 @@
 {
   "Configuration": {
     "ConnectorConnectionStrings": [
-      "tcpServer://port=1885"
+      "mqttServer://ServerId=MyServer;Port=1883;Serializer=json"
     ],
     "DeviceConfigurations": [
       {
-        "ConnectionString": "snap7://ip=localhost;rack=0;slot=2",
+        "ConnectionString": "snapmodbus://ip=127.0.0.1;SwapBytes=true",
         "DeviceId": "1",
         "Enabled": true,
         "Name": "Test Device",
@@ -16,14 +16,14 @@
             "TagId": "DB2",
             "TagType": "READ",
             "ByteOffset": 0,
-            "Size": 100,
+            "Size": 10,
             "Weight": 1
           },
           {
             "TagId": "DB3",
             "TagType": "WRITE",
             "ByteOffset": 0,
-            "Size": 100,
+            "Size": 20,
             "Weight": 1
           }
         ]
@@ -40,7 +40,7 @@
     }
   },
   "PrometheusConfiguration": {
-    "HostName": "+",
+    "HostName": "\u002B",
     "Port": 0,
     "Url": "metrics/",
     "MetricsPrefix": "smartiot_connector",

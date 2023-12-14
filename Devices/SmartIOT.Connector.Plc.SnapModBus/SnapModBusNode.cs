@@ -43,8 +43,8 @@ public class SnapModBusNode : Core.Model.Device
         return Client.ReadInputRegisters(Configuration.NodeId, address, amount, data);
     }
 
-    public int WriteRegisters(ushort address, ushort[] data)
+    public int WriteRegisters(ushort address, ushort[] data, ushort amount)
     {
-        return Client.WriteMultipleRegisters(Configuration.NodeId, address, (ushort)data.Length, data);
+        return Client.WriteMultipleRegisters(Configuration.NodeId, address, amount, data);
     }
 }

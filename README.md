@@ -151,3 +151,6 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 - [ ] The proto files should be part of SmartIOT.Connector.Messages project
 - [ ] Build and push docker image with github workflow
 - [ ] Use ActivatorUtilities from DI container to create device factories instead of default constructor
+- [ ] Reduce memory allocation on read/write operations. The aim is to use the underlying byte[] as source or target directly, without further allocations.
+  - [ ] use existing ReadOnlySpan aware methods on S7Net
+  - [ ] introduce new method ReadOnlySpan aware on Snap7 and SnapModBus
