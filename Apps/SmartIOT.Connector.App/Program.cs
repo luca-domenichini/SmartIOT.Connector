@@ -4,7 +4,7 @@ using SmartIOT.Connector.RestApi;
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace SmartIOT.Connector.ConsoleApp;
+namespace SmartIOT.Connector.App;
 
 public class Program
 {

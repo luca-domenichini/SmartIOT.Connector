@@ -1,7 +1,7 @@
 ﻿using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Prometheus;
 
-namespace SmartIOT.Connector.ConsoleApp;
+namespace SmartIOT.Connector.App;
 
 public class AppConfiguration
 {

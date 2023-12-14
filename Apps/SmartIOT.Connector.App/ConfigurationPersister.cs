@@ -2,7 +2,7 @@
 using SmartIOT.Connector.RestApi.Services;
 using System.Text.Json;
 
-namespace SmartIOT.Connector.ConsoleApp;
+namespace SmartIOT.Connector.App;
 
 internal class ConfigurationPersister : IConfigurationPersister
 {

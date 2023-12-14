@@ -13,7 +13,7 @@ To plug the controllers you just need to call an extension method to your AspNet
 	builder.Services.AddSmartIotConnectorRestApi(new ConfigurationPersister(configuration, path));
 ```
 
-See project [SmartIOT.Connector.ConsoleApp](../../Apps/SmartIOT.Connector.ConsoleApp/README.md) to see how that's done in details.
+See project [SmartIOT.Connector.App](../../Apps/SmartIOT.Connector.App/README.md) to see how that's done in details.
 
 You can then use the Swagger API page to test your API calls:
 

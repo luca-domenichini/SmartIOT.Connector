@@ -96,15 +96,15 @@ smartiot.Stop();
 - [REST API guide](./Core/SmartIOT.Connector.RestApi/README.md)
 - [Customization guide](./Docs/Customize.md)
 
-## SmartIOT.Connector.ConsoleApp and Docker integration
+## SmartIOT.Connector.App and Docker integration
 
-If you want to run SmartIOT.Connector as a standalone application or as a Docker container, see project [SmartIOT.Connector.ConsoleApp](./Apps/SmartIOT.Connector.ConsoleApp/README.md) for further details.
+If you want to run SmartIOT.Connector as a standalone application or as a Docker container, see project [SmartIOT.Connector.App](./Apps/SmartIOT.Connector.App/README.md) for further details.
 
-Here is a quick link to the Docker image repository: <https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp>
+Here is a quick link to the Docker image repository: <https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-app>
 
 ## Run as a Windows Service
 
-The application [SmartIOT.Connector.ConsoleApp](./Apps/SmartIOT.Connector.ConsoleApp/README.md) supports being run as a WinService.
+The application [SmartIOT.Connector.App](./Apps/SmartIOT.Connector.App/README.md) supports being run as a WinService.
 All you need to do is install it and run.
 Follow [this guide](https://learn.microsoft.com/en-us/dotnet/core/extensions/windows-service?pivots=dotnet-8-0#create-the-windows-service) for further informations
 
@@ -132,13 +132,12 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 - [ ] GRPC Server Connector
 - [X] TCP Server Connector
 - [X] TCP Client Connector
-- [ ] Web app with monitoring capabilities (included in default ConsoleApp project)
+- [ ] Web app with monitoring capabilities (included in default App project)
 - [X] Nuget packages on nuget.org - <https://www.nuget.org/packages?q=SmartIOT.Connector>
-- [X] Docker runner image on dockerhub - <https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp>
-- [ ] Apps
+- [X] Docker runner image on dockerhub - <https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-app>
+- [X] Apps
   - [X] Run SmartIOT.Connector as a console app
   - [X] Run SmartIOT.Connector as a Docker image
-  - [ ] Run SmartIOT.Connector as a WPF app
   - [X] Run SmartIOT.Connector as a WinService
 - [ ] Testers: connector counterpart as WPF app
   - [ ] GRPC Client

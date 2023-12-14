@@ -2,7 +2,7 @@
 using SmartIOT.Connector.Core.Factory;
 using SmartIOT.Connector.Prometheus;
 
-namespace SmartIOT.Connector.ConsoleApp;
+namespace SmartIOT.Connector.App;
 
 public class Runner : IHostedService
 {
