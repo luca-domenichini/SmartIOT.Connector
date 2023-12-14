@@ -11,7 +11,7 @@ public class Snap7Driver : IDeviceDriver
     public string Name => $"{nameof(Snap7Driver)}.{Device.Name}";
     public Device Device { get; }
 
-    private byte[] _tmp;
+    private readonly byte[] _tmp;
 
     public Snap7Driver(Snap7Plc plc)
     {

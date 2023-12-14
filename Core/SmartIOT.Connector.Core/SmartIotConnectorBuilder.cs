@@ -1,4 +1,6 @@
-﻿using SmartIOT.Connector.Core.Conf;
+﻿#pragma warning disable S3885 // "Assembly.Load" should be used
+
+using SmartIOT.Connector.Core.Conf;
 using SmartIOT.Connector.Core.Factory;
 using SmartIOT.Connector.Core.Scheduler;
 using System.Reflection;
@@ -86,28 +88,25 @@ public class SmartIotConnectorBuilder
         if (_autoDiscoverDeviceDriverFactory)
             DeviceDriverFactory.AddRange(AutoDiscoverDeviceDriverFactories());
 
-        if (!DeviceDriverFactory.Any() && !_deviceDrivers.Any())
+        if (!DeviceDriverFactory.Any() && _deviceDrivers.Count == 0)
             throw new ArgumentException($"Nessuna {nameof(IDeviceDriverFactory)} o {nameof(IDeviceDriver)} presente in configurazione");
 
         if (_autoDiscoverConnectorFactory)
             ConnectorFactory.AddRange(AutoDiscoverConnectorFactories());
 
-        IList<ITagScheduler> schedulers = BuildSchedulers();
-        IList<IConnector> connectors = BuildConnectors();
+        var schedulers = BuildSchedulers();
+        var connectors = BuildConnectors();
 
         return new SmartIotConnector(schedulers, connectors, Configuration.SchedulerConfiguration);
     }
 
-    private IList<IConnector> BuildConnectors()
+    private List<IConnector> BuildConnectors()
     {
         var list = new List<IConnector>();
 
         foreach (var connectionString in Configuration!.ConnectorConnectionStrings)
         {
-            IConnector? connector = ConnectorFactory.CreateConnector(connectionString);
-            if (connector == null)
-                throw new ArgumentException($"Impossibile creare il connector: ConnectionString {connectionString} non riconosciuta.");
-
+            IConnector? connector = ConnectorFactory.CreateConnector(connectionString) ?? throw new ArgumentException($"Error creating connector: ConnectionString {connectionString} not recognized.");
             list.Add(connector);
         }
 
@@ -116,12 +115,12 @@ public class SmartIotConnectorBuilder
         return list;
     }
 
-    private IList<ITagScheduler> BuildSchedulers()
+    private List<ITagScheduler> BuildSchedulers()
     {
         // creating schedulers from configuration
         var drivers = new Dictionary<DeviceConfiguration, IDeviceDriver>();
         var devices = new List<DeviceConfiguration>(Configuration!.DeviceConfigurations);
-        if (devices.Any())
+        if (devices.Count > 0)
         {
             foreach (var device in devices)
             {
@@ -135,7 +134,7 @@ public class SmartIotConnectorBuilder
             devices.RemoveAll(x => drivers.ContainsKey(x)); // rimuovo dalla lista temporanea le configurazioni che hanno ritornato un driver
         }
 
-        if (devices.Any())
+        if (devices.Count > 0)
             throw new ArgumentException($"Error configuring SmartIotConnector: no scheduler factory found for these devices:\r\n{string.Join("\r\n", devices.Select(x => x.Name + ": " + x.ConnectionString))}");
 
         var schedulers = drivers.Values.Select(x => SchedulerFactory.CreateScheduler(x.Name, x, TimeService, Configuration.SchedulerConfiguration)).ToList();
@@ -146,7 +145,7 @@ public class SmartIotConnectorBuilder
         return schedulers;
     }
 
-    private IList<IDeviceDriverFactory> AutoDiscoverDeviceDriverFactories()
+    private List<IDeviceDriverFactory> AutoDiscoverDeviceDriverFactories()
     {
         var list = new List<IDeviceDriverFactory>();
 
@@ -188,7 +187,7 @@ public class SmartIotConnectorBuilder
         return list;
     }
 
-    private IList<IConnectorFactory> AutoDiscoverConnectorFactories()
+    private List<IConnectorFactory> AutoDiscoverConnectorFactories()
     {
         var list = new List<IConnectorFactory>();
 

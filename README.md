@@ -128,7 +128,7 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
 
 ## Roadmap to 1.0 - Features TODO list
 
-- [X] REST Api (included in default CosoleApp project)
+- [X] REST Api (included in default App project)
 - [ ] GRPC Server Connector
 - [X] TCP Server Connector
 - [X] TCP Client Connector

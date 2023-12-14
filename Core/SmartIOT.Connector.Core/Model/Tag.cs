@@ -48,11 +48,13 @@ public class Tag
     /// </summary>
     public void RequestTagWrite(byte[] data, int startOffset)
     {
+#pragma warning disable S2551 // Shared resources should not be used for locking: we purposefully lock on "this" to avoid races between tag-scheduler and services that request tag write.
         lock (this)
         {
             Array.Copy(data, 0, Data, startOffset - ByteOffset, data.Length);
             IsWriteSynchronizationRequested = true;
         }
+#pragma warning restore S2551 // Shared resources should not be used for locking
     }
 
     /// <summary>

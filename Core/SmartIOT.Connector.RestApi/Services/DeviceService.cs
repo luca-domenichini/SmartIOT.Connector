@@ -54,7 +54,7 @@ public class DeviceService : IDeviceService
     {
         var driver = _deviceDriverFactory.CreateDriver(deviceConfiguration);
         if (driver == null)
-            throw new ApplicationException($"DeviceConfiguration not valid {deviceConfiguration.ConnectionString}");
+            throw new DeviceException($"DeviceConfiguration not valid {deviceConfiguration.ConnectionString}");
 
         _smartIotConnector.AddScheduler(_schedulerFactory.CreateScheduler(driver.Name, driver, _timeService, _smartIotConnector.SchedulerConfiguration));
     }
@@ -65,7 +65,7 @@ public class DeviceService : IDeviceService
             .FirstOrDefault(x => x.Device.DeviceId.Equals(deviceId, StringComparison.InvariantCultureIgnoreCase));
 
         if (scheduler == null)
-            throw new ApplicationException($"Device {deviceId} does not exists");
+            throw new DeviceException($"Device {deviceId} does not exists");
 
         _smartIotConnector.RemoveScheduler(scheduler);
     }
@@ -93,17 +93,17 @@ public class DeviceService : IDeviceService
             .FirstOrDefault(x => x.DeviceId.Equals(deviceId, StringComparison.InvariantCultureIgnoreCase));
 
         if (device == null)
-            throw new ApplicationException($"Device {deviceId} does not exists");
+            throw new DeviceException($"Device {deviceId} does not exists");
 
         var tag = device.Tags.FirstOrDefault(x => x.TagId.Equals(tagId, StringComparison.InvariantCultureIgnoreCase));
         if (tag == null)
-            throw new ApplicationException($"Tag {tagId} does not exists");
+            throw new DeviceException($"Tag {tagId} does not exists");
 
         if (tagData.StartOffset < tag.ByteOffset)
-            throw new ApplicationException($"Requested StartOffset {tagData.StartOffset} < {tag.ByteOffset}");
+            throw new DeviceException($"Requested StartOffset {tagData.StartOffset} < {tag.ByteOffset}");
 
         if (tagData.StartOffset + tagData.Bytes.Length > tag.ByteOffset + tag.Size)
-            throw new ApplicationException($"Data packet is too big. Requested: [{tagData.StartOffset}..{tagData.StartOffset + tagData.Bytes.Length - 1}], accepted: [{tag.ByteOffset}..{tag.ByteOffset + tag.Size - 1}]");
+            throw new DeviceException($"Data packet is too big. Requested: [{tagData.StartOffset}..{tagData.StartOffset + tagData.Bytes.Length - 1}], accepted: [{tag.ByteOffset}..{tag.ByteOffset + tag.Size - 1}]");
 
         tag.RequestTagWrite(tagData.Bytes, tagData.StartOffset);
     }
@@ -135,10 +135,10 @@ public class DeviceService : IDeviceService
             .FirstOrDefault(x => x.DeviceId.Equals(deviceId, StringComparison.InvariantCultureIgnoreCase));
 
         if (device == null)
-            throw new ApplicationException($"Device {deviceId} does not exists");
+            throw new DeviceException($"Device {deviceId} does not exists");
 
         if (device.Tags.Any(x => x.TagId.Equals(tagConfiguration.TagId, StringComparison.InvariantCultureIgnoreCase)))
-            throw new ApplicationException($"Tag {tagConfiguration.TagId} already exists");
+            throw new DeviceException($"Tag {tagConfiguration.TagId} already exists");
 
         device.AddTag(tagConfiguration);
     }
@@ -150,11 +150,11 @@ public class DeviceService : IDeviceService
             .FirstOrDefault(x => x.DeviceId.Equals(deviceId, StringComparison.InvariantCultureIgnoreCase));
 
         if (device == null)
-            throw new ApplicationException($"Device {deviceId} does not exists");
+            throw new DeviceException($"Device {deviceId} does not exists");
 
         var tag = device.Tags.FirstOrDefault(x => x.TagId.Equals(tagId, StringComparison.InvariantCultureIgnoreCase));
         if (tag == null)
-            throw new ApplicationException($"Tag {tagId} does not exists");
+            throw new DeviceException($"Tag {tagId} does not exists");
 
         device.RemoveTag(tag);
     }
@@ -166,13 +166,13 @@ public class DeviceService : IDeviceService
             .FirstOrDefault(x => x.DeviceId.Equals(deviceId, StringComparison.InvariantCultureIgnoreCase));
 
         if (device == null)
-            throw new ApplicationException($"Device {deviceId} does not exists");
+            throw new DeviceException($"Device {deviceId} does not exists");
 
         var oldTag = device.Tags.FirstOrDefault(x => x.TagId.Equals(tagConfiguration.TagId, StringComparison.InvariantCultureIgnoreCase));
         if (oldTag == null)
-            throw new ApplicationException($"Tag {tagConfiguration.TagId} does not exists");
+            throw new DeviceException($"Tag {tagConfiguration.TagId} does not exists");
 
         if (!device.UpdateTag(tagConfiguration))
-            throw new ApplicationException($"Tag {tagConfiguration.TagId} does not exists");
+            throw new DeviceException($"Tag {tagConfiguration.TagId} does not exists");
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace SmartIOT.Connector.Core.Util;
 
-public class ConnectionStringParser
+public static class ConnectionStringParser
 {
     public static IDictionary<string, string> ParseTokens(string connectionString)
     {

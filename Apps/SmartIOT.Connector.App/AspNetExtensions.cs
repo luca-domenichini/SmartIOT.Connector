@@ -1,5 +1,4 @@
-﻿using SmartIOT.Connector.Core;
-using SmartIOT.Connector.Core.Factory;
+﻿using SmartIOT.Connector.Core.Factory;
 
 namespace SmartIOT.Connector.App;
 

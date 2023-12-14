@@ -8,7 +8,7 @@ public class S7NetDriverFactory : IDeviceDriverFactory
 {
     private static bool AcceptConnectionString(string connectionString)
     {
-        return connectionString?.ToLower().StartsWith("s7net://") ?? false;
+        return connectionString?.StartsWith("s7net://", StringComparison.InvariantCultureIgnoreCase) ?? false;
     }
 
     public IDeviceDriver? CreateDriver(DeviceConfiguration deviceConfiguration)

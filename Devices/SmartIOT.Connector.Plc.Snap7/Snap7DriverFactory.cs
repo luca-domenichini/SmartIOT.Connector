@@ -8,7 +8,7 @@ public class Snap7DriverFactory : IDeviceDriverFactory
 {
     private static bool AcceptConnectionString(string connectionString)
     {
-        return connectionString?.ToLower().StartsWith("snap7://") ?? false;
+        return connectionString?.StartsWith("snap7://", StringComparison.InvariantCultureIgnoreCase) ?? false;
     }
 
     public IDeviceDriver? CreateDriver(DeviceConfiguration deviceConfiguration)

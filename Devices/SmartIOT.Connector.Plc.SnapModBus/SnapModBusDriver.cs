@@ -1,7 +1,6 @@
 ﻿using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Model;
 using SnapModbus;
-using System.Runtime.InteropServices;
 
 namespace SmartIOT.Connector.Plc.SnapModBus;
 
@@ -10,7 +9,7 @@ public class SnapModBusDriver : IDeviceDriver
     public string Name => $"{nameof(SnapModBusDriver)}.{Device.Name}";
     public Device Device { get; }
 
-    private ushort[] _tmp;
+    private readonly ushort[] _tmp;
 
     public SnapModBusDriver(SnapModBusNode node)
     {

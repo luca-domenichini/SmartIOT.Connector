@@ -16,9 +16,9 @@ public class DeviceDriverFactory : IDeviceDriverFactory
         _factories.AddRange(deviceDriverFactories);
     }
 
-    public bool Any() => _factories.Any();
+    public bool Any() => _factories.Count > 0;
 
-    public bool Any(Func<object, bool> predicate) => _factories.Any(predicate);
+    public bool Any(Func<object, bool> predicate) => _factories.Exists(x => predicate.Invoke(x));
 
     public IDeviceDriver? CreateDriver(DeviceConfiguration deviceConfiguration)
     {

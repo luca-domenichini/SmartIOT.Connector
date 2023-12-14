@@ -99,8 +99,12 @@ public class AggregatingConnectorEventQueue : AggregatingQueue<CompositeConnecto
         return null;
     }
 
+#pragma warning disable S1172 // Unused method parameters should be removed
+
     private CompositeConnectorEvent? AggregateExceptionEvents(object? sender, ExceptionEventArgs item1, ExceptionEventArgs item2)
     {
         return null;
     }
+
+#pragma warning restore S1172 // Unused method parameters should be removed
 }

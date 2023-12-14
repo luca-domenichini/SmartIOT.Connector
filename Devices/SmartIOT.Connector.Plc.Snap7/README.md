@@ -1,6 +1,6 @@
 # Snap7 Device configuration
 
-This project provides a bridge to make SmartIOT.Connector able to use the [Snap7 library](http://snap7.sourceforge.net) by Dave Nardella (and in particular Sharp7) to connect to a Siemens PLC and to exchange data defined in its datablocks.
+This project provides a bridge to make SmartIOT.Connector able to use the [Snap7 library](http://snap7.sourceforge.net) by Davide Nardella (and in particular Sharp7) to connect to a Siemens PLC and to exchange data defined in its datablocks.
 
 The supported connection string is as follows (square brackets for optional parameters):
 <pre>snap7://Ip=&lt;plc ip address>;Rack=&lt;rack>;Slot=&lt;slot>[;Type=&lt;type>]</pre>

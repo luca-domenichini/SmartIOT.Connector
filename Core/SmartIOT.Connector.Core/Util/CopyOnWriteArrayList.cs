@@ -101,8 +101,7 @@ internal class CopyOnWriteArrayList<T> : IList<T>, IReadOnlyList<T>, IList
 
     public void CopyTo(T[] array, int arrayIndex)
     {
-        if (array == null)
-            throw new ArgumentNullException(nameof(array));
+        ArgumentNullException.ThrowIfNull(array);
 
         var data = _data;
 
@@ -111,8 +110,7 @@ internal class CopyOnWriteArrayList<T> : IList<T>, IReadOnlyList<T>, IList
 
     public void CopyTo(Array array, int index)
     {
-        if (array == null)
-            throw new ArgumentNullException(nameof(array));
+        ArgumentNullException.ThrowIfNull(array);
 
         var data = _data;
         Array.Copy(data, array, data.Length);

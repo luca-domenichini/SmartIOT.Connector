@@ -16,7 +16,7 @@ public class ConnectorFactory : IConnectorFactory
 
     public bool Any(Func<IConnectorFactory, bool> predicate)
     {
-        return _factories.Any(x => predicate(x));
+        return _factories.Exists(x => predicate(x));
     }
 
     public IConnector? CreateConnector(string connectionString)

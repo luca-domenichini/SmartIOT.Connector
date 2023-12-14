@@ -8,7 +8,7 @@ public class MockDriverFactory : IDeviceDriverFactory
 {
     private static bool AcceptConnectionString(string connectionString)
     {
-        return connectionString?.ToLower().StartsWith("mock://") ?? false;
+        return connectionString?.StartsWith("mock://", StringComparison.InvariantCultureIgnoreCase) ?? false;
     }
 
     public IDeviceDriver? CreateDriver(DeviceConfiguration deviceConfiguration)

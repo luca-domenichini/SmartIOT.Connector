@@ -7,7 +7,6 @@ namespace SmartIOT.Connector.Prometheus;
 internal class ExtensionImpl
 {
     private readonly bool _isManagedServer;
-    private readonly string _metricsPrefix;
     private readonly Gauge _synchronizationAvgTimeSeconds;
     private readonly Gauge _synchronizationCount;
     private readonly Gauge _writesCount;
@@ -17,26 +16,25 @@ internal class ExtensionImpl
     public ExtensionImpl(IMetricServer metricServer, bool isManagedServer, string metricsPrefix)
     {
         _isManagedServer = isManagedServer;
-        _metricsPrefix = metricsPrefix;
 
-        if (string.IsNullOrWhiteSpace(_metricsPrefix))
-            _metricsPrefix = "smartiot_connector_";
-        if (!_metricsPrefix.EndsWith("_"))
-            _metricsPrefix += "_";
+        if (string.IsNullOrWhiteSpace(metricsPrefix))
+            metricsPrefix = "smartiot_connector_";
+        if (!metricsPrefix.EndsWith('_'))
+            metricsPrefix += "_";
 
         MetricServer = metricServer;
 
-        _synchronizationAvgTimeSeconds = Metrics.CreateGauge($"{_metricsPrefix}synchronization_avg_time_seconds", "This metric represents the average time elapsed to synchronize a tag", new GaugeConfiguration()
+        _synchronizationAvgTimeSeconds = Metrics.CreateGauge($"{metricsPrefix}synchronization_avg_time_seconds", "This metric represents the average time elapsed to synchronize a tag", new GaugeConfiguration()
         {
             LabelNames = new[] { "DeviceId", "TagId" },
             SuppressInitialValue = true,
         });
-        _synchronizationCount = Metrics.CreateGauge($"{_metricsPrefix}synchronization_count", "This metric represents the number of synchronization on the tag", new GaugeConfiguration()
+        _synchronizationCount = Metrics.CreateGauge($"{metricsPrefix}synchronization_count", "This metric represents the number of synchronization on the tag", new GaugeConfiguration()
         {
             LabelNames = new[] { "DeviceId", "TagId" },
             SuppressInitialValue = true,
         });
-        _writesCount = Metrics.CreateGauge($"{_metricsPrefix}writes_count", "This metric represents the number of writes on the tag", new GaugeConfiguration()
+        _writesCount = Metrics.CreateGauge($"{metricsPrefix}writes_count", "This metric represents the number of writes on the tag", new GaugeConfiguration()
         {
             LabelNames = new[] { "DeviceId", "TagId" },
             SuppressInitialValue = true,

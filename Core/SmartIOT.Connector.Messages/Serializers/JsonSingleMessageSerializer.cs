@@ -6,11 +6,6 @@ public class JsonSingleMessageSerializer : ISingleMessageSerializer
 {
     private readonly JsonSerializerOptions _options;
 
-    public JsonSingleMessageSerializer()
-        : this(CreateDefaultSerializerOptions())
-    {
-    }
-
     private static JsonSerializerOptions CreateDefaultSerializerOptions()
     {
         var options = new JsonSerializerOptions()
@@ -18,6 +13,11 @@ public class JsonSingleMessageSerializer : ISingleMessageSerializer
             ReadCommentHandling = JsonCommentHandling.Skip
         };
         return options;
+    }
+
+    public JsonSingleMessageSerializer()
+        : this(CreateDefaultSerializerOptions())
+    {
     }
 
     public JsonSingleMessageSerializer(JsonSerializerOptions options)
@@ -30,8 +30,8 @@ public class JsonSingleMessageSerializer : ISingleMessageSerializer
         return JsonSerializer.SerializeToUtf8Bytes(message, _options);
     }
 
-    public T? DeserializeMessage<T>(byte[] message)
+    public T? DeserializeMessage<T>(byte[] bytes)
     {
-        return JsonSerializer.Deserialize<T>(message, _options);
+        return JsonSerializer.Deserialize<T>(bytes, _options);
     }
 }
