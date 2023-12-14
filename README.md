@@ -102,6 +102,12 @@ If you want to run SmartIOT.Connector as a standalone application or as a Docker
 
 Here is a quick link to the Docker image repository: <https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-consoleapp>
 
+## Run as a Windows Service
+
+The application [SmartIOT.Connector.ConsoleApp](./Apps/SmartIOT.Connector.ConsoleApp/README.md) supports being run as a WinService.
+All you need to do is install it and run.
+Follow [this guide](https://learn.microsoft.com/en-us/dotnet/core/extensions/windows-service?pivots=dotnet-8-0#create-the-windows-service) for further informations
+
 ## Nuget packages
 
 You can find SmartIOT.Connector packages on nuget.org site and on Visual Studio Package Manager:
@@ -133,7 +139,7 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
   - [X] Run SmartIOT.Connector as a console app
   - [X] Run SmartIOT.Connector as a Docker image
   - [ ] Run SmartIOT.Connector as a WPF app
-  - [ ] Run SmartIOT.Connector as a WinService
+  - [X] Run SmartIOT.Connector as a WinService
 - [ ] Testers: connector counterpart as WPF app
   - [ ] GRPC Client
   - [X] TCP client
