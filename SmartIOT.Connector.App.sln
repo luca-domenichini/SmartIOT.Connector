@@ -1,0 +1,95 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32421.90
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{00225731-BE18-495B-9FDA-DEC2D79868B1}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		.editorconfig = .editorconfig
+		docker-build-app.bat = docker-build-app.bat
+		docker-push-app.bat = docker-push-app.bat
+		docker-run-app.bat = docker-run-app.bat
+		dotnet-build-and-push.bat = dotnet-build-and-push.bat
+		.github\workflows\dotnet-develop.yml = .github\workflows\dotnet-develop.yml
+		.github\workflows\dotnet-master.yml = .github\workflows\dotnet-master.yml
+		.github\workflows\dotnet-prerelease.yml = .github\workflows\dotnet-prerelease.yml
+		.github\workflows\dotnet-release.yml = .github\workflows\dotnet-release.yml
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Mqtt", "Connectors\SmartIOT.Connector.Mqtt\SmartIOT.Connector.Mqtt.csproj", "{8FC9CA9D-94BF-473C-887C-6EF6D40CBE82}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Core", "Core\SmartIOT.Connector.Core\SmartIOT.Connector.Core.csproj", "{78A4C66E-A994-4E5D-89C3-26713532F608}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Messages", "Core\SmartIOT.Connector.Messages\SmartIOT.Connector.Messages.csproj", "{7CFA3DA8-F742-4ADA-9301-46833D4FCFB9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Prometheus", "Core\SmartIOT.Connector.Prometheus\SmartIOT.Connector.Prometheus.csproj", "{EC862678-7398-4544-A22D-48B56F6BF489}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Plc.S7Net", "Devices\SmartIOT.Connector.Plc.S7Net\SmartIOT.Connector.Plc.S7Net.csproj", "{02665260-499D-488E-912D-D6A23EC1C6CB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Plc.Snap7", "Devices\SmartIOT.Connector.Plc.Snap7\SmartIOT.Connector.Plc.Snap7.csproj", "{99AD52AC-5983-4016-BC18-81ED7E21CD13}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Tcp", "Connectors\SmartIOT.Connector.Tcp\SmartIOT.Connector.Tcp.csproj", "{5E9D195E-AF4E-4D09-B45E-675549981D50}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.RestApi", "Core\SmartIOT.Connector.RestApi\SmartIOT.Connector.RestApi.csproj", "{E39654FA-5AA3-4C69-94B8-0BEF1272349C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Plc.SnapModBus", "Devices\SmartIOT.Connector.Plc.SnapModBus\SmartIOT.Connector.Plc.SnapModBus.csproj", "{BA4F5CF9-A2F9-4CA4-BAE1-27AEF1EC2800}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.App", "Apps\SmartIOT.Connector.App\SmartIOT.Connector.App.csproj", "{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8FC9CA9D-94BF-473C-887C-6EF6D40CBE82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FC9CA9D-94BF-473C-887C-6EF6D40CBE82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FC9CA9D-94BF-473C-887C-6EF6D40CBE82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FC9CA9D-94BF-473C-887C-6EF6D40CBE82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78A4C66E-A994-4E5D-89C3-26713532F608}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78A4C66E-A994-4E5D-89C3-26713532F608}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78A4C66E-A994-4E5D-89C3-26713532F608}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78A4C66E-A994-4E5D-89C3-26713532F608}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CFA3DA8-F742-4ADA-9301-46833D4FCFB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CFA3DA8-F742-4ADA-9301-46833D4FCFB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CFA3DA8-F742-4ADA-9301-46833D4FCFB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CFA3DA8-F742-4ADA-9301-46833D4FCFB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC862678-7398-4544-A22D-48B56F6BF489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC862678-7398-4544-A22D-48B56F6BF489}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC862678-7398-4544-A22D-48B56F6BF489}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC862678-7398-4544-A22D-48B56F6BF489}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02665260-499D-488E-912D-D6A23EC1C6CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02665260-499D-488E-912D-D6A23EC1C6CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02665260-499D-488E-912D-D6A23EC1C6CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02665260-499D-488E-912D-D6A23EC1C6CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99AD52AC-5983-4016-BC18-81ED7E21CD13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99AD52AC-5983-4016-BC18-81ED7E21CD13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99AD52AC-5983-4016-BC18-81ED7E21CD13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99AD52AC-5983-4016-BC18-81ED7E21CD13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E9D195E-AF4E-4D09-B45E-675549981D50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E9D195E-AF4E-4D09-B45E-675549981D50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E9D195E-AF4E-4D09-B45E-675549981D50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E9D195E-AF4E-4D09-B45E-675549981D50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E39654FA-5AA3-4C69-94B8-0BEF1272349C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E39654FA-5AA3-4C69-94B8-0BEF1272349C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E39654FA-5AA3-4C69-94B8-0BEF1272349C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E39654FA-5AA3-4C69-94B8-0BEF1272349C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA4F5CF9-A2F9-4CA4-BAE1-27AEF1EC2800}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA4F5CF9-A2F9-4CA4-BAE1-27AEF1EC2800}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA4F5CF9-A2F9-4CA4-BAE1-27AEF1EC2800}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA4F5CF9-A2F9-4CA4-BAE1-27AEF1EC2800}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {72862639-80E2-4903-910B-7FC4EC818672}
+	EndGlobalSection
+EndGlobal
