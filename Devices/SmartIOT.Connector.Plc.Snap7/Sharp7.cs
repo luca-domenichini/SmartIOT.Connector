@@ -2,6 +2,7 @@
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 #pragma warning disable CS8073 // The result of the expression is always the same since a value of this type is never equal to 'null'
 #pragma warning disable CS0414 // The field is assigned but its value is never used
+#pragma warning disable CS9125 // Attribute parameter 'SizeConst' must be specified.
 #pragma warning disable IDE0017 // Simplify object initialization
 #pragma warning disable IDE0044 // Add readonly modifier
 #pragma warning disable IDE0051 // Remove unused private members
@@ -10,6 +11,29 @@
 #pragma warning disable IDE0066 // Convert switch statement to expression
 #pragma warning disable IDE0054 // Use compound assignment
 #pragma warning disable IDE0034 // Simplify 'default' expression
+#pragma warning disable IDE0300 // Simplify collection initialization
+#pragma warning disable IDE0031 // Use null propagation
+#pragma warning disable S4144 // Methods should not have identical implementations
+#pragma warning disable S108 // Nested blocks of code should not be left empty
+#pragma warning disable S1905 // Redundant casts should not be used
+#pragma warning disable S3626 // Jump statements should not be redundant
+#pragma warning disable S1116 // Empty statements should be removed
+#pragma warning disable S1104 // Fields should not have public accessibility
+#pragma warning disable S2933 // Fields that are only assigned in the constructor should be "readonly"
+#pragma warning disable S1871 // Two branches in a conditional structure should not have exactly the same implementation
+#pragma warning disable S2292 // Trivial properties should be auto-implemented
+#pragma warning disable S1172 // Unused method parameters should be removed
+#pragma warning disable S1854 // Unused assignments should be removed
+#pragma warning disable S101 // Types should be named in PascalCase
+#pragma warning disable S1144 // Unused private types or members should be removed
+#pragma warning disable S6562 // Always set the "DateTimeKind" when creating new "DateTime" instances
+#pragma warning disable S1481 // Unused local variables should be removed
+#pragma warning disable S3878 // Arrays should not be created for params parameters
+#pragma warning disable S3241 // Methods should not return values that are never used
+#pragma warning disable S2971 // "IEnumerable" LINQs should be simplified
+#pragma warning disable S2486 // Generic exceptions should not be ignored
+#pragma warning disable S125 // Sections of code should not be commented out
+#pragma warning disable S2589 // Boolean expressions should not be gratuitous
 /*=============================================================================|
 | PROJECT Sharp7                                                        1.1.0 |
 |==============================================================================|
@@ -341,7 +365,7 @@ namespace Sharp7;
 
 #if !WINDOWS_UWP && !NETFX_CORE
 
-class MsgSocket
+internal class MsgSocket
 {
     private Socket TCPSocket;
     private int _ReadTimeout = 2000;
@@ -673,10 +697,10 @@ public class S7Timer
 {
     #region S7Timer
 
-    TimeSpan pt;
-    TimeSpan et;
-    bool input = false;
-    bool q = false;
+    private TimeSpan pt;
+    private TimeSpan et;
+    private bool input = false;
+    private bool q = false;
 
     public S7Timer(byte[] buff, int position)
     {
@@ -1644,26 +1668,26 @@ public class S7Client
     public static readonly int MaxVars = 20;
 
     // Result transport size
-    const byte TS_ResBit = 0x03;
+    private const byte TS_ResBit = 0x03;
 
-    const byte TS_ResByte = 0x04;
-    const byte TS_ResInt = 0x05;
-    const byte TS_ResReal = 0x07;
-    const byte TS_ResOctet = 0x09;
+    private const byte TS_ResByte = 0x04;
+    private const byte TS_ResInt = 0x05;
+    private const byte TS_ResReal = 0x07;
+    private const byte TS_ResOctet = 0x09;
 
-    const ushort Code7Ok = 0x0000;
-    const ushort Code7AddressOutOfRange = 0x0005;
-    const ushort Code7InvalidTransportSize = 0x0006;
-    const ushort Code7WriteDataSizeMismatch = 0x0007;
-    const ushort Code7ResItemNotAvailable = 0x000A;
-    const ushort Code7ResItemNotAvailable1 = 0xD209;
-    const ushort Code7InvalidValue = 0xDC01;
-    const ushort Code7NeedPassword = 0xD241;
-    const ushort Code7InvalidPassword = 0xD602;
-    const ushort Code7NoPasswordToClear = 0xD604;
-    const ushort Code7NoPasswordToSet = 0xD605;
-    const ushort Code7FunNotAvailable = 0x8104;
-    const ushort Code7DataOverPDU = 0x8500;
+    private const ushort Code7Ok = 0x0000;
+    private const ushort Code7AddressOutOfRange = 0x0005;
+    private const ushort Code7InvalidTransportSize = 0x0006;
+    private const ushort Code7WriteDataSizeMismatch = 0x0007;
+    private const ushort Code7ResItemNotAvailable = 0x000A;
+    private const ushort Code7ResItemNotAvailable1 = 0xD209;
+    private const ushort Code7InvalidValue = 0xDC01;
+    private const ushort Code7NeedPassword = 0xD241;
+    private const ushort Code7InvalidPassword = 0xD602;
+    private const ushort Code7NoPasswordToClear = 0xD604;
+    private const ushort Code7NoPasswordToSet = 0xD605;
+    private const ushort Code7FunNotAvailable = 0x8104;
+    private const ushort Code7DataOverPDU = 0x8500;
 
     // Client Connection Type
     public static readonly UInt16 CONNTYPE_PG = 0x01;  // Connect to the PLC as a PG
@@ -1791,7 +1815,7 @@ public class S7Client
     #region [S7 Telegrams]
 
     // ISO Connection Request telegram (contains also ISO Header and COTP Header)
-    byte[] ISO_CR = {
+    private byte[] ISO_CR = {
 			// TPKT (RFC1006 Header)
 			0x03, // RFC 1006 ID (3)
 			0x00, // Reserved, always 0
@@ -1819,14 +1843,14 @@ public class S7Client
 		};
 
     // TPKT + ISO COTP Header (Connection Oriented Transport Protocol)
-    byte[] TPKT_ISO = { // 7 bytes
+    private byte[] TPKT_ISO = { // 7 bytes
 			0x03,0x00,
         0x00,0x1f,      // Telegram Length (Data Size + 31 or 35)
 			0x02,0xf0,0x80  // COTP (see above for info)
 		};
 
     // S7 PDU Negotiation Telegram (contains also ISO Header and COTP Header)
-    byte[] S7_PN = {
+    private byte[] S7_PN = {
         0x03, 0x00, 0x00, 0x19,
         0x02, 0xf0, 0x80, // TPKT + COTP (see above for info)
 			0x32, 0x01, 0x00, 0x00,
@@ -1837,7 +1861,7 @@ public class S7Client
 		};
 
     // S7 Read/Write Request Header (contains also ISO Header and COTP Header)
-    byte[] S7_RW = { // 31-35 bytes
+    private byte[] S7_RW = { // 31-35 bytes
 			0x03,0x00,
         0x00,0x1f,       // Telegram Length (Data Size + 31 or 35)
 			0x02,0xf0, 0x80, // COTP (see above for info)
@@ -1867,7 +1891,7 @@ public class S7Client
     private static int Size_WR = 35; // Header Size when Writing
 
     // S7 Variable MultiRead Header
-    byte[] S7_MRD_HEADER = {
+    private byte[] S7_MRD_HEADER = {
         0x03,0x00,
         0x00,0x1f,       // Telegram Length
 			0x02,0xf0, 0x80, // COTP (see above for info)
@@ -1882,7 +1906,7 @@ public class S7Client
 		};
 
     // S7 Variable MultiRead Item
-    byte[] S7_MRD_ITEM = {
+    private byte[] S7_MRD_ITEM = {
         0x12,            // Var spec.
 			0x0a,            // Length of remaining bytes
 			0x10,            // Syntax ID
@@ -1894,7 +1918,7 @@ public class S7Client
 		};
 
     // S7 Variable MultiWrite Header
-    byte[] S7_MWR_HEADER = {
+    private byte[] S7_MWR_HEADER = {
         0x03,0x00,
         0x00,0x1f,       // Telegram Length
 			0x02,0xf0, 0x80, // COTP (see above for info)
@@ -1909,7 +1933,7 @@ public class S7Client
 		};
 
     // S7 Variable MultiWrite Item (Param)
-    byte[] S7_MWR_PARAM = {
+    private byte[] S7_MWR_PARAM = {
         0x12,            // Var spec.
 			0x0a,            // Length of remaining bytes
 			0x10,            // Syntax ID
@@ -1921,7 +1945,7 @@ public class S7Client
 		};
 
     // SZL First telegram request
-    byte[] S7_SZL_FIRST = {
+    private byte[] S7_SZL_FIRST = {
         0x03, 0x00, 0x00, 0x21,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00,
@@ -1936,7 +1960,7 @@ public class S7Client
 		};
 
     // SZL Next telegram request
-    byte[] S7_SZL_NEXT = {
+    private byte[] S7_SZL_NEXT = {
         0x03, 0x00, 0x00, 0x21,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00, 0x06,
@@ -1949,7 +1973,7 @@ public class S7Client
     };
 
     // Get Date/Time request
-    byte[] S7_GET_DT = {
+    private byte[] S7_GET_DT = {
         0x03, 0x00, 0x00, 0x1d,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00, 0x38,
@@ -1961,7 +1985,7 @@ public class S7Client
     };
 
     // Set Date/Time command
-    byte[] S7_SET_DT = {
+    private byte[] S7_SET_DT = {
         0x03, 0x00, 0x00, 0x27,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00, 0x89,
@@ -1981,7 +2005,7 @@ public class S7Client
 		};
 
     // S7 Set Session Password
-    byte[] S7_SET_PWD = {
+    private byte[] S7_SET_PWD = {
         0x03, 0x00, 0x00, 0x25,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00, 0x27,
@@ -1996,7 +2020,7 @@ public class S7Client
     };
 
     // S7 Clear Session Password
-    byte[] S7_CLR_PWD = {
+    private byte[] S7_CLR_PWD = {
         0x03, 0x00, 0x00, 0x1d,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00, 0x29,
@@ -2008,7 +2032,7 @@ public class S7Client
     };
 
     // S7 STOP request
-    byte[] S7_STOP = {
+    private byte[] S7_STOP = {
         0x03, 0x00, 0x00, 0x21,
         0x02, 0xf0, 0x80, 0x32,
         0x01, 0x00, 0x00, 0x0e,
@@ -2021,7 +2045,7 @@ public class S7Client
     };
 
     // S7 HOT Start request
-    byte[] S7_HOT_START = {
+    private byte[] S7_HOT_START = {
         0x03, 0x00, 0x00, 0x25,
         0x02, 0xf0, 0x80, 0x32,
         0x01, 0x00, 0x00, 0x0c,
@@ -2035,7 +2059,7 @@ public class S7Client
     };
 
     // S7 COLD Start request
-    byte[] S7_COLD_START = {
+    private byte[] S7_COLD_START = {
         0x03, 0x00, 0x00, 0x27,
         0x02, 0xf0, 0x80, 0x32,
         0x01, 0x00, 0x00, 0x0f,
@@ -2048,13 +2072,13 @@ public class S7Client
         0x52, 0x41, 0x4d
     };
 
-    const byte pduStart = 0x28;   // CPU start
-    const byte pduStop = 0x29;   // CPU stop
-    const byte pduAlreadyStarted = 0x02;   // CPU already in run mode
-    const byte pduAlreadyStopped = 0x07;   // CPU already in stop mode
+    private const byte pduStart = 0x28;   // CPU start
+    private const byte pduStop = 0x29;   // CPU stop
+    private const byte pduAlreadyStarted = 0x02;   // CPU already in run mode
+    private const byte pduAlreadyStopped = 0x07;   // CPU already in stop mode
 
     // S7 Get PLC Status
-    byte[] S7_GET_STAT = {
+    private byte[] S7_GET_STAT = {
         0x03, 0x00, 0x00, 0x21,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00, 0x2c,
@@ -2067,7 +2091,7 @@ public class S7Client
     };
 
     // S7 Get Block Info Request Header (contains also ISO Header and COTP Header)
-    byte[] S7_BI = {
+    private byte[] S7_BI = {
         0x03, 0x00, 0x00, 0x25,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00, 0x05,
@@ -2082,7 +2106,7 @@ public class S7Client
     };
 
     // S7 List Blocks Request Header
-    byte[] S7_LIST_BLOCKS = {
+    private byte[] S7_LIST_BLOCKS = {
         0x03, 0x00, 0x00, 0x1d,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00, 0x00,
@@ -2094,7 +2118,7 @@ public class S7Client
     };
 
     // S7 List Blocks Of Type Request Header
-    byte[] S7_LIST_BLOCKS_OF_TYPE = {
+    private byte[] S7_LIST_BLOCKS_OF_TYPE = {
         0x03, 0x00, 0x00, 0x1f,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00, 0x00,
@@ -4369,7 +4393,7 @@ public class S7Client
     }
 
     // S7 Get Force Values frame 1
-    byte[] S7_FORCE_VAL1 = {
+    private byte[] S7_FORCE_VAL1 = {
         0x03, 0x00, 0x00, 0x3d,
         0x02, 0xf0 ,0x80, 0x32,
         0x07, 0x00, 0x00, 0x07,
@@ -4389,7 +4413,7 @@ public class S7Client
     };
 
     // S7 Get Force Values frame 2 (300 series )
-    byte[] S7_FORCE_VAL300 = {
+    private byte[] S7_FORCE_VAL300 = {
         0x03, 0x00, 0x00, 0x3b,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00, 0x0c,
@@ -4408,7 +4432,7 @@ public class S7Client
     };
 
     // S7 Get Force Values frame 2 (400 series )
-    byte[] S7_FORCE_VAL400 = {
+    private byte[] S7_FORCE_VAL400 = {
         0x03, 0x00, 0x00, 0x3b,
         0x02, 0xf0, 0x80, 0x32,
         0x07, 0x00, 0x00, 0x0c,
@@ -4555,7 +4579,7 @@ public class S7Client
     #region [S7 DriveES Telegrams]
 
     // S7 DriveES Read/Write Request Header (contains also ISO Header and COTP Header)
-    byte[] S7_DrvRW = { // 31-35 bytes
+    private byte[] S7_DrvRW = { // 31-35 bytes
     0x03,0x00,
     0x00,0x1f,       // Telegram Length (Data Size + 31 or 35)
     0x02,0xf0, 0x80, // COTP (see above for info)
@@ -4582,7 +4606,7 @@ public class S7Client
 };
 
     // S7 Drv Variable MultiRead Header
-    byte[] S7Drv_MRD_HEADER = {
+    private byte[] S7Drv_MRD_HEADER = {
     0x03,0x00,
     0x00,0x1f,       // Telegram Length (Data Size + 31 or 35)
     0x02,0xf0, 0x80, // COTP (see above for info)
@@ -4597,7 +4621,7 @@ public class S7Client
 };
 
     // S7 Drv Variable MultiRead Item
-    byte[] S7Drv_MRD_ITEM =
+    private byte[] S7Drv_MRD_ITEM =
         {
     0x12,            // Var spec.
     0x0a,            // Length of remaining bytes
@@ -4610,7 +4634,7 @@ public class S7Client
 };
 
     // S7 Drv Variable MultiWrite Header
-    byte[] S7Drv_MWR_HEADER = {
+    private byte[] S7Drv_MWR_HEADER = {
     0x03,0x00,
     0x00,0x1f,       // Telegram Length (Data Size + 31 or 35)
     0x02,0xf0, 0x80, // COTP (see above for info)
@@ -4625,7 +4649,7 @@ public class S7Client
 };
 
     // S7 Drv Variable MultiWrite Item
-    byte[] S7Drv_MWR_PARAM =
+    private byte[] S7Drv_MWR_PARAM =
         {
     0x12,            // Var spec.
     0x0a,            // Length of remaining bytes
@@ -4999,7 +5023,7 @@ public class S7Client
     private static int Size_NckWR = 33; // Header Size when Writing
 
     // S7 NCK Read/Write Request Header (contains also ISO Header and COTP Header)
-    byte[] S7_NckRW = { // 31-35 bytes
+    private byte[] S7_NckRW = { // 31-35 bytes
         0x03,0x00,
         0x00,0x1d,       // Telegram Length (Data Size + 29 or 33)
         0x02,0xf0, 0x80, // COTP (see above for info)
@@ -5026,7 +5050,7 @@ public class S7Client
     };
 
     // S7 Nck Variable MultiRead Header
-    byte[] S7Nck_MRD_HEADER = {
+    private byte[] S7Nck_MRD_HEADER = {
         0x03,0x00,
         0x00,0x1d,       // Telegram Length (Data Size + 29 or 33)
         0x02,0xf0, 0x80, // COTP (see above for info)
@@ -5041,7 +5065,7 @@ public class S7Client
     };
 
     // S7 Nck Variable MultiRead Item
-    byte[] S7Nck_MRD_ITEM = {
+    private byte[] S7Nck_MRD_ITEM = {
         0x12,            // Var spec.
         0x08,            // Length of remaining bytes
         0x82,            // Syntax ID
@@ -5053,7 +5077,7 @@ public class S7Client
     };
 
     // S7 Nck Variable MultiWrite Header
-    byte[] S7Nck_MWR_HEADER = {
+    private byte[] S7Nck_MWR_HEADER = {
         0x03,0x00,
         0x00,0x1d,       // Telegram Length (Data Size + 29 or 33)
         0x02,0xf0, 0x80, // COTP (see above for info)
@@ -5068,7 +5092,7 @@ public class S7Client
     };
 
     // S7 Nck Variable MultiWrite Item
-    byte[] S7Nck_MWR_PARAM = {
+    private byte[] S7Nck_MWR_PARAM = {
         0x12,            // Var spec.
         0x08,            // Length of remaining bytes
         0x82,            // Syntax ID

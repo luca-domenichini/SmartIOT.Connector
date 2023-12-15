@@ -1,4 +1,7 @@
-﻿using SmartIOT.Connector.Core.Conf;
+﻿#pragma warning disable S3885 // "Assembly.Load" should be used
+
+using Microsoft.Extensions.DependencyInjection;
+using SmartIOT.Connector.Core.Conf;
 using SmartIOT.Connector.Core.Factory;
 using SmartIOT.Connector.Core.Scheduler;
 using System.Reflection;
@@ -11,6 +14,7 @@ public class SmartIotConnectorBuilder
     private readonly List<IDeviceDriver> _deviceDrivers = new List<IDeviceDriver>();
     private bool _autoDiscoverConnectorFactory;
     private readonly List<IConnector> _connectors = new List<IConnector>();
+
     public ITimeService TimeService { get; private set; } = new TimeService();
     public ISchedulerFactory SchedulerFactory { get; private set; } = new SchedulerFactory();
     public SmartIotConnectorConfiguration? Configuration { get; private set; }
@@ -78,36 +82,33 @@ public class SmartIotConnectorBuilder
         return this;
     }
 
-    public SmartIotConnector Build()
+    public SmartIotConnector Build(IServiceProvider? serviceProvider = null)
     {
         if (Configuration == null)
             throw new InvalidOperationException("Error building module: Configuration is not set");
 
         if (_autoDiscoverDeviceDriverFactory)
-            DeviceDriverFactory.AddRange(AutoDiscoverDeviceDriverFactories());
+            DeviceDriverFactory.AddRange(AutoDiscoverDeviceDriverFactories(serviceProvider));
 
-        if (!DeviceDriverFactory.Any() && !_deviceDrivers.Any())
-            throw new ArgumentException($"Nessuna {nameof(IDeviceDriverFactory)} o {nameof(IDeviceDriver)} presente in configurazione");
+        if (!DeviceDriverFactory.Any() && _deviceDrivers.Count == 0)
+            throw new ArgumentException($"No {nameof(IDeviceDriverFactory)} or {nameof(IDeviceDriver)} configured");
 
         if (_autoDiscoverConnectorFactory)
-            ConnectorFactory.AddRange(AutoDiscoverConnectorFactories());
+            ConnectorFactory.AddRange(AutoDiscoverConnectorFactories(serviceProvider));
 
-        IList<ITagScheduler> schedulers = BuildSchedulers();
-        IList<IConnector> connectors = BuildConnectors();
+        var schedulers = BuildSchedulers();
+        var connectors = BuildConnectors();
 
         return new SmartIotConnector(schedulers, connectors, Configuration.SchedulerConfiguration);
     }
 
-    private IList<IConnector> BuildConnectors()
+    private List<IConnector> BuildConnectors()
     {
         var list = new List<IConnector>();
 
         foreach (var connectionString in Configuration!.ConnectorConnectionStrings)
         {
-            IConnector? connector = ConnectorFactory.CreateConnector(connectionString);
-            if (connector == null)
-                throw new ArgumentException($"Impossibile creare il connector: ConnectionString {connectionString} non riconosciuta.");
-
+            IConnector? connector = ConnectorFactory.CreateConnector(connectionString) ?? throw new ArgumentException($"Error creating connector: ConnectionString {connectionString} not recognized.");
             list.Add(connector);
         }
 
@@ -116,12 +117,12 @@ public class SmartIotConnectorBuilder
         return list;
     }
 
-    private IList<ITagScheduler> BuildSchedulers()
+    private List<ITagScheduler> BuildSchedulers()
     {
         // creating schedulers from configuration
         var drivers = new Dictionary<DeviceConfiguration, IDeviceDriver>();
         var devices = new List<DeviceConfiguration>(Configuration!.DeviceConfigurations);
-        if (devices.Any())
+        if (devices.Count > 0)
         {
             foreach (var device in devices)
             {
@@ -135,7 +136,7 @@ public class SmartIotConnectorBuilder
             devices.RemoveAll(x => drivers.ContainsKey(x)); // rimuovo dalla lista temporanea le configurazioni che hanno ritornato un driver
         }
 
-        if (devices.Any())
+        if (devices.Count > 0)
             throw new ArgumentException($"Error configuring SmartIotConnector: no scheduler factory found for these devices:\r\n{string.Join("\r\n", devices.Select(x => x.Name + ": " + x.ConnectionString))}");
 
         var schedulers = drivers.Values.Select(x => SchedulerFactory.CreateScheduler(x.Name, x, TimeService, Configuration.SchedulerConfiguration)).ToList();
@@ -146,7 +147,7 @@ public class SmartIotConnectorBuilder
         return schedulers;
     }
 
-    private IList<IDeviceDriverFactory> AutoDiscoverDeviceDriverFactories()
+    private List<IDeviceDriverFactory> AutoDiscoverDeviceDriverFactories(IServiceProvider? serviceProvider)
     {
         var list = new List<IDeviceDriverFactory>();
 
@@ -158,20 +159,25 @@ public class SmartIotConnectorBuilder
 
                 foreach (var type in assembly.ExportedTypes)
                 {
-                    // le factory già presenti in elenco non li aggiungiamo nuovamente
-                    bool alreadyAvailable = DeviceDriverFactory.Any(x => x.GetType() == type);
-                    if (!alreadyAvailable
-                        && typeof(IDeviceDriverFactory).IsAssignableFrom(type)
+                    if (typeof(IDeviceDriverFactory).IsAssignableFrom(type)
                         && type != typeof(DeviceDriverFactory)
+                        && !DeviceDriverFactory.Any(x => x.GetType() == type) // do not add already added factories
                         && !type.IsAbstract
                         && type.IsClass
                         && !type.IsInterface
                         && type.IsPublic
                         && type.IsVisible)
                     {
-                        var ctor = type.GetConstructor(Array.Empty<Type>());
-                        if (ctor != null)
-                            list.Add((IDeviceDriverFactory)ctor.Invoke(Array.Empty<object>()));
+                        if (serviceProvider is not null)
+                        {
+                            list.Add((IDeviceDriverFactory)ActivatorUtilities.GetServiceOrCreateInstance(serviceProvider, type));
+                        }
+                        else
+                        {
+                            var ctor = type.GetConstructor(Array.Empty<Type>());
+                            if (ctor != null)
+                                list.Add((IDeviceDriverFactory)ctor.Invoke(Array.Empty<object>()));
+                        }
                     }
                 }
             }
@@ -188,7 +194,7 @@ public class SmartIotConnectorBuilder
         return list;
     }
 
-    private IList<IConnectorFactory> AutoDiscoverConnectorFactories()
+    private List<IConnectorFactory> AutoDiscoverConnectorFactories(IServiceProvider? serviceProvider)
     {
         var list = new List<IConnectorFactory>();
 
@@ -200,20 +206,25 @@ public class SmartIotConnectorBuilder
 
                 foreach (var type in assembly.ExportedTypes)
                 {
-                    // le factory già presenti in elenco non li aggiungiamo nuovamente
-                    bool alreadyAvailable = ConnectorFactory.Any(x => x.GetType() == type);
-                    if (!alreadyAvailable
-                        && typeof(IConnectorFactory).IsAssignableFrom(type)
+                    if (typeof(IConnectorFactory).IsAssignableFrom(type)
                         && type != typeof(ConnectorFactory)
+                        && !ConnectorFactory.Any(x => x.GetType() == type) // do not add already added factories
                         && !type.IsAbstract
                         && type.IsClass
                         && !type.IsInterface
                         && type.IsPublic
                         && type.IsVisible)
                     {
-                        var ctor = type.GetConstructor(Array.Empty<Type>());
-                        if (ctor != null)
-                            list.Add((IConnectorFactory)ctor.Invoke(Array.Empty<object>()));
+                        if (serviceProvider is not null)
+                        {
+                            list.Add((IConnectorFactory)ActivatorUtilities.GetServiceOrCreateInstance(serviceProvider, type));
+                        }
+                        else
+                        {
+                            var ctor = type.GetConstructor(Array.Empty<Type>());
+                            if (ctor != null)
+                                list.Add((IConnectorFactory)ctor.Invoke(Array.Empty<object>()));
+                        }
                     }
                 }
             }

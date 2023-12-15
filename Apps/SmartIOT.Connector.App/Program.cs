@@ -1,5 +1,7 @@
 using Asp.Versioning.ApiExplorer;
 using Serilog;
+using SmartIOT.Connector.DependencyInjection;
+using SmartIOT.Connector.Prometheus;
 using SmartIOT.Connector.RestApi;
 using System.Diagnostics;
 using System.Text.Json;
@@ -33,7 +35,7 @@ public class Program
         {
             ReadCommentHandling = JsonCommentHandling.Skip
         });
-        if (configuration == null)
+        if (configuration?.Configuration is null)
         {
             Console.WriteLine($"Configuration not valid for file {path}");
             return;
@@ -48,7 +50,12 @@ public class Program
         builder.Logging.AddSerilog(dispose: true);
 
         // Add SmartIOT.Connector services to the container.
-        builder.Services.AddSmartIotConnectorRunner(configuration);
+        builder.Services.AddSmartIOTConnector(cfg =>
+        {
+            cfg.WithAutoDiscoverConnectorFactories()
+                .WithAutoDiscoverDeviceDriverFactories()
+                .WithConfiguration(configuration.Configuration);
+        });
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
@@ -69,7 +76,16 @@ public class Program
             o.ServiceName = typeof(Program).Assembly.GetName().Name!;
         });
 
+        // ----------------------------------------------------------------------------
+        // build app
         var app = builder.Build();
+
+        // configure more things on SmartIOT.Connector
+        app.UseSmartIOTConnector(cfg =>
+        {
+            if (configuration.PrometheusConfiguration is not null)
+                cfg.AddPrometheus(configuration.PrometheusConfiguration);
+        });
 
         // Configure the HTTP request pipeline.
         app.UseSwagger();
@@ -93,6 +109,7 @@ public class Program
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("{NewLine}{NewLine}  --> SmartIOT.Connector v{version}{NewLine}", Environment.NewLine, Environment.NewLine, version, Environment.NewLine);
 
+        // --------------------------------------------------------------------------------
         app.Run();
     }
 

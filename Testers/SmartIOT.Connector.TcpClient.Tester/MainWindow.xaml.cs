@@ -1,4 +1,6 @@
-﻿using SmartIOT.Connector.Messages;
+﻿#pragma warning disable S2589 // Boolean expressions should not be gratuitous
+
+using SmartIOT.Connector.Messages;
 using SmartIOT.Connector.Messages.Serializers;
 using System;
 using System.Linq;

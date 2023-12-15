@@ -43,7 +43,7 @@ public abstract class AggregatingQueue<T> where T : class
         {
             T? item = default;
 
-            while (_queue.Any())
+            while (_queue.Count > 0)
             {
                 if (item == default)
                 {

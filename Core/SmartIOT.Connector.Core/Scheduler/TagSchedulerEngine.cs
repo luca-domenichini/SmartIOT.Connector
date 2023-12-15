@@ -376,7 +376,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
             // del valore 0 sempre in DB22.DBX0.0, annullando in pratica la richiesta precedente. Il flag "needsWrite" rimane a true
             // tuttavia non c'è alcun cambiamento sul datablock che deve effettivamente essere scritto.
             List<TagChangeBounds> listBounds = ParseWriteBounds(device, tag);
-            if (!listBounds.Any())
+            if (listBounds.Count == 0)
             {
                 // se la lista dei bounds è vuota, interpreto la schedule come una scrittura completa
                 // questo è usato anche per gestire il parametro rewritePeriod dei tag in scrittura: ogni tot millisecondi, vengono comunque scritti tutti

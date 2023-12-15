@@ -70,7 +70,7 @@ public class DeviceController : ControllerBase
             _deviceService.AddDevice(deviceConfiguration);
             return Ok();
         }
-        catch (ApplicationException ex)
+        catch (DeviceException ex)
         {
             return BadRequest(ex.Message);
         }
@@ -92,7 +92,7 @@ public class DeviceController : ControllerBase
             _deviceService.RemoveDevice(deviceId);
             return Ok();
         }
-        catch (ApplicationException ex)
+        catch (DeviceException ex)
         {
             return BadRequest(ex.Message);
         }
@@ -179,7 +179,7 @@ public class DeviceController : ControllerBase
             _deviceService.AddTag(deviceId, tagConfiguration);
             return Ok();
         }
-        catch (ApplicationException ex)
+        catch (DeviceException ex)
         {
             return BadRequest(ex.Message);
         }
@@ -202,7 +202,7 @@ public class DeviceController : ControllerBase
             _deviceService.RemoveTag(deviceId, tagId);
             return Ok();
         }
-        catch (ApplicationException ex)
+        catch (DeviceException ex)
         {
             return BadRequest(ex.Message);
         }
@@ -225,7 +225,7 @@ public class DeviceController : ControllerBase
             _deviceService.UpdateTag(deviceId, tagConfiguration);
             return Ok();
         }
-        catch (ApplicationException ex)
+        catch (DeviceException ex)
         {
             return BadRequest(ex.Message);
         }
@@ -272,7 +272,7 @@ public class DeviceController : ControllerBase
             _deviceService.SetTagData(deviceId, tagId, tagData);
             return Ok();
         }
-        catch (ApplicationException ex)
+        catch (DeviceException ex)
         {
             return BadRequest(ex.Message);
         }

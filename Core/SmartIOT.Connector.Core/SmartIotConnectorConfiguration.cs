@@ -5,8 +5,8 @@ namespace SmartIOT.Connector.Core;
 
 public class SmartIotConnectorConfiguration
 {
-    public IList<string> ConnectorConnectionStrings { get; set; } = new List<string>();
-    public IList<DeviceConfiguration> DeviceConfigurations { get; set; } = new List<DeviceConfiguration>();
+    public List<string> ConnectorConnectionStrings { get; set; } = new List<string>();
+    public List<DeviceConfiguration> DeviceConfigurations { get; set; } = new List<DeviceConfiguration>();
     public SchedulerConfiguration SchedulerConfiguration { get; set; } = new SchedulerConfiguration();
 
     public static SmartIotConnectorConfiguration? FromJson(string json)

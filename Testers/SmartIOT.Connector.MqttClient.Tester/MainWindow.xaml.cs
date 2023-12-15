@@ -193,7 +193,7 @@ public partial class MainWindow : Window
         if (subscribed == null)
             return false;
 
-        if (!topic.EndsWith("/"))
+        if (!topic.EndsWith('/'))
             topic += "/";
 
         if (subscribed.Contains('/'))

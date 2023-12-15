@@ -1,13 +1,9 @@
 ﻿using SnapModbus;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 
 namespace SmartIOT.Connector.Plc.SnapModBus;
 
 public class SnapModBusNode : Core.Model.Device
 {
-    private static readonly Regex RegexDB = new Regex(@"^DB(?<tag>[0-9]*)$");
-
     public SnapMBBroker Client { get; init; }
     public new SnapModBusNodeConfiguration Configuration => (SnapModBusNodeConfiguration)base.Configuration;
     public bool IsConnected { get; private set; }

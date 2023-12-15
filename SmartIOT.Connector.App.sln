@@ -39,6 +39,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.Plc.Snap
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.App", "Apps\SmartIOT.Connector.App\SmartIOT.Connector.App.csproj", "{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartIOT.Connector.DependencyInjection", "Core\SmartIOT.Connector.DependencyInjection\SmartIOT.Connector.DependencyInjection.csproj", "{06857D97-E4EC-4EEC-8202-0C323E1BABF3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,10 @@ Global
 		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2943C3E6-C95D-4D9F-A3DE-FCA2B6AB3349}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06857D97-E4EC-4EEC-8202-0C323E1BABF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06857D97-E4EC-4EEC-8202-0C323E1BABF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06857D97-E4EC-4EEC-8202-0C323E1BABF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06857D97-E4EC-4EEC-8202-0C323E1BABF3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

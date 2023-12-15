@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#pragma warning disable S1118 // Utility classes should not have public constructors
+#pragma warning disable S101 // Types should be named in PascalCase
+
 using System.Text;
 using System.Runtime.InteropServices;
-using System.Net;
-using System.Reflection.Metadata;
 
 namespace SnapModbus
 {

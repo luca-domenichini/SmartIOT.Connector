@@ -8,7 +8,7 @@ public class SnapModBusDriverFactory : IDeviceDriverFactory
 {
     private static bool AcceptConnectionString(string connectionString)
     {
-        return connectionString?.ToLower().StartsWith("snapmodbus://") ?? false;
+        return connectionString?.StartsWith("snapmodbus://", StringComparison.InvariantCultureIgnoreCase) ?? false;
     }
 
     public IDeviceDriver? CreateDriver(DeviceConfiguration deviceConfiguration)

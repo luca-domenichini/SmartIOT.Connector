@@ -190,13 +190,7 @@ public class Device
                 maxPunti = GetMaxPoints(type);
                 List<Tag> list = GetTagsInRange(type, maxPunti - GetWeightMCM(type), maxPunti);
 
-                int min = int.MaxValue;
-                foreach (Tag t in list)
-                {
-                    if (t.Points < min)
-                        min = t.Points;
-                }
-
+                int min = list.Count > 0 ? list.Min(x => x.Points) : int.MaxValue;
                 if (min - GetWeightMCM(type) < 0)
                 {
                     riscalaturaPossibile = false;
@@ -273,34 +267,33 @@ public class Device
 
     private int CalculateMCM(TagType type)
     {
-        int max = int.MinValue;
+        return FindLCM(_tags.Where(x => x.TagType == type).Select(x => x.Weight));
+    }
 
-        foreach (Tag t in _tags)
+    private static int FindLCM(IEnumerable<int> numbers)
+    {
+        int lcm = int.MinValue;
+
+        foreach (var n in numbers)
         {
-            if (t.TagType == type && t.Weight > max)
-                max = t.Weight;
+            if (lcm == int.MinValue)
+                lcm = n;
+            else
+                lcm = Math.Abs(lcm * n) / FindGCD(lcm, n);
         }
 
-        bool mcmTrovato = false;
-        while (!mcmTrovato)
+        return lcm;
+    }
+
+    private static int FindGCD(int a, int b)
+    {
+        while (b != 0)
         {
-            mcmTrovato = true;
-
-            foreach (Tag t in _tags)
-            {
-                if (t.TagType == type && max % t.Weight != 0)
-                {
-                    mcmTrovato = false;
-                    break;
-                }
-            }
-
-            if (mcmTrovato)
-                break;
-
-            max++;
+            int temp = b;
+            b = a % b;
+            a = temp;
         }
 
-        return max;
+        return a;
     }
 }
