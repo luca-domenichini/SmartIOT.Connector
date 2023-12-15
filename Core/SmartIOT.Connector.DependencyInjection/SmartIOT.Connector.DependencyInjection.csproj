@@ -1,9 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+	  <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+	  <ImplicitUsings>enable</ImplicitUsings>
+	  <Nullable>enable</Nullable>
+	  <Authors>Luca Domenichini</Authors>
+	  <Title>SmartIOT.Connector Core Library</Title>
+	  <Description>The SmartIOT.Connector.DependencyInjection library provides extension methods to hook SmartIOT.Connector to Microsoft.Extensions.DependencyInjection DI Container</Description>
+	  <PackageProjectUrl>https://github.com/luca-domenichini/SmartIOT.Connector</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/luca-domenichini/SmartIOT.Connector.git</RepositoryUrl>
+	  <RepositoryType>git</RepositoryType>
+	  <PackageTags>iot;mqtt;scheduler;connector;automation;snap7;s7net;azure;automation;siemens;plc;s7300;s71200;s71500;modbus</PackageTags>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <Copyright>Luca Domenichini</Copyright>
+	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
