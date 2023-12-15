@@ -5,10 +5,22 @@ namespace SmartIOT.Connector.Mocks;
 
 public class FakeConnectorFactory : IConnectorFactory
 {
+    private readonly IServiceProvider? _serviceProvider;
+
+    public FakeConnectorFactory()
+    {
+    }
+
+    // contructor to test DI injection
+    public FakeConnectorFactory(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
     public IConnector? CreateConnector(string connectionString)
     {
         if (connectionString.StartsWith("fake://"))
-            return new FakeConnector();
+            return new FakeConnector(_serviceProvider!);
 
         return null;
     }

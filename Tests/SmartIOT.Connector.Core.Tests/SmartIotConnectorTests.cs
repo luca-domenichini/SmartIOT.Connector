@@ -1,4 +1,5 @@
-﻿using SmartIOT.Connector.Core.Conf;
+﻿using Microsoft.Extensions.DependencyInjection;
+using SmartIOT.Connector.Core.Conf;
 using SmartIOT.Connector.Mocks;
 using SmartIOT.Connector.Plc.S7Net;
 using SmartIOT.Connector.Plc.Snap7;
@@ -84,6 +85,39 @@ public class SmartIotConnectorTests
 
         Assert.Single(module.Connectors);
         Assert.True(module.Connectors[0] is FakeConnector);
+
+        Assert.Null(((FakeConnector)module.Connectors[0]).ServiceProvider);
+    }
+
+    [Fact]
+    public void Build_driver_module_using_ServiceProvider()
+    {
+        var services = new ServiceCollection();
+        var sp = services.BuildServiceProvider();
+
+        var module = new SmartIotConnectorBuilder()
+            .WithAutoDiscoverDeviceDriverFactories()
+            .WithAutoDiscoverConnectorFactories()
+            .WithConfigurationJsonFilePath("driver2.json")
+            .Build(sp);
+
+        var drivers = module.Schedulers;
+        Assert.Equal(2, drivers.Count);
+
+        var d0 = drivers[0];
+        var d1 = drivers[1];
+        Assert.IsType<Snap7Driver>(d0.DeviceDriver);
+        Assert.IsType<S7NetDriver>(d1.DeviceDriver);
+
+        Assert.NotNull(d0.Device);
+        var p0 = d0.Device;
+
+        Assert.Equal(2, p0.Tags.Count);
+
+        Assert.Single(module.Connectors);
+        Assert.True(module.Connectors[0] is FakeConnector);
+
+        Assert.NotNull(((FakeConnector)module.Connectors[0]).ServiceProvider);
     }
 
     [Fact]

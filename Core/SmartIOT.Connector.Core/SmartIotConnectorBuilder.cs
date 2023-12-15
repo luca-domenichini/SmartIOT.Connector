@@ -1,5 +1,6 @@
 ﻿#pragma warning disable S3885 // "Assembly.Load" should be used
 
+using Microsoft.Extensions.DependencyInjection;
 using SmartIOT.Connector.Core.Conf;
 using SmartIOT.Connector.Core.Factory;
 using SmartIOT.Connector.Core.Scheduler;
@@ -13,6 +14,7 @@ public class SmartIotConnectorBuilder
     private readonly List<IDeviceDriver> _deviceDrivers = new List<IDeviceDriver>();
     private bool _autoDiscoverConnectorFactory;
     private readonly List<IConnector> _connectors = new List<IConnector>();
+
     public ITimeService TimeService { get; private set; } = new TimeService();
     public ISchedulerFactory SchedulerFactory { get; private set; } = new SchedulerFactory();
     public SmartIotConnectorConfiguration? Configuration { get; private set; }
@@ -80,19 +82,19 @@ public class SmartIotConnectorBuilder
         return this;
     }
 
-    public SmartIotConnector Build()
+    public SmartIotConnector Build(IServiceProvider? serviceProvider = null)
     {
         if (Configuration == null)
             throw new InvalidOperationException("Error building module: Configuration is not set");
 
         if (_autoDiscoverDeviceDriverFactory)
-            DeviceDriverFactory.AddRange(AutoDiscoverDeviceDriverFactories());
+            DeviceDriverFactory.AddRange(AutoDiscoverDeviceDriverFactories(serviceProvider));
 
         if (!DeviceDriverFactory.Any() && _deviceDrivers.Count == 0)
-            throw new ArgumentException($"Nessuna {nameof(IDeviceDriverFactory)} o {nameof(IDeviceDriver)} presente in configurazione");
+            throw new ArgumentException($"No {nameof(IDeviceDriverFactory)} or {nameof(IDeviceDriver)} configured");
 
         if (_autoDiscoverConnectorFactory)
-            ConnectorFactory.AddRange(AutoDiscoverConnectorFactories());
+            ConnectorFactory.AddRange(AutoDiscoverConnectorFactories(serviceProvider));
 
         var schedulers = BuildSchedulers();
         var connectors = BuildConnectors();
@@ -145,7 +147,7 @@ public class SmartIotConnectorBuilder
         return schedulers;
     }
 
-    private List<IDeviceDriverFactory> AutoDiscoverDeviceDriverFactories()
+    private List<IDeviceDriverFactory> AutoDiscoverDeviceDriverFactories(IServiceProvider? serviceProvider)
     {
         var list = new List<IDeviceDriverFactory>();
 
@@ -157,20 +159,25 @@ public class SmartIotConnectorBuilder
 
                 foreach (var type in assembly.ExportedTypes)
                 {
-                    // le factory già presenti in elenco non li aggiungiamo nuovamente
-                    bool alreadyAvailable = DeviceDriverFactory.Any(x => x.GetType() == type);
-                    if (!alreadyAvailable
-                        && typeof(IDeviceDriverFactory).IsAssignableFrom(type)
+                    if (typeof(IDeviceDriverFactory).IsAssignableFrom(type)
                         && type != typeof(DeviceDriverFactory)
+                        && !DeviceDriverFactory.Any(x => x.GetType() == type) // do not add already added factories
                         && !type.IsAbstract
                         && type.IsClass
                         && !type.IsInterface
                         && type.IsPublic
                         && type.IsVisible)
                     {
-                        var ctor = type.GetConstructor(Array.Empty<Type>());
-                        if (ctor != null)
-                            list.Add((IDeviceDriverFactory)ctor.Invoke(Array.Empty<object>()));
+                        if (serviceProvider is not null)
+                        {
+                            list.Add((IDeviceDriverFactory)ActivatorUtilities.GetServiceOrCreateInstance(serviceProvider, type));
+                        }
+                        else
+                        {
+                            var ctor = type.GetConstructor(Array.Empty<Type>());
+                            if (ctor != null)
+                                list.Add((IDeviceDriverFactory)ctor.Invoke(Array.Empty<object>()));
+                        }
                     }
                 }
             }
@@ -187,7 +194,7 @@ public class SmartIotConnectorBuilder
         return list;
     }
 
-    private List<IConnectorFactory> AutoDiscoverConnectorFactories()
+    private List<IConnectorFactory> AutoDiscoverConnectorFactories(IServiceProvider? serviceProvider)
     {
         var list = new List<IConnectorFactory>();
 
@@ -199,20 +206,25 @@ public class SmartIotConnectorBuilder
 
                 foreach (var type in assembly.ExportedTypes)
                 {
-                    // le factory già presenti in elenco non li aggiungiamo nuovamente
-                    bool alreadyAvailable = ConnectorFactory.Any(x => x.GetType() == type);
-                    if (!alreadyAvailable
-                        && typeof(IConnectorFactory).IsAssignableFrom(type)
+                    if (typeof(IConnectorFactory).IsAssignableFrom(type)
                         && type != typeof(ConnectorFactory)
+                        && !ConnectorFactory.Any(x => x.GetType() == type) // do not add already added factories
                         && !type.IsAbstract
                         && type.IsClass
                         && !type.IsInterface
                         && type.IsPublic
                         && type.IsVisible)
                     {
-                        var ctor = type.GetConstructor(Array.Empty<Type>());
-                        if (ctor != null)
-                            list.Add((IConnectorFactory)ctor.Invoke(Array.Empty<object>()));
+                        if (serviceProvider is not null)
+                        {
+                            list.Add((IConnectorFactory)ActivatorUtilities.GetServiceOrCreateInstance(serviceProvider, type));
+                        }
+                        else
+                        {
+                            var ctor = type.GetConstructor(Array.Empty<Type>());
+                            if (ctor != null)
+                                list.Add((IConnectorFactory)ctor.Invoke(Array.Empty<object>()));
+                        }
                     }
                 }
             }

@@ -82,6 +82,27 @@ smartiot.Start();
 smartiot.Stop();
 ```
 
+otherwise, you can add SmartIOT.Connector to DI container with [these extension methods](./SmartIOT.Connector.DependencyInjection/AspNetCoreExtensions.cs):
+
+```csharp
+// this method will start an IHostedService running SmartIOT.Connector
+builder.Services.AddSmartIOTConnector(cfg =>
+{
+    // configure here.
+    cfg.WithAutoDiscoverDeviceDriverFactories()
+        .WithAutoDiscoverConnectorFactories()
+        .WithConfigurationJsonFilePath("smartiot-config.json");
+});
+
+var app = builder.Build();
+
+// you can configure further..
+app.UseSmartIOTConnector(smartIotConnector =>
+{
+    smartIotConnector.AddPrometheus(conf); // for example, adding Prometheus here..
+});
+```
+
 ## Documentation
 
 - [Configuration guide](./Docs/Configuration.md)
@@ -155,7 +176,6 @@ I will do my best to keep the interfaces stable, but there are possibilities to 
       introduce `IAsyncDeviceDriver` and add support to autodiscover and run them
 - [ ] The proto files should be part of SmartIOT.Connector.Messages project
 - [ ] Build and push docker image with github workflow
-- [ ] Use ActivatorUtilities from DI container to create device factories instead of default constructor
 - [ ] Reduce memory allocation on read/write operations. The aim is to use the underlying byte[] as source or target directly, without further allocations.
   - [ ] use existing ReadOnlySpan aware methods on S7Net
   - [ ] introduce new method ReadOnlySpan aware on Snap7 and SnapModBus

@@ -12,9 +12,16 @@ public class FakeConnector : AbstractConnector
     public IList<TagScheduleEvent> TagWriteEvents { get; } = new List<TagScheduleEvent>();
     public IList<DeviceStatusEvent> DeviceStatusEvents { get; } = new List<DeviceStatusEvent>();
     public IList<ExceptionEventArgs> ExceptionEvents { get; } = new List<ExceptionEventArgs>();
+    public IServiceProvider? ServiceProvider { get; }
 
     public FakeConnector() : base("fake://")
     {
+    }
+
+    // constructor for testing DI injection
+    public FakeConnector(IServiceProvider serviceProvider) : base("fake://")
+    {
+        ServiceProvider = serviceProvider;
     }
 
     public override void OnTagReadEvent(object? sender, TagScheduleEventArgs args)

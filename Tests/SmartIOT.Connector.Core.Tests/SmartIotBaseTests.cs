@@ -62,7 +62,7 @@ public class SmartIOTBaseTests
         );
     }
 
-    protected virtual SmartIotConnectorConfiguration SetupConfiguration(IList<DeviceConfiguration> deviceConfigurations)
+    protected virtual SmartIotConnectorConfiguration SetupConfiguration(List<DeviceConfiguration> deviceConfigurations)
     {
         return new SmartIotConnectorConfiguration()
         {

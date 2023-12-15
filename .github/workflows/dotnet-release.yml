@@ -42,6 +42,7 @@ jobs:
       run: |
         dotnet nuget push Connectors\SmartIOT.Connector.Mqtt\bin\Release\SmartIOT.Connector.Mqtt.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
         dotnet nuget push Connectors\SmartIOT.Connector.Tcp\bin\Release\SmartIOT.Connector.Tcp.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        dotnet nuget push Core\SmartIOT.Connector.DependencyInjection\bin\Release\SmartIOT.Connector.DependencyInjection.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
         dotnet nuget push Core\SmartIOT.Connector.Messages\bin\Release\SmartIOT.Connector.Messages.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
         dotnet nuget push Core\SmartIOT.Connector.Prometheus\bin\Release\SmartIOT.Connector.Prometheus.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
         dotnet nuget push Core\SmartIOT.Connector.Core\bin\Release\SmartIOT.Connector.Core.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
