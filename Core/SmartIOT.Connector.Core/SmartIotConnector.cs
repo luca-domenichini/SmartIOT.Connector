@@ -154,13 +154,16 @@ public class SmartIotConnector : ISmartIOTConnectorInterface
 
     public async Task<bool> ReplaceConnectorAsync(int index, IConnector connector)
     {
-        if (!_connectors.TryReplaceAt(index, connector, out _))
+        if (!_connectors.TryReplaceAt(index, connector, out var oldConnector))
             return false;
 
         AddConnectorEvents(connector);
 
         if (IsStarted)
+        {
+            await oldConnector!.StopAsync();
             await connector.StartAsync(this);
+        }
 
         return true;
     }

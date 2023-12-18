@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartIOT.Connector.Core;
+using SmartIOT.Connector.Mocks;
 using SmartIOT.Connector.RestApi.Controllers.V1;
 using SmartIOT.Connector.RestApi.Services;
 
@@ -7,15 +8,16 @@ namespace SmartIOT.Connector.RestApi.Tests;
 
 public class ConnectorControllerTests
 {
-    private ConnectorController SetupController()
+    private static SmartIotConnectorBuilder CreateBuilder()
     {
-        var builder = new SmartIotConnectorBuilder()
+        return new SmartIotConnectorBuilder()
             .WithAutoDiscoverConnectorFactories()
             .WithAutoDiscoverDeviceDriverFactories()
             .WithConfigurationJsonFilePath("test-config.json");
+    }
 
-        var sic = builder.Build();
-
+    private ConnectorController SetupController(SmartIotConnector sic, SmartIotConnectorBuilder builder)
+    {
         var service = new ConnectorService(sic, builder.ConnectorFactory);
 
         return new ConnectorController(sic, service);
@@ -24,7 +26,9 @@ public class ConnectorControllerTests
     [Fact]
     public void Test_GetConnectors()
     {
-        var controller = SetupController();
+        SmartIotConnectorBuilder builder = CreateBuilder();
+        SmartIotConnector sic = builder.Build();
+        var controller = SetupController(sic, builder);
 
         var list = controller.GetConnectors();
 
@@ -39,7 +43,9 @@ public class ConnectorControllerTests
     [Fact]
     public void Test_GetConnector_ok()
     {
-        var controller = SetupController();
+        SmartIotConnectorBuilder builder = CreateBuilder();
+        SmartIotConnector sic = builder.Build();
+        var controller = SetupController(sic, builder);
 
         var r = controller.GetConnector(0);
 
@@ -54,7 +60,9 @@ public class ConnectorControllerTests
     [Fact]
     public void Test_GetConnector_notfound()
     {
-        var controller = SetupController();
+        SmartIotConnectorBuilder builder = CreateBuilder();
+        SmartIotConnector sic = builder.Build();
+        var controller = SetupController(sic, builder);
 
         var r = controller.GetConnector(1);
 
@@ -64,7 +72,9 @@ public class ConnectorControllerTests
     [Fact]
     public async Task Test_AddConnector()
     {
-        var controller = SetupController();
+        SmartIotConnectorBuilder builder = CreateBuilder();
+        SmartIotConnector sic = builder.Build();
+        var controller = SetupController(sic, builder);
 
         var r = await controller.AddConnector("mock://");
 
@@ -76,10 +86,19 @@ public class ConnectorControllerTests
         Assert.Equal("mock://", c.ConnectionString);
     }
 
-    [Fact]
-    public async Task Test_UpdateConnector()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Test_UpdateConnector(bool startConnector)
     {
-        var controller = SetupController();
+        SmartIotConnectorBuilder builder = CreateBuilder();
+        SmartIotConnector sic = builder.Build();
+        var controller = SetupController(sic, builder);
+
+        FakeConnector connector = (FakeConnector)sic.Connectors[0];
+
+        if (startConnector)
+            await sic.StartAsync();
 
         var r = await controller.UpdateConnector(0, "mock://");
 
@@ -89,16 +108,35 @@ public class ConnectorControllerTests
 
         Assert.Equal(0, c.Index);
         Assert.Equal("mock://", c.ConnectionString);
+
+        if (startConnector)
+            Assert.True(connector.StopEvent.IsSet);
+        else
+            Assert.False(connector.StopEvent.IsSet);
     }
 
-    [Fact]
-    public async Task Test_RemoveConnector()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Test_RemoveConnector(bool startConnector)
     {
-        var controller = SetupController();
+        SmartIotConnectorBuilder builder = CreateBuilder();
+        SmartIotConnector sic = builder.Build();
+        var controller = SetupController(sic, builder);
+
+        FakeConnector connector = (FakeConnector)sic.Connectors[0];
+
+        if (startConnector)
+            await sic.StartAsync();
 
         var r = await controller.RemoveConnector(0);
 
         Assert.IsType<OkResult>(r);
         Assert.Empty(controller.GetConnectors());
+
+        if (startConnector)
+            Assert.True(connector.StopEvent.IsSet);
+        else
+            Assert.False(connector.StopEvent.IsSet);
     }
 }

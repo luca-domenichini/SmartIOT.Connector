@@ -13,6 +13,8 @@ public class FakeConnector : AbstractConnector
     public IList<DeviceStatusEvent> DeviceStatusEvents { get; } = new List<DeviceStatusEvent>();
     public IList<ExceptionEventArgs> ExceptionEvents { get; } = new List<ExceptionEventArgs>();
     public IServiceProvider? ServiceProvider { get; }
+    public ManualResetEventSlim StartEvent { get; } = new();
+    public ManualResetEventSlim StopEvent { get; } = new();
 
     public FakeConnector() : base("fake://")
     {
@@ -55,11 +57,13 @@ public class FakeConnector : AbstractConnector
     public override Task StartAsync(ISmartIOTConnectorInterface connectorInterface)
     {
         _connectorInterface = connectorInterface;
+        StartEvent.Set();
         return Task.CompletedTask;
     }
 
     public override Task StopAsync()
     {
+        StopEvent.Set();
         return Task.CompletedTask;
     }
 
