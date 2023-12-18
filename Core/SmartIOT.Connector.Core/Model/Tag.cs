@@ -1,4 +1,5 @@
 ﻿using SmartIOT.Connector.Core.Conf;
+using System.Net.Http.Headers;
 
 namespace SmartIOT.Connector.Core.Model;
 
@@ -39,23 +40,42 @@ public class Tag
         IsInitialized = false;
     }
 
-    /// <summary>
-    /// Questo metodo copia i dati ricevuti in argomento allo startOffset indicato.
-    /// Lo startOffset deve essere passato in valore assoluto, quindi se un tag inizia al byte 100
-    /// e il metodo intende scrivere i byte dal 110 al 120 passerà come argomenti startOffset = 110 e un array di lunghezza = 11.
-    /// In ogni caso, il metodo imposta il flag di richiesta scrittura: se l'array passato in argomento non provoca nessuna variazione
-    /// dei dati, il flag viene alzato comunque (e come effetto verrà scritto l'intero tag).
-    /// </summary>
-    public void RequestTagWrite(byte[] data, int startOffset)
-    {
 #pragma warning disable S2551 // Shared resources should not be used for locking: we purposefully lock on "this" to avoid races between tag-scheduler and services that request tag write.
-        lock (this)
+
+    /// <summary>
+    /// This method copies the data received as an argument to the specified startOffset.
+    /// The startOffset must be passed as an absolute value, so if a tag starts at byte 100
+    /// and the method intends to write bytes from 110 to 120, it will pass startOffset = 110 and an array of length = 11 as arguments.
+    /// The method performs a range check to determine the intersection of the passed range, compared to the definition
+    /// of the tag. If there is no intersection, false is returned and nothing is copied.
+    /// If there at least 1 byte of intersection, that range is copied, flag <see cref="Tag.IsWriteSynchronizationRequested"/> is set and true is returned.
+    /// Be aware the flag IsWriteSynchronizationRequested is set even if the underlying data is not changed: no byte compare is performed to check for modifications.
+    /// </summary>
+    public bool TryMergeData(ReadOnlySpan<byte> data, int startOffset, int size)
+    {
+        if (startOffset + size > ByteOffset && startOffset < ByteOffset + Size)
         {
-            Array.Copy(data, 0, Data, startOffset - ByteOffset, data.Length);
-            IsWriteSynchronizationRequested = true;
+            int start = Math.Max(startOffset, ByteOffset);
+            int end = Math.Min(startOffset + size, ByteOffset + Data.Length);
+
+            lock (this)
+            {
+                data.Slice(start - startOffset, end - start).CopyTo(Data.AsSpan().Slice(start - ByteOffset));
+                IsWriteSynchronizationRequested = true;
+            }
+
+            return true;
         }
-#pragma warning restore S2551 // Shared resources should not be used for locking
+
+        return false;
     }
+
+    public bool TryMergeData(ReadOnlySpan<byte> data, int startOffset)
+    {
+        return TryMergeData(data, startOffset, data.Length);
+    }
+
+#pragma warning restore S2551 // Shared resources should not be used for locking
 
     /// <summary>
     /// This method returns a copy of the current bytes stored in the tag

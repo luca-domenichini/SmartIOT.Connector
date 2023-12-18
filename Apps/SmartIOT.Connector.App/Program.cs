@@ -50,6 +50,7 @@ public class Program
         builder.Logging.AddSerilog(dispose: true);
 
         // Add SmartIOT.Connector services to the container.
+        builder.Services.AddSingleton(configuration.Configuration);
         builder.Services.AddSmartIOTConnector(cfg =>
         {
             cfg.WithAutoDiscoverConnectorFactories()

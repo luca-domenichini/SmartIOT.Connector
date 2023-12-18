@@ -4,12 +4,25 @@ on:
   push:
     branches: [ "master" ]
 
+# master branch does a dotnet pack just to test the pipeline, without actually pushing anything to nuget.org.
+# version numbers here do not matters.
+env:
+  VERSION_MAJOR: 0
+  VERSION_MINOR: 0
+  VERSION_SUFFIX: "-anything"
+
 jobs:
   build:
 
     runs-on: windows-latest
 
     steps:
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y%m%d')"
+    - name: Set Version variable
+      id: version
+      run: echo "::set-output name=PRODUCT_VERSION::${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${{ steps.date.outputs.date }}.${{ github.run_attempt }}${{ env.VERSION_SUFFIX }}"
     - uses: actions/checkout@v3
     - name: Setup .NET6
       uses: actions/setup-dotnet@v2
@@ -25,3 +38,5 @@ jobs:
       run: dotnet build -c Release --no-restore SmartIOT.Connector.sln
     - name: Test
       run: dotnet test -c Release --no-build --verbosity normal SmartIOT.Connector.sln
+    - name: Pack
+      run: dotnet pack -c Release /p:version=${{ steps.version.outputs.PRODUCT_VERSION }} SmartIOT.Connector.sln
