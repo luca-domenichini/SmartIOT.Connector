@@ -225,7 +225,7 @@ public class TagSchedulerEngineTests
         // quando viene letto il tag20, simulo la richiesta di scrittura
         driver.ReadTagCallback = (data, startOffset, length) =>
         {
-            tag22.RequestTagWrite(new byte[] { 100, 101 }, 10);
+            Assert.True(tag22.TryMergeData(new byte[] { 100, 101 }, 10));
             driver.ReadTagCallback = null; // autoreset alla prima invocazione
         };
 
@@ -466,7 +466,7 @@ public class TagSchedulerEngineTests
         }
 
         // verifica di scrittura in errore
-        tag22.RequestTagWrite(new byte[] { 33 }, 10); // richiesta di modifica dati
+        Assert.True(tag22.TryMergeData(new byte[] { 33 }, 10)); // richiesta di modifica dati
 
         driver.WriteReturns = 1;
 
@@ -529,8 +529,8 @@ public class TagSchedulerEngineTests
         // verifica di scrittura ottimizzata a seconda della dimensione della PDU
         driver.ResetInvocations();
 
-        tag22.RequestTagWrite(new byte[] { 100, 101, 102 }, 10);
-        tag22.RequestTagWrite(new byte[] { 200, 201 }, 20);
+        Assert.True(tag22.TryMergeData(new byte[] { 100, 101, 102 }, 10));
+        Assert.True(tag22.TryMergeData(new byte[] { 200, 201 }, 20));
 
         t22 = engine.GetNextTagSchedule();
         Assert.Equal(tag22, t22.Tag);

@@ -105,7 +105,7 @@ public class DeviceService : IDeviceService
         if (tagData.StartOffset + tagData.Bytes.Length > tag.ByteOffset + tag.Size)
             throw new DeviceException($"Data packet is too big. Requested: [{tagData.StartOffset}..{tagData.StartOffset + tagData.Bytes.Length - 1}], accepted: [{tag.ByteOffset}..{tag.ByteOffset + tag.Size - 1}]");
 
-        tag.RequestTagWrite(tagData.Bytes, tagData.StartOffset);
+        tag.TryMergeData(tagData.Bytes, tagData.StartOffset);
     }
 
     public Tag? GetTag(string deviceId, string tagId)

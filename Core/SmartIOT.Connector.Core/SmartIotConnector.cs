@@ -271,38 +271,8 @@ public class SmartIotConnector : ISmartIOTConnectorInterface
             .Where(tag => string.Equals(tag.TagId, tagId, StringComparison.InvariantCultureIgnoreCase) && tag.TagType == TagType.WRITE)
             )
         {
-            lock (tag)
-            {
-                bool changes = MergeData(tag, startOffset, data);
-                if (changes)
-                    tag.IsWriteSynchronizationRequested = true;
-            }
+            tag.TryMergeData(data, startOffset, data.Length);
         }
-    }
-
-    private bool MergeData(Model.Tag tag, int startOffset, byte[] data)
-    {
-        var somethingChanged = false;
-
-        if (startOffset + data.Length > tag.ByteOffset && startOffset < tag.ByteOffset + tag.Size)
-        {
-            int start = Math.Max(startOffset, tag.ByteOffset);
-            int end = Math.Min(startOffset + data.Length, tag.ByteOffset + tag.Data.Length);
-
-            for (int i = start; i < end; i++)
-            {
-                byte newValue = data[i - startOffset];
-                if (!somethingChanged)
-                {
-                    byte oldValue = tag.Data[i - tag.ByteOffset];
-                    if (oldValue != newValue)
-                        somethingChanged = true;
-                }
-                tag.Data[i - tag.ByteOffset] = newValue;
-            }
-        }
-
-        return somethingChanged;
     }
 
     public async Task RunInitializationActionAsync(Func<IList<DeviceStatusEvent>, IList<TagScheduleEvent>, Task> initAction)
