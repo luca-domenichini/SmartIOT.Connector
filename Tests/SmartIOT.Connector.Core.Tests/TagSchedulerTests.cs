@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace SmartIOT.Connector.Core.Tests;
@@ -38,7 +39,7 @@ public class TagSchedulerTests
     }
 
     [Fact]
-    public void TestScheduler()
+    public async Task TestScheduler()
     {
         var timeService = new TimeService();
 
@@ -77,12 +78,12 @@ public class TagSchedulerTests
         {
             deviceStatusEvent.Set();
         };
-        scheduler.Start();
+        await scheduler.StartAsync();
 
         Assert.True(readEvent.WaitOne(100));
         Assert.True(deviceStatusEvent.WaitOne(100));
 
-        scheduler.Stop();
+        await scheduler.StopAsync();
 
         Assert.NotEmpty(schedulerEventListener.TagReadEvents);
         Assert.Empty(schedulerEventListener.TagWriteEvents);

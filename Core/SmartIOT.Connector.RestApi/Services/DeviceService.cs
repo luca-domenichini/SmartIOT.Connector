@@ -50,16 +50,16 @@ public class DeviceService : IDeviceService
             .FirstOrDefault();
     }
 
-    public void AddDevice(DeviceConfiguration deviceConfiguration)
+    public async Task AddDeviceAsync(DeviceConfiguration deviceConfiguration)
     {
         var driver = _deviceDriverFactory.CreateDriver(deviceConfiguration);
         if (driver == null)
             throw new DeviceException($"DeviceConfiguration not valid {deviceConfiguration.ConnectionString}");
 
-        _smartIotConnector.AddScheduler(_schedulerFactory.CreateScheduler(driver.Name, driver, _timeService, _smartIotConnector.SchedulerConfiguration));
+        await _smartIotConnector.AddSchedulerAsync(_schedulerFactory.CreateScheduler(driver.Name, driver, _timeService, _smartIotConnector.SchedulerConfiguration));
     }
 
-    public void RemoveDevice(string deviceId)
+    public async Task RemoveDeviceAsync(string deviceId)
     {
         var scheduler = _smartIotConnector.Schedulers
             .FirstOrDefault(x => x.Device.DeviceId.Equals(deviceId, StringComparison.InvariantCultureIgnoreCase));
@@ -67,7 +67,7 @@ public class DeviceService : IDeviceService
         if (scheduler == null)
             throw new DeviceException($"Device {deviceId} does not exists");
 
-        _smartIotConnector.RemoveScheduler(scheduler);
+        await _smartIotConnector.RemoveSchedulerAsync(scheduler);
     }
 
     public TagData? GetTagData(string deviceId, string tagId)

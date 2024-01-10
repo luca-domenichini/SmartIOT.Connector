@@ -12,9 +12,11 @@ public static class AspNetCoreExtensions
         var builder = new SmartIotConnectorBuilder();
 
         configure?.Invoke(builder);
+        ArgumentNullException.ThrowIfNull(builder.Configuration);
 
         // add main stuffs
         services.AddSingleton<SmartIotConnectorBuilder>(builder);
+        services.AddSingleton<SmartIotConnectorConfiguration>(builder.Configuration);
         services.AddSingleton<SmartIotConnector>(builder.Build);
 
         // expose more things on DI

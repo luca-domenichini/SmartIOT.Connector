@@ -25,6 +25,7 @@ public class TestMetrics
         smartiot.Stopped += (s, e) => stopped.Set();
 
         await smartiot.StartAsync();
+        bool wasStopped = false;
         try
         {
             Assert.True(started.WaitOne(TimeSpan.FromSeconds(2)));
@@ -40,10 +41,12 @@ public class TestMetrics
             await smartiot.StopAsync();
 
             Assert.True(stopped.WaitOne(TimeSpan.FromSeconds(2)));
+            wasStopped = true;
         }
         finally
         {
-            await smartiot.StopAsync();
+            if (!wasStopped)
+                await smartiot.StopAsync();
         }
     }
 }

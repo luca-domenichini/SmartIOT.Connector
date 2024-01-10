@@ -13,9 +13,9 @@ public interface IDeviceService
 
     public Device? GetDevice(string deviceId);
 
-    public void AddDevice(DeviceConfiguration deviceConfiguration);
+    public Task AddDeviceAsync(DeviceConfiguration deviceConfiguration);
 
-    public void RemoveDevice(string deviceId);
+    public Task RemoveDeviceAsync(string deviceId);
 
     public TagData? GetTagData(string deviceId, string tagId);
 
