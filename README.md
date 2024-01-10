@@ -82,7 +82,7 @@ smartiot.Start();
 smartiot.Stop();
 ```
 
-otherwise, you can add SmartIOT.Connector to DI container with [these extension methods](./SmartIOT.Connector.DependencyInjection/AspNetCoreExtensions.cs):
+otherwise, you can add SmartIOT.Connector to DI container with [these extension methods](./Core/SmartIOT.Connector.DependencyInjection/AspNetCoreExtensions.cs):
 
 ```csharp
 // this method will start an IHostedService running SmartIOT.Connector
