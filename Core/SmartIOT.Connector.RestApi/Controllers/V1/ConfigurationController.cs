@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartIOT.Connector.Core;
 using SmartIOT.Connector.RestApi.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace SmartIOT.Connector.RestApi.Controllers.V1;
 
@@ -27,6 +28,7 @@ public class ConfigurationController : ControllerBase
     [HttpGet]
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SmartIotConnectorConfiguration))]
+    [SwaggerOperation("This method returns the current configuration")]
     public SmartIotConnectorConfiguration GetConfiguration()
     {
         return _configurationService.GetConfiguration();
@@ -38,6 +40,7 @@ public class ConfigurationController : ControllerBase
     [HttpPut]
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [SwaggerOperation("This method persists the configuration on disk")]
     public IActionResult SaveConfiguration()
     {
         _configurationService.SaveConfiguration();

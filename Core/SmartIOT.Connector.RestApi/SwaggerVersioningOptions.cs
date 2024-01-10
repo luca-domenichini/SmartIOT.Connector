@@ -17,13 +17,12 @@ internal class SwaggerVersioningOptions : IConfigureNamedOptions<SwaggerGenOptio
 
     public void Configure(SwaggerGenOptions options)
     {
+        options.EnableAnnotations();
+
         // add swagger document for every API version discovered
         foreach (var description in provider.ApiVersionDescriptions)
         {
             options.SwaggerDoc(description.GroupName, CreateVersionInfo(description));
-
-            var filePath = Path.Combine(System.AppContext.BaseDirectory, "SmartIOT.Connector.RestApi.xml");
-            options.IncludeXmlComments(filePath);
         }
     }
 

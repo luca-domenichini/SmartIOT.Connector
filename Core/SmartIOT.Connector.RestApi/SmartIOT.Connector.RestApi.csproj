@@ -4,10 +4,9 @@
     <TargetFrameworks>net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<Authors>Luca Domenichini</Authors>
 	<Title>SmartIOT.Connector REST API Library</Title>
-	<Description>The SmartIOT.Connector REST API library provides you with the REST controllers needed to interact with SmartIOT.Connector with RESTful services</Description>
+	<Description>The SmartIOT.Connector REST API library provides you the REST controllers needed to interact with SmartIOT.Connector with RESTful services</Description>
 	<PackageProjectUrl>https://github.com/luca-domenichini/SmartIOT.Connector</PackageProjectUrl>
 	<RepositoryUrl>https://github.com/luca-domenichini/SmartIOT.Connector.git</RepositoryUrl>
 	<RepositoryType>git</RepositoryType>
