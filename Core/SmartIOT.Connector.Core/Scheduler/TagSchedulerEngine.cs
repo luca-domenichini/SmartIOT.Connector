@@ -524,6 +524,9 @@ public class TagSchedulerEngine : ITagSchedulerEngine
 
     public bool IsRestartNeeded()
     {
+        if (DeviceDriver.Device.DeviceStatus == DeviceStatus.DISABLED)
+            return false;
+
         bool restart = _lastRestartInstant == null;
         if (!restart
             && _timeService.IsTimeoutElapsed(_lastRestartInstant!.Value, _configuration.RestartDeviceInErrorTimeout))

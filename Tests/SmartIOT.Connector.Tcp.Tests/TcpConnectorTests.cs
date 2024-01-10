@@ -175,6 +175,7 @@ public class TcpConnectorTests : SmartIOTBaseTests
             await connector.StopAsync();
 
             token?.Cancel();
+            token?.Dispose();
             stream?.Close();
             server.Stop();
         }
@@ -337,6 +338,7 @@ public class TcpConnectorTests : SmartIOTBaseTests
             await connector.StopAsync();
 
             token?.Cancel();
+            token?.Dispose();
             stream?.Close();
             client.Close();
         }

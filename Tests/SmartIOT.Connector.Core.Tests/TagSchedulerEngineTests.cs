@@ -38,6 +38,41 @@ public class TagSchedulerEngineTests
     }
 
     [Fact]
+    public void Test_should_not_restart_on_disabled_device()
+    {
+        var timeService = new FakeTimeService
+        {
+            Now = DateTime.Now
+        };
+
+        SchedulerConfiguration schedulerConfiguration = new SchedulerConfiguration();
+
+        (TagSchedulerEngine engine, Model.Device device, Tag tag20, Tag? tag21, Tag tag22) = SetupSystem(device => new MockDeviceDriver(device), timeService, schedulerConfiguration, true, false, 0);
+        device.SetEnabled(false); // disable device
+
+        var eventListener = new FakeConnector();
+
+        engine.TagReadEvent += eventListener.OnTagReadEvent;
+        engine.TagWriteEvent += eventListener.OnTagWriteEvent;
+        engine.DeviceStatusEvent += eventListener.OnDeviceStatusEvent;
+        engine.ExceptionHandler += eventListener.OnException;
+
+        // verifica stato iniziale
+        Assert.Equal(DeviceStatus.DISABLED, device.DeviceStatus);
+        Assert.False(tag20.IsInitialized);
+        Assert.Equal(0, tag20.ErrorCode);
+        Assert.False(tag21!.IsInitialized);
+        Assert.Equal(0, tag21.ErrorCode);
+        Assert.False(tag22.IsInitialized);
+        Assert.Equal(0, tag22.ErrorCode);
+
+        // check driver restart
+        Assert.False(engine.IsRestartNeeded());
+
+        Assert.Throws<TagSchedulerWaitException>(() => engine.GetNextTagSchedule());
+    }
+
+    [Fact]
     public void Test_read_two_tags_cycle()
     {
         var timeService = new FakeTimeService
