@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartIOT.Connector.Core;
 using SmartIOT.Connector.RestApi.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace SmartIOT.Connector.RestApi.Controllers.V1;
 
@@ -32,6 +33,7 @@ public class ConnectorController : ControllerBase
     [HttpGet]
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<Model.Connector>))]
+    [SwaggerOperation("Returns the list of Connectors currently managed by SmartIOT.Connector")]
     public IList<Model.Connector> GetConnectors()
     {
         return _smartIotConnector.Connectors.Select((x, i) => new Model.Connector(i, x.ConnectionString)).ToList();
@@ -46,6 +48,7 @@ public class ConnectorController : ControllerBase
     [Route("{index}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Model.Connector))]
+    [SwaggerOperation("Gets the zero based Connector as defined in the configuration or 404 not found")]
     public IActionResult GetConnector(int index)
     {
         var list = _smartIotConnector.Connectors;
@@ -67,7 +70,9 @@ public class ConnectorController : ControllerBase
     [Route("{index}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Model.Connector))]
-    public async Task<IActionResult> UpdateConnector(int index, [FromBody] string connectionString)
+    [SwaggerOperation("Updates an existing Connector and completely replace it with the new one passed in the connectionString.")]
+    public async Task<IActionResult> UpdateConnector([SwaggerParameter("The zero based index of the Connector")] int index
+        , [SwaggerParameter("The connectionString that defines the Connector")][FromBody] string connectionString)
     {
         if (await _connectorsService.ReplaceConnectorAsync(index, connectionString))
             return Ok(new Model.Connector(index, connectionString));
@@ -82,6 +87,7 @@ public class ConnectorController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Model.Connector))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [SwaggerOperation("Creates a new Connector as defined in the connectionString.")]
     public async Task<IActionResult> AddConnector([FromBody] string connectionString)
     {
         var connector = await _connectorsService.AddConnectorAsync(connectionString);
@@ -99,6 +105,7 @@ public class ConnectorController : ControllerBase
     [Route("{index}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [SwaggerOperation("Deletes an already defined Connector. Be aware that deleting a Connector, may rescale other Connector indexes as well. Deleting the index 0, makes all Connectors scale their index by -1.")]
     public async Task<IActionResult> RemoveConnector(int index)
     {
         if (await _smartIotConnector.RemoveConnectorAsync(index))

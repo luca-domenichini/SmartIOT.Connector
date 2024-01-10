@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Conf;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace SmartIOT.Connector.RestApi.Controllers.V1;
 
@@ -27,6 +28,7 @@ public class SchedulerController : ControllerBase
     [HttpGet]
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SchedulerConfiguration))]
+    [SwaggerOperation("This method returns the current configuration")]
     public SchedulerConfiguration GetConfiguration()
     {
         return _smartIotConnector.SchedulerConfiguration;
@@ -38,6 +40,7 @@ public class SchedulerController : ControllerBase
     [HttpPut]
     [MapToApiVersion("1.0")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [SwaggerOperation("This method changes the current scheduler configuration")]
     public IActionResult SetConfiguration([FromBody] SchedulerConfiguration configuration)
     {
         configuration.CopyTo(_smartIotConnector.SchedulerConfiguration);

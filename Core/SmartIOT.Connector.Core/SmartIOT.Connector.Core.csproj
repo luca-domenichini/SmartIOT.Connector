@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 	<Authors>Luca Domenichini</Authors>
 	<Title>SmartIOT.Connector Core Library</Title>
-	<Description>The SmartIOT.Connector Core library provides you with a scheduler runnable on the cloud that is able to publish to an external service the events captured from IoT devices or industrial PLCs</Description>
+	<Description>The SmartIOT.Connector Core library provides you a scheduler runnable on the cloud that is able to publish to an external service the events captured from IoT devices or industrial PLCs</Description>
 	<PackageProjectUrl>https://github.com/luca-domenichini/SmartIOT.Connector</PackageProjectUrl>
 	<RepositoryUrl>https://github.com/luca-domenichini/SmartIOT.Connector.git</RepositoryUrl>
 	<RepositoryType>git</RepositoryType>
