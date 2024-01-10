@@ -79,6 +79,7 @@ public abstract class AbstractBufferedAggregatingConnector : AbstractConnector
     public override Task StopAsync()
     {
         _stopToken.Cancel();
+        _stopToken.Dispose();
 
         ConnectorInterface!.OnConnectorStopped(new ConnectorStoppedEventArgs(this, $"Connector stopped {ConnectionString}"));
 

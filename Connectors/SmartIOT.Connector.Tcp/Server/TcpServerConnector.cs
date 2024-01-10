@@ -217,5 +217,7 @@ public class TcpServerConnector : AbstractPublisherConnector
         {
             client.Close();
         }
+
+        _stopToken.Dispose();
     }
 }

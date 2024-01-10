@@ -14,7 +14,7 @@ public class TcpClientConnector : AbstractPublisherConnector
     private TcpClient? _tcpClient;
     private readonly IStreamMessageSerializer _messageSerializer;
     private readonly CancellationTokenSource _stopToken = new CancellationTokenSource();
-    private readonly ManualResetEventSlim _reconnectTaskTerminated = new ManualResetEventSlim();
+    private readonly SemaphoreSlim _reconnectTaskTerminated = new SemaphoreSlim(0, 1);
     private readonly CountdownLatch _clients = new CountdownLatch();
 
     public TcpClientConnector(TcpClientConnectorOptions options)
@@ -167,7 +167,7 @@ public class TcpClientConnector : AbstractPublisherConnector
             }
             finally
             {
-                _reconnectTaskTerminated.Set();
+                _reconnectTaskTerminated.Release();
             }
         });
     }
@@ -266,6 +266,8 @@ public class TcpClientConnector : AbstractPublisherConnector
         _tcpClient?.Close();
 
         _clients.WaitUntilZero();
-        _reconnectTaskTerminated.Wait();
+        await _reconnectTaskTerminated.WaitAsync();
+
+        _stopToken.Dispose();
     }
 }
