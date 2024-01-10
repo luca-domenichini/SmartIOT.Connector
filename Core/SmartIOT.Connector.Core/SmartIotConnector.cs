@@ -83,7 +83,7 @@ public class SmartIotConnector : ISmartIOTConnectorInterface
 
         foreach (var scheduler in _schedulers)
         {
-            scheduler.Start();
+            await scheduler.StartAsync();
         }
 
         IsStarted = true;
@@ -95,17 +95,14 @@ public class SmartIotConnector : ISmartIOTConnectorInterface
     {
         Stopping?.Invoke(this, new EventArgs());
 
-        foreach (var scheduler in _schedulers)
+        await Task.WhenAll(_connectors.Select(async x =>
         {
-            scheduler.Stop();
-        }
+            await x.StopAsync();
 
-        foreach (var connector in _connectors)
-        {
-            await connector.StopAsync();
+            RemoveConnectorEvents(x);
+        }));
 
-            RemoveConnectorEvents(connector);
-        }
+        await Task.WhenAll(_schedulers.Select(x => x.StopAsync()));
 
         Stopped?.Invoke(this, new EventArgs());
     }
@@ -199,17 +196,34 @@ public class SmartIotConnector : ISmartIOTConnectorInterface
 
         scheduler.SchedulerStarting += OnSchedulerStarting;
         scheduler.SchedulerStopping += OnSchedulerStopping;
-
-        if (IsStarted)
-            scheduler.Start();
     }
 
-    public void RemoveScheduler(ITagScheduler scheduler)
+    public async Task AddSchedulerAsync(ITagScheduler scheduler)
+    {
+        _schedulers.Add(scheduler);
+
+        scheduler.TagReadEvent += OnSchedulerTagReadEvent;
+        scheduler.TagWriteEvent += OnSchedulerTagWriteEvent;
+        scheduler.DeviceStatusEvent += OnSchedulerDeviceStatusEvent;
+        scheduler.ExceptionHandler += OnSchedulerException;
+
+        scheduler.EngineRestartingEvent += OnSchedulerRestartingEvent;
+        scheduler.EngineRestartedEvent += OnSchedulerRestartedEvent;
+        scheduler.TagSchedulerWaitExceptionEvent += OnSchedulerWaitExceptionEvent;
+
+        scheduler.SchedulerStarting += OnSchedulerStarting;
+        scheduler.SchedulerStopping += OnSchedulerStopping;
+
+        if (IsStarted)
+            await scheduler.StartAsync();
+    }
+
+    public async Task RemoveSchedulerAsync(ITagScheduler scheduler)
     {
         _schedulers.Remove(scheduler);
 
         if (IsStarted)
-            scheduler.Stop();
+            await scheduler.StopAsync();
 
         scheduler.TagReadEvent -= OnSchedulerTagReadEvent;
         scheduler.TagWriteEvent -= OnSchedulerTagWriteEvent;

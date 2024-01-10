@@ -159,11 +159,11 @@ public class DeviceControllerTests
     }
 
     [Fact]
-    public void Test_AddRemoveUpdate_Device_and_Tag()
+    public async Task Test_AddRemoveUpdate_Device_and_Tag()
     {
         var controller = SetupController();
 
-        Assert.IsType<OkResult>(controller.AddDevice(new DeviceConfiguration("mock://", "2", true, "D2", new List<TagConfiguration>()
+        Assert.IsType<OkResult>(await controller.AddDevice(new DeviceConfiguration("mock://", "2", true, "D2", new List<TagConfiguration>()
         {
             new TagConfiguration("DB100", TagType.READ, 0, 10, 1)
         })));
@@ -207,7 +207,7 @@ public class DeviceControllerTests
         Assert.Equal(100, d.Tags[0].Size);
         Assert.Equal(2, d.Tags[0].Weight);
 
-        Assert.IsType<OkResult>(controller.RemoveDevice("2"));
+        Assert.IsType<OkResult>(await controller.RemoveDevice("2"));
 
         Assert.IsType<NotFoundResult>(controller.GetDeviceConfiguration("2"));
     }

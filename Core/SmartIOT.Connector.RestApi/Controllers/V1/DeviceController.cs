@@ -63,11 +63,11 @@ public class DeviceController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("configuration")]
-    public IActionResult AddDevice([FromBody] DeviceConfiguration deviceConfiguration)
+    public async Task<IActionResult> AddDevice([FromBody] DeviceConfiguration deviceConfiguration)
     {
         try
         {
-            _deviceService.AddDevice(deviceConfiguration);
+            await _deviceService.AddDeviceAsync(deviceConfiguration);
             return Ok();
         }
         catch (DeviceException ex)
@@ -85,11 +85,11 @@ public class DeviceController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("configuration/{deviceId}")]
-    public IActionResult RemoveDevice(string deviceId)
+    public async Task<IActionResult> RemoveDevice(string deviceId)
     {
         try
         {
-            _deviceService.RemoveDevice(deviceId);
+            await _deviceService.RemoveDeviceAsync(deviceId);
             return Ok();
         }
         catch (DeviceException ex)

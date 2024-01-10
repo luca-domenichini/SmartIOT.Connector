@@ -27,9 +27,9 @@ public interface ITagScheduler
     public IDeviceDriver DeviceDriver { get; }
     public Device Device { get; }
 
-    void Start();
+    Task StartAsync();
 
-    void Stop();
+    Task StopAsync();
 
     /// <summary>
     /// Questo metodo consente di eseguire una action di inizializzazione,

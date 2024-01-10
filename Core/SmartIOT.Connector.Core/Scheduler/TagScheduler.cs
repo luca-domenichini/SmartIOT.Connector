@@ -12,7 +12,9 @@ public class TagScheduler : ITagScheduler
     private readonly SchedulerConfiguration _configuration;
     private readonly CancellationTokenSource _terminatingToken = new CancellationTokenSource();
     private readonly Thread _schedulerThread;
+    private readonly SemaphoreSlim _schedulerTerminated = new SemaphoreSlim(0, 1);
     private readonly Thread _monitorThread;
+    private readonly SemaphoreSlim _monitorThreadTerminated = new SemaphoreSlim(0, 1);
     private DateTime _terminatingInstant;
     private DateTime _lastWriteOnDevice;
     private readonly ConcurrentDictionary<Device, DeviceStatusEvent> _lastDeviceStatusEvents = new ConcurrentDictionary<Device, DeviceStatusEvent>();
@@ -96,116 +98,134 @@ public class TagScheduler : ITagScheduler
 
     private void SchedulerThreadRun()
     {
-        while (true)
+        try
         {
-            if (!_terminatingToken.IsCancellationRequested && IsPaused)
+            while (true)
             {
-                try
+                if (!_terminatingToken.IsCancellationRequested && IsPaused)
                 {
-                    _terminatingToken.Token.WaitHandle.WaitOne(1000);
-                }
-                catch (OperationCanceledException)
-                {
-                    // we must verify if stopping application is possible or if there is something more to write to tags
-                }
-
-                continue;
-            }
-
-            if (_terminatingToken.IsCancellationRequested)
-            {
-                var lastWriteOrTerminateInstant = _terminatingInstant < _lastWriteOnDevice ? _lastWriteOnDevice : _terminatingInstant;
-                var now = _timeService.Now;
-
-                if (_timeService.IsTimeoutElapsed(lastWriteOrTerminateInstant, now, _configuration.TerminateAfterNoWriteRequestsDelay)
-                    && _timeService.IsTimeoutElapsed(_terminatingInstant, now, _configuration.TerminateMinimumDelay))
-                    break;
-            }
-
-            try
-            {
-                try
-                {
-                    var schedule = _tagSchedulerEngine.ScheduleNextTag(_terminatingToken.IsCancellationRequested);
-                    if (schedule != null)
+                    try
                     {
-                        if (schedule.Type == TagScheduleType.WRITE)
-                            _lastWriteOnDevice = _timeService.Now;
+                        _terminatingToken.Token.WaitHandle.WaitOne(1000);
                     }
-                    else
+                    catch (OperationCanceledException)
                     {
-                        Thread.Sleep(1000);
+                        // we must verify if stopping application is possible or if there is something more to write to tags
                     }
-                }
-                catch (TagSchedulerWaitException ex)
-                {
-                    TagSchedulerWaitExceptionEvent?.Invoke(this, new TagSchedulerWaitExceptionEventArgs(ex));
 
-                    Thread.Sleep(ex.WaitTime);
+                    continue;
                 }
-            }
-            catch (Exception ex)
-            {
+
+                if (_terminatingToken.IsCancellationRequested)
+                {
+                    var lastWriteOrTerminateInstant = _terminatingInstant < _lastWriteOnDevice ? _lastWriteOnDevice : _terminatingInstant;
+                    var now = _timeService.Now;
+
+                    if (_timeService.IsTimeoutElapsed(lastWriteOrTerminateInstant, now, _configuration.TerminateAfterNoWriteRequestsDelay)
+                        && _timeService.IsTimeoutElapsed(_terminatingInstant, now, _configuration.TerminateMinimumDelay))
+                        break;
+                }
+
                 try
                 {
-                    ExceptionHandler?.Invoke(this, new ExceptionEventArgs(ex));
+                    try
+                    {
+                        var schedule = _tagSchedulerEngine.ScheduleNextTag(_terminatingToken.IsCancellationRequested);
+                        if (schedule != null)
+                        {
+                            if (schedule.Type == TagScheduleType.WRITE)
+                                _lastWriteOnDevice = _timeService.Now;
+                        }
+                        else
+                        {
+                            Thread.Sleep(1000);
+                        }
+                    }
+                    catch (TagSchedulerWaitException ex)
+                    {
+                        TagSchedulerWaitExceptionEvent?.Invoke(this, new TagSchedulerWaitExceptionEventArgs(ex));
+
+                        Thread.Sleep(ex.WaitTime);
+                    }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // ignore this
+                    try
+                    {
+                        ExceptionHandler?.Invoke(this, new ExceptionEventArgs(ex));
+                    }
+                    catch
+                    {
+                        // ignore this
+                    }
                 }
             }
+        }
+        finally
+        {
+            _schedulerTerminated.Release();
         }
     }
 
     private void MonitorThreadRun()
     {
-        while (true)
+        try
         {
-            try
-            {
-                _tagSchedulerEngine.RestartDriver();
-
-                if (!_terminatingToken.IsCancellationRequested)
-                    _terminatingToken.Token.WaitHandle.WaitOne(500);
-                else
-                    break;
-            }
-            catch (OperationCanceledException)
-            {
-                // stop request: exit
-            }
-            catch (Exception ex)
+            while (true)
             {
                 try
                 {
-                    ExceptionHandler?.Invoke(this, new ExceptionEventArgs(ex));
+                    _tagSchedulerEngine.RestartDriver();
+
+                    if (!_terminatingToken.IsCancellationRequested)
+                        _terminatingToken.Token.WaitHandle.WaitOne(500);
+                    else
+                        break;
                 }
-                catch
+                catch (OperationCanceledException)
                 {
-                    // ignore this
+                    // stop request: exit
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        ExceptionHandler?.Invoke(this, new ExceptionEventArgs(ex));
+                    }
+                    catch
+                    {
+                        // ignore this
+                    }
                 }
             }
         }
+        finally
+        {
+            _monitorThreadTerminated.Release();
+        }
     }
 
-    public void Start()
+    public Task StartAsync()
     {
         SchedulerStarting?.Invoke(this, new SchedulerStartingEventArgs(this));
 
         _schedulerThread.Start();
         _monitorThread.Start();
+
+        return Task.CompletedTask;
     }
 
-    public void Stop()
+    public async Task StopAsync()
     {
         SchedulerStopping?.Invoke(this, new SchedulerStoppingEventArgs(this));
 
         _terminatingToken.Cancel();
         _terminatingInstant = _timeService.Now;
 
-        _schedulerThread.Join();
-        _monitorThread.Join();
+        await _schedulerTerminated.WaitAsync();
+        await _monitorThreadTerminated.WaitAsync();
+
+        _terminatingToken.Dispose();
 
         _tagSchedulerEngine.ExceptionHandler -= OnEngineExceptionHandler;
         _tagSchedulerEngine.DeviceStatusEvent -= OnEngineDeviceStatusEvent;
