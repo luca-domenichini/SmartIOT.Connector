@@ -1,5 +1,4 @@
-﻿using ProtoBuf;
-using SmartIOT.Connector.Core.Events;
+﻿using SmartIOT.Connector.Core.Events;
 
 namespace SmartIOT.Connector.Core.Connector;
 
@@ -34,10 +33,10 @@ public class AggregatingConnectorEventQueue : AggregatingQueue<CompositeConnecto
 
         if (e1.Tag == e2.Tag)
         {
-            if (e1.Data != null && e2.Data != null && e1.Data.Length > 0 && e2.Data.Length > 0)
+            if (DataIntersects(item1, item2))
             {
                 int startOffset = Math.Min(e1.StartOffset, e2.StartOffset);
-                int endOffset = Math.Max(e1.StartOffset + e1.Data.Length, e2.StartOffset + e2.Data.Length);
+                int endOffset = Math.Max(e1.StartOffset + e1.Data!.Length, e2.StartOffset + e2.Data!.Length);
                 int length = endOffset - startOffset;
                 byte[] data = new byte[length];
 
@@ -68,10 +67,10 @@ public class AggregatingConnectorEventQueue : AggregatingQueue<CompositeConnecto
         var e1 = item1.TagScheduleEvent;
         var e2 = item2.TagScheduleEvent;
 
-        if (e1.Tag == e2.Tag && e1.Data != null && e2.Data != null && e1.Data.Length > 0 && e2.Data.Length > 0)
+        if (e1.Tag == e2.Tag && DataIntersects(item1, item2))
         {
             int startOffset = Math.Min(e1.StartOffset, e2.StartOffset);
-            int endOffset = Math.Max(e1.StartOffset + e1.Data.Length, e2.StartOffset + e2.Data.Length);
+            int endOffset = Math.Max(e1.StartOffset + e1.Data!.Length, e2.StartOffset + e2.Data!.Length);
             int length = endOffset - startOffset;
             byte[] data = new byte[length];
 
@@ -90,6 +89,14 @@ public class AggregatingConnectorEventQueue : AggregatingQueue<CompositeConnecto
         }
 
         return null;
+    }
+
+    private bool DataIntersects(TagScheduleEventArgs a, TagScheduleEventArgs b)
+    {
+        return a.TagScheduleEvent?.Data is not null && b.TagScheduleEvent?.Data is not null
+            && a.TagScheduleEvent.Data.Length > 0 && b.TagScheduleEvent.Data.Length > 0
+            && a.TagScheduleEvent.StartOffset < b.TagScheduleEvent.StartOffset + b.TagScheduleEvent.Data.Length
+            && a.TagScheduleEvent.StartOffset + a.TagScheduleEvent.Data.Length > b.TagScheduleEvent.StartOffset;
     }
 
     private CompositeConnectorEvent? AggregateDeviceStatusEvents(object? sender, DeviceStatusEventArgs item1, DeviceStatusEventArgs item2)

@@ -185,4 +185,60 @@ public class ConnectorEventQueueTests
 
         Assert.Null(queue.PopOrDefault());
     }
+
+    [Fact]
+    public void Test_not_aggregating_tagRead_on_no_intersection()
+    {
+        Model.Device device = new Model.Device(new Conf.DeviceConfiguration());
+        Model.Tag t20 = new Model.Tag(new Conf.TagConfiguration("DB20", Conf.TagType.READ, 10, 100, 1));
+
+        var driver = new MockDeviceDriver(device);
+
+        var queue = new AggregatingConnectorEventQueue();
+
+        Assert.Null(queue.PopOrDefault());
+
+        byte[] data1 = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, };
+        byte[] data2 = new byte[] { 11, 12, 13, 14, 15, 16, 17, 18 };
+        byte[] data3 = new byte[] { 21, 22, 23, 24, 25, 26, 27, 28 };
+
+        queue.Push(CompositeConnectorEvent.TagRead((null, new TagScheduleEventArgs(driver, TagScheduleEvent.BuildTagData(device, t20, 0, data1, false)))));
+        queue.Push(CompositeConnectorEvent.TagRead((null, new TagScheduleEventArgs(driver, TagScheduleEvent.BuildTagData(device, t20, 10, data2, false)))));
+        queue.Push(CompositeConnectorEvent.TagRead((null, new TagScheduleEventArgs(driver, TagScheduleEvent.BuildTagData(device, t20, 20, data3, false)))));
+
+        var e = queue.PopOrDefault();
+        Assert.NotNull(e?.TagReadScheduleEvent);
+        TagScheduleEvent te = e!.TagReadScheduleEvent!.Value.args.TagScheduleEvent;
+        Assert.Equal(device, te.Device);
+        Assert.Equal(t20, te.Tag);
+        Assert.Equal(0, te.ErrorNumber);
+        Assert.Null(te.Description);
+        Assert.NotNull(te.Data);
+        Assert.Equal(8, te.Data!.Length);
+        Assert.Equal(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, te.Data);
+
+        e = queue.PopOrDefault();
+        Assert.NotNull(e?.TagReadScheduleEvent);
+        te = e!.TagReadScheduleEvent!.Value.args.TagScheduleEvent;
+        Assert.Equal(device, te.Device);
+        Assert.Equal(t20, te.Tag);
+        Assert.Equal(0, te.ErrorNumber);
+        Assert.Null(te.Description);
+        Assert.NotNull(te.Data);
+        Assert.Equal(8, te.Data!.Length);
+        Assert.Equal(new byte[] { 11, 12, 13, 14, 15, 16, 17, 18 }, te.Data);
+
+        e = queue.PopOrDefault();
+        Assert.NotNull(e?.TagReadScheduleEvent);
+        te = e!.TagReadScheduleEvent!.Value.args.TagScheduleEvent;
+        Assert.Equal(device, te.Device);
+        Assert.Equal(t20, te.Tag);
+        Assert.Equal(0, te.ErrorNumber);
+        Assert.Null(te.Description);
+        Assert.NotNull(te.Data);
+        Assert.Equal(8, te.Data!.Length);
+        Assert.Equal(new byte[] { 21, 22, 23, 24, 25, 26, 27, 28 }, te.Data);
+
+        Assert.Null(queue.PopOrDefault());
+    }
 }
