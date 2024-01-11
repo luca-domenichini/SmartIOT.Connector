@@ -1,4 +1,5 @@
-﻿using SmartIOT.Connector.Core.Events;
+﻿using ProtoBuf;
+using SmartIOT.Connector.Core.Events;
 
 namespace SmartIOT.Connector.Core.Connector;
 
@@ -33,7 +34,7 @@ public class AggregatingConnectorEventQueue : AggregatingQueue<CompositeConnecto
 
         if (e1.Tag == e2.Tag)
         {
-            if (e1.Data != null && e2.Data != null)
+            if (e1.Data != null && e2.Data != null && e1.Data.Length > 0 && e2.Data.Length > 0)
             {
                 int startOffset = Math.Min(e1.StartOffset, e2.StartOffset);
                 int endOffset = Math.Max(e1.StartOffset + e1.Data.Length, e2.StartOffset + e2.Data.Length);
@@ -67,7 +68,7 @@ public class AggregatingConnectorEventQueue : AggregatingQueue<CompositeConnecto
         var e1 = item1.TagScheduleEvent;
         var e2 = item2.TagScheduleEvent;
 
-        if (e1.Tag == e2.Tag && e1.Data != null && e2.Data != null)
+        if (e1.Tag == e2.Tag && e1.Data != null && e2.Data != null && e1.Data.Length > 0 && e2.Data.Length > 0)
         {
             int startOffset = Math.Min(e1.StartOffset, e2.StartOffset);
             int endOffset = Math.Max(e1.StartOffset + e1.Data.Length, e2.StartOffset + e2.Data.Length);

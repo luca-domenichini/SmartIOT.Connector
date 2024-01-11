@@ -39,7 +39,7 @@ public class TagScheduleEvent
 
     public static TagScheduleEvent BuildEmptyTagData(Device device, Tag tag, bool isErrorNumberChanged)
     {
-        return new TagScheduleEvent(device, tag, -1, Array.Empty<byte>(), isErrorNumberChanged);
+        return new TagScheduleEvent(device, tag, tag.ByteOffset, Array.Empty<byte>(), isErrorNumberChanged);
     }
 
     public static TagScheduleEvent BuildTagStatus(Device device, Tag tag, int errorNumber, string description, bool isErrorNumberChanged)
