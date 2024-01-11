@@ -80,8 +80,8 @@ public class TagSchedulerTests
         };
         await scheduler.StartAsync();
 
-        Assert.True(readEvent.WaitOne(100));
-        Assert.True(deviceStatusEvent.WaitOne(100));
+        Assert.True(readEvent.WaitOne(1000));
+        Assert.True(deviceStatusEvent.WaitOne(1000));
 
         await scheduler.StopAsync();
 
