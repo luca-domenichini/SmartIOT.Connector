@@ -24,7 +24,7 @@ These are the connectors provided by SmartIOT.Connector out of the box:
 
 Different connectors can choose the way they serialize messages over the wire. Sometimes the protocol used by the connector is able to delimit the boundary of messages by itself and sometimes it is not.<br>
 When the protocol is able to split each message in a sequence of bytes, then we can use the [single message serializer](../Core/SmartIOT.Connector.Messages/Serializers/ISingleMessageSerializer.cs).<br>
-When the protocol is not able to split each message, some extra bytes are needed to be sent on the network to mark the message type and/or length. In this case, the [stream message serializer](../Core/SmartIOT.Connector.Messages/Serializers/IStreamMessageSerializer.cs) should be used instead, and extra logic must be put and the connector to decode the protocol and interpret the incoming stream.
+When the protocol is not able to split each message, some extra bytes are needed to be sent on the network to mark the message type and/or length. In this case, the [stream message serializer](../Core/SmartIOT.Connector.Messages/Serializers/IStreamMessageSerializer.cs) should be used instead, and extra logic must be put on the connector to decode the protocol and interpret the incoming stream.
 
 ### [Single message serializer](../Core/SmartIOT.Connector.Messages/Serializers/ISingleMessageSerializer.cs)
 
