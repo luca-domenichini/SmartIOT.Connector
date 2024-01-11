@@ -2,11 +2,12 @@ name: .NET Prerelease
 
 on:
   push:
-    branches: [ "prerelease" ]
+    tags:
+    - '[0-9]+\.[0-9]+\.[0-9]+\-beta'
 
 env:
   VERSION_MAJOR: 0
-  VERSION_MINOR: 4
+  VERSION_MINOR: 5
   VERSION_SUFFIX: "-beta"
 
 jobs:
