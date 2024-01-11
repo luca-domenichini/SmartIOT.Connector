@@ -146,36 +146,3 @@ These libraries provide connectivity with underlying devices:
 
 As of version 0.x, interfaces and implementation details are subject to change without notice.
 I will do my best to keep the interfaces stable, but there are possibilities to incur in such breaking changes.
-
-## Roadmap to 1.0 - Features TODO list
-
-- [X] REST Api (included in default App project)
-- [ ] GRPC Server Connector
-- [X] TCP Server Connector
-- [X] TCP Client Connector
-- [ ] Web app with monitoring capabilities (included in default App project)
-- [X] Nuget packages on nuget.org - <https://www.nuget.org/packages?q=SmartIOT.Connector>
-- [X] Docker runner image on dockerhub - <https://hub.docker.com/repository/docker/lucadomenichini/smartiot-connector-app>
-- [X] Apps
-  - [X] Run SmartIOT.Connector as a console app
-  - [X] Run SmartIOT.Connector as a Docker image
-  - [X] Run SmartIOT.Connector as a WinService
-- [ ] Testers: connector counterpart as WPF app
-  - [ ] GRPC Client
-  - [X] TCP client
-  - [X] TCP server
-
-## Docs TODO list
-
-- [ ] Extensibility docs
-- [ ] Comment public classes and interfaces
-
-## Technical TODO list
-
-- [ ] Leverage the async pattern for Devices:
-      introduce `IAsyncDeviceDriver` and add support to autodiscover and run them
-- [ ] The proto files should be part of SmartIOT.Connector.Messages project
-- [ ] Build and push docker image with github workflow
-- [ ] Reduce memory allocation on read/write operations. The aim is to use the underlying byte[] as source or target directly, without further allocations.
-  - [ ] use existing ReadOnlySpan aware methods on S7Net
-  - [ ] introduce new method ReadOnlySpan aware on Snap7 and SnapModBus
