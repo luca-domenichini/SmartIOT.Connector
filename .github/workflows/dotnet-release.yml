@@ -45,13 +45,3 @@ jobs:
         dotnet nuget push Devices\SmartIOT.Connector.Plc.S7Net\bin\Release\SmartIOT.Connector.Plc.S7Net.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
         dotnet nuget push Devices\SmartIOT.Connector.Plc.Snap7\bin\Release\SmartIOT.Connector.Plc.Snap7.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
         dotnet nuget push Devices\SmartIOT.Connector.Plc.SnapModbus\bin\Release\SmartIOT.Connector.Plc.SnapModbus.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
-    - name: Create GitHub Release
-      id: release-snapshot
-      uses: actions/create-release@latest
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.version.outputs.PRODUCT_VERSION }}
-        release_name: ${{ steps.version.outputs.PRODUCT_VERSION }}
-        draft: false
-        prerelease: false
