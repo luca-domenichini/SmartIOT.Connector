@@ -9,7 +9,7 @@ This project aims at creating a simple connector and scheduler for automation de
 
 ![SmartIOT.Connector image](Docs/smartiot-connector.jpg)
 
-SmartIOT.Connector enables you to connect to a variety of IOT sensors and industrial PLCs** and distribute their data to an external system in form of an event describing the changed data.<br>
+SmartIOT.Connector enables you to connect to a variety of IOT sensors and industrial PLCs and distribute their data to an external system in form of an event describing the changed data.<br>
 The external system can then process the data being read and can send back to SmartIOT.Connector data to be written to the devices.<br>
 SmartIOT.Connector is a good fit for industrial and automation needs, where developers are being asked to abstract away from device communication protocols and must concentrate solely on the business logic to implement.
 
@@ -109,7 +109,7 @@ app.UseSmartIOTConnector(smartIotConnector =>
   - [Configure the devices](./Docs/Configuration.md#configuring-the-devices)
   - [Configure the connectors](./Docs/Configuration.md#configuring-the-connectors)
   - [Configure the scheduler main properties](./Docs/Configuration.md#configuring-the-scheduler-main-properties)
-- Supported devices
+- Supported devices/protocols
   - [Snap7 PLC configuration guide](./Devices/SmartIOT.Connector.Plc.Snap7/README.md)
   - [S7Net PLC configuration guide](./Devices/SmartIOT.Connector.Plc.S7Net/README.md)
   - [SnapModBus device configuration guide](./Devices/SmartIOT.Connector.Plc.SnapModBus/README.md)
@@ -140,9 +140,4 @@ These libraries provide connectivity with underlying devices:
 
 - Snap7 for Siemens S7 plc family, S7300, S71200, S71500 <http://snap7.sourceforge.net/>
 - SnapModbus for devices on ModBus network <https://snapmodbus.sourceforge.io/>
-- S7NetPlus for Siemens S7 plc family, S7300, S71200, S71500 <https://github.com/S7NetPlus/s7netplus> 
-
-## Disclaimer
-
-As of version 0.x, interfaces and implementation details are subject to change without notice.
-I will do my best to keep the interfaces stable, but there are possibilities to incur in such breaking changes.
+- S7NetPlus for Siemens S7 plc family, S7300, S71200, S71500 <https://github.com/S7NetPlus/s7netplus>
