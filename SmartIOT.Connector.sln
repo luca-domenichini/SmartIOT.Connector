@@ -1,12 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.32421.90
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11206.111
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{00225731-BE18-495B-9FDA-DEC2D79868B1}"
 	ProjectSection(SolutionItems) = preProject
 		.dockerignore = .dockerignore
 		.editorconfig = .editorconfig
+		Directory.Packages.props = Directory.Packages.props
 		docker-build-app.bat = docker-build-app.bat
 		docker-push-app.bat = docker-push-app.bat
 		docker-run-app.bat = docker-run-app.bat
@@ -14,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.github\workflows\dotnet-master.yml = .github\workflows\dotnet-master.yml
 		.github\workflows\dotnet-prerelease.yml = .github\workflows\dotnet-prerelease.yml
 		.github\workflows\dotnet-release.yml = .github\workflows\dotnet-release.yml
+		global.json = global.json
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection

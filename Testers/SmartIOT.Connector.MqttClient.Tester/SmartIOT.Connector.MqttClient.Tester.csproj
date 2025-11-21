@@ -2,15 +2,13 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
+    <TargetFrameworks>net8.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
-	<FileVersion>1.0.0.0</FileVersion>
-	<AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="4.3.3.952" />
+    <PackageReference Include="MQTTnet.Extensions.ManagedClient" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,41 @@
+<Project>
+  <PropertyGroup>
+    <!-- Enable Central Package Management -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Microsoft Extensions -->
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.0" />
+    <!-- MQTT -->
+    <PackageVersion Include="MQTTnet" Version="4.3.7.1207" />
+    <PackageVersion Include="MQTTnet.Extensions.ManagedClient" Version="4.3.7.1207" />
+    <!-- Serialization -->
+    <PackageVersion Include="protobuf-net" Version="3.2.56" />
+    <!-- PLC / Device Libraries -->
+    <PackageVersion Include="S7netplus" Version="0.20.0" />
+    <!-- Logging -->
+    <PackageVersion Include="Serilog" Version="4.3.0" />
+    <PackageVersion Include="Serilog.Enrichers.Context" Version="4.6.5" />
+    <PackageVersion Include="Serilog.Extensions.Logging" Version="9.0.2" />
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
+    <!-- API / Swagger -->
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.0.1" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="10.0.1" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.0.1" />
+    <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.0" />
+    <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
+    <!-- Metrics -->
+    <PackageVersion Include="prometheus-net" Version="8.2.1" />
+    <!-- Testing -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="Moq" Version="[4.18.4]" />
+  </ItemGroup>
+</Project>

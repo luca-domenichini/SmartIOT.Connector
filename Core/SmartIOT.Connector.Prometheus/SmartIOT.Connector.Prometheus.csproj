@@ -1,23 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-	<Authors>Luca Domenichini</Authors>
-	<Title>Prometheus metrics library for SmartIOT.Connector Library</Title>
-	<Description>This package implements Prometheus metrics for SmartIOT.Connector Core library</Description>
-	<PackageProjectUrl>https://github.com/luca-domenichini/SmartIOT.Connector</PackageProjectUrl>
-	<RepositoryUrl>https://github.com/luca-domenichini/SmartIOT.Connector.git</RepositoryUrl>
-	<RepositoryType>git</RepositoryType>
-	<PackageTags>iot;mqtt;scheduler;connector;automation;snap7;s7net;azure;automation;siemens;plc;s7300;s71200;s71500</PackageTags>
-	<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	<Copyright>Luca Domenichini</Copyright>
-	<AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Title>Prometheus metrics library for SmartIOT.Connector Library</Title>
+    <Description>This package implements Prometheus metrics for SmartIOT.Connector Core library</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="prometheus-net" Version="8.2.1" />
+    <PackageReference Include="prometheus-net" />
   </ItemGroup>
 
   <ItemGroup>

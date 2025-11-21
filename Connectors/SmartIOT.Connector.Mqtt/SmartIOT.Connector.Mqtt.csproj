@@ -1,24 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-	<Authors>Luca Domenichini</Authors>
-	<Title>SmartIOT.Connector Mqtt Connector Library</Title>
-	<Description>This package implements an Mqtt Connector for SmartIOT.Connector Core library</Description>
-	<PackageProjectUrl>https://github.com/luca-domenichini/SmartIOT.Connector</PackageProjectUrl>
-	<RepositoryUrl>https://github.com/luca-domenichini/SmartIOT.Connector.git</RepositoryUrl>
-	<RepositoryType>git</RepositoryType>
-	<PackageTags>iot;mqtt;scheduler;connector;automation;snap7;s7net;azure;automation;siemens;plc;s7300;s71200;s71500</PackageTags>
-	<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	<Copyright>Luca Domenichini</Copyright>
-	<AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Title>SmartIOT.Connector Mqtt Connector Library</Title>
+    <Description>This package implements an Mqtt Connector for SmartIOT.Connector Core library</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="4.3.3.952" />
-    <PackageReference Include="protobuf-net" Version="3.2.30" />
+    <PackageReference Include="MQTTnet.Extensions.ManagedClient" />
+    <PackageReference Include="protobuf-net" />
   </ItemGroup>
 
   <ItemGroup>

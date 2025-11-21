@@ -1,0 +1,26 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- Common properties for all projects -->
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    
+    <!-- Package metadata -->
+    <Authors>Luca Domenichini</Authors>
+    <PackageProjectUrl>https://github.com/luca-domenichini/SmartIOT.Connector</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/luca-domenichini/SmartIOT.Connector.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>iot;mqtt;scheduler;connector;automation;snap7;s7net;azure;automation;siemens;plc;s7300;s71200;s71500;modbus</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Luca Domenichini</Copyright>
+    
+    <!-- Versioning -->
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    
+    <!-- Central Package Management -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+</Project>
