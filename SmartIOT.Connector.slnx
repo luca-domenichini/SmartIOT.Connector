@@ -1,0 +1,45 @@
+<Solution>
+  <Folder Name="/Apps/">
+    <Project Path="Apps/SmartIOT.Connector.App/SmartIOT.Connector.App.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path=".github/workflows/dotnet-master.yml" />
+    <File Path=".github/workflows/dotnet-prerelease.yml" />
+    <File Path=".github/workflows/dotnet-release.yml" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="docker-build-app.bat" />
+    <File Path="docker-push-app.bat" />
+    <File Path="docker-run-app.bat" />
+    <File Path="dotnet-build-and-push.bat" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Testers/">
+    <Project Path="Testers/SmartIOT.Connector.MqttClient.Tester/SmartIOT.Connector.MqttClient.Tester.csproj" />
+    <Project Path="Testers/SmartIOT.Connector.MqttServer.Tester/SmartIOT.Connector.MqttServer.Tester.csproj" />
+    <Project Path="Testers/SmartIOT.Connector.TcpClient.Tester/SmartIOT.Connector.TcpClient.Tester.csproj" />
+    <Project Path="Testers/SmartIOT.Connector.TcpServer.Tester/SmartIOT.Connector.TcpServer.Tester.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/SmartIOT.Connector.Core.Tests/SmartIOT.Connector.Core.Tests.csproj" />
+    <Project Path="Tests/SmartIOT.Connector.Mocks/SmartIOT.Connector.Mocks.csproj" />
+    <Project Path="Tests/SmartIOT.Connector.Mqtt.Tests/SmartIOT.Connector.Mqtt.Tests.csproj" />
+    <Project Path="Tests/SmartIOT.Connector.Prometheus.Tests/SmartIOT.Connector.Prometheus.Tests.csproj" />
+    <Project Path="Tests/SmartIOT.Connector.RestApi.Tests/SmartIOT.Connector.RestApi.Tests.csproj" />
+    <Project Path="Tests/SmartIOT.Connector.Tcp.Tests/SmartIOT.Connector.Tcp.Tests.csproj" />
+  </Folder>
+  <Project Path="Connectors/SmartIOT.Connector.Mqtt/SmartIOT.Connector.Mqtt.csproj" />
+  <Project Path="Connectors/SmartIOT.Connector.Tcp/SmartIOT.Connector.Tcp.csproj" />
+  <Project Path="Core/SmartIOT.Connector.Core/SmartIOT.Connector.Core.csproj" />
+  <Project Path="Core/SmartIOT.Connector.DependencyInjection/SmartIOT.Connector.DependencyInjection.csproj" />
+  <Project Path="Core/SmartIOT.Connector.Messages/SmartIOT.Connector.Messages.csproj" />
+  <Project Path="Core/SmartIOT.Connector.Prometheus/SmartIOT.Connector.Prometheus.csproj" />
+  <Project Path="Core/SmartIOT.Connector.RestApi/SmartIOT.Connector.RestApi.csproj" />
+  <Project Path="Devices/SmartIOT.Connector.Plc.S7Net/SmartIOT.Connector.Plc.S7Net.csproj" />
+  <Project Path="Devices/SmartIOT.Connector.Plc.Snap7/SmartIOT.Connector.Plc.Snap7.csproj" />
+  <Project Path="Devices/SmartIOT.Connector.Plc.SnapModBus/SmartIOT.Connector.Plc.SnapModBus.csproj" />
+</Solution>

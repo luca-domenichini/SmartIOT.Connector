@@ -7,11 +7,11 @@ ARG version
 # Copy everything
 COPY . ./
 # Restore as distinct layers
-RUN dotnet restore SmartIOT.Connector.App.sln
+RUN dotnet restore SmartIOT.Connector.slnx
 
-RUN dotnet build --no-restore -c Release SmartIOT.Connector.App.sln
+RUN dotnet build --no-restore -c Release SmartIOT.Connector.slnx
 
-RUN dotnet publish -c Release -o out -f net8.0 /p:version=$version SmartIOT.Connector.App.sln
+RUN dotnet publish -c Release -o out -f net8.0 /p:version=$version SmartIOT.Connector.slnx
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
