@@ -17,22 +17,22 @@ jobs:
       id: version
       run: echo "::set-output name=PRODUCT_VERSION::$(basename ${{ github.ref }})"
     - uses: actions/checkout@v3
-    - name: Setup .NET6
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 6.0.x
     - name: Setup .NET8
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 8.0.x
+    - name: Setup .NET10
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 10.0.x
     - name: Restore dependencies
-      run: dotnet restore SmartIOT.Connector.sln
+      run: dotnet restore SmartIOT.Connector.slnx
     - name: Build
-      run: dotnet build -c Release --no-restore SmartIOT.Connector.sln
+      run: dotnet build -c Release --no-restore SmartIOT.Connector.slnx
     - name: Test
-      run: dotnet test -c Release --no-build --verbosity normal SmartIOT.Connector.sln
+      run: dotnet test -c Release --no-build --verbosity normal SmartIOT.Connector.slnx
     - name: Pack
-      run: dotnet pack -c Release /p:version=${{ steps.version.outputs.PRODUCT_VERSION }} SmartIOT.Connector.sln
+      run: dotnet pack -c Release /p:version=${{ steps.version.outputs.PRODUCT_VERSION }} SmartIOT.Connector.slnx
     - name: NugetPublish
       run: |
         dotnet nuget push Connectors\SmartIOT.Connector.Mqtt\bin\Release\SmartIOT.Connector.Mqtt.${{ steps.version.outputs.PRODUCT_VERSION }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
