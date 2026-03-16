@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using SmartIOT.Connector.Core.Tests;
 using Xunit;
 
 namespace SmartIOT.Connector.Prometheus.Tests;
@@ -11,12 +12,14 @@ public class TestMetrics
     [Fact]
     public async Task Test_prometheus_metrics()
     {
+        var port = Extensions.GetRandomAvailablePort();
+        
         var smartiot = new SmartIOT.Connector.Core.SmartIotConnectorBuilder()
             .WithAutoDiscoverDeviceDriverFactories()
             .WithAutoDiscoverConnectorFactories()
             .WithConfigurationJsonFilePath("test-config.json")
             .Build()
-            .AddManagedPrometheusServer("localhost", 9001);
+            .AddManagedPrometheusServer("localhost", port);
 
         var started = new AutoResetEvent(false);
         var stopped = new AutoResetEvent(false);
@@ -33,7 +36,7 @@ public class TestMetrics
             await Task.Delay(1000);
 
             var http = new HttpClient();
-            var message = await http.GetAsync("http://localhost:9001/metrics");
+            var message = await http.GetAsync($"http://localhost:{port}/metrics");
 
             Assert.Equal(System.Net.HttpStatusCode.OK, message.StatusCode);
             Assert.Contains("smartiot_connector_synchronization_count", await message.Content.ReadAsStringAsync());

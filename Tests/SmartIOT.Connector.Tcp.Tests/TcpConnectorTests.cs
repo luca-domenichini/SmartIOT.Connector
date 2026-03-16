@@ -17,10 +17,12 @@ namespace SmartIOT.Connector.Tcp.Tests;
 public class TcpConnectorTests : SmartIOTBaseTests
 {
     [Theory]
-    [InlineData("json", 1884)]
-    [InlineData("protobuf", 1885)]
-    public async Task Test_scheduler_and_TcpClientConnector(string serializerType, int port)
+    [InlineData("json")]
+    [InlineData("protobuf")]
+    public async Task Test_scheduler_and_TcpClientConnector(string serializerType)
     {
+        var port = Extensions.GetRandomAvailablePort();
+        
         IList<TagEvent> tagEvents = new List<TagEvent>();
         IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
         IList<object> otherMessages = new List<object>();
@@ -182,10 +184,12 @@ public class TcpConnectorTests : SmartIOTBaseTests
     }
 
     [Theory]
-    [InlineData("json", 1984)]
-    [InlineData("protobuf", 1985)]
-    public async Task Test_scheduler_and_TcpServerConnector(string serializerType, int port)
+    [InlineData("json")]
+    [InlineData("protobuf")]
+    public async Task Test_scheduler_and_TcpServerConnector(string serializerType)
     {
+        var port = Extensions.GetRandomAvailablePort();
+        
         IList<TagEvent> tagEvents = new List<TagEvent>();
         IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
         IList<object> otherMessages = new List<object>();

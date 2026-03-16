@@ -16,6 +16,8 @@ using SmartIOT.Connector.Mqtt.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -31,6 +33,8 @@ public class MqttConnectorTests : SmartIOTBaseTests
     [InlineData(false, "protobuf")]
     public async Task Test_MqttServerConnector(bool isPublishPartialReads, string serializerType)
     {
+        var port = Extensions.GetRandomAvailablePort();
+        
         IList<TagEvent> tagEvents = new List<TagEvent>();
         IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
         IList<MqttApplicationMessage> otherMessages = new List<MqttApplicationMessage>();
@@ -46,7 +50,7 @@ public class MqttConnectorTests : SmartIOTBaseTests
         var client = new MqttFactory().CreateMqttClient();
 
         var mqttClientOptions = new MqttClientOptionsBuilder()
-            .WithTcpServer("localhost", 1883)
+            .WithTcpServer("localhost", port)
             .WithClientId("TestClient")
             .Build();
 
@@ -65,7 +69,7 @@ public class MqttConnectorTests : SmartIOTBaseTests
             return Task.CompletedTask;
         };
 
-        var connector = new MqttServerConnector(new MqttServerConnectorOptions("mqttServer://", false, serializer, Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", isPublishPartialReads));
+        var connector = new MqttServerConnector(new MqttServerConnectorOptions("mqttServer://", false, serializer, Guid.NewGuid().ToString("N"), port, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", isPublishPartialReads));
 
         SmartIotConnector module = SetupSmartIotConnector(
             SetupConfiguration(
@@ -168,6 +172,8 @@ public class MqttConnectorTests : SmartIOTBaseTests
     [InlineData("protobuf")]
     public async Task Test_scheduler_and_MqttServerConnector(string serializerType)
     {
+        var port = Extensions.GetRandomAvailablePort();
+        
         IList<TagEvent> tagEvents = new List<TagEvent>();
         IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
         IList<MqttApplicationMessage> otherMessages = new List<MqttApplicationMessage>();
@@ -185,7 +191,7 @@ public class MqttConnectorTests : SmartIOTBaseTests
         else
             throw new InvalidOperationException("serializer not valid");
 
-        var connector = new MqttServerConnector(new MqttServerConnectorOptions("mqttServer://", false, serializer, Guid.NewGuid().ToString("N"), 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", true));
+        var connector = new MqttServerConnector(new MqttServerConnectorOptions("mqttServer://", false, serializer, Guid.NewGuid().ToString("N"), port, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", true));
 
         DeviceConfiguration deviceConfiguration = new DeviceConfiguration("mock://mock", "1", true, "MockDevice"
             , new List<TagConfiguration>()
@@ -264,7 +270,7 @@ public class MqttConnectorTests : SmartIOTBaseTests
             await connector.StartAsync(connectorInterface.Object);
 
             var mqttClientOptions = new MqttClientOptionsBuilder()
-                .WithTcpServer("localhost", 1883)
+                .WithTcpServer("localhost", port)
                 .WithClientId("TestClient")
                 .Build();
 
@@ -361,6 +367,8 @@ public class MqttConnectorTests : SmartIOTBaseTests
     [InlineData("protobuf")]
     public async Task Test_MqttClientConnector(string serializerType)
     {
+        var port = Extensions.GetRandomAvailablePort();
+        
         IList<TagEvent> tagEvents = new List<TagEvent>();
         IList<DeviceEvent> deviceStatusEvents = new List<DeviceEvent>();
         IList<MqttApplicationMessage> otherMessages = new List<MqttApplicationMessage>();
@@ -370,7 +378,7 @@ public class MqttConnectorTests : SmartIOTBaseTests
 
         var mqttServerOptions = new MqttServerOptionsBuilder()
             .WithDefaultEndpoint()
-            .WithDefaultEndpointPort(1883)
+            .WithDefaultEndpointPort(port)
             .Build();
 
         var server = new MqttFactory().CreateMqttServer(mqttServerOptions);
@@ -404,7 +412,7 @@ public class MqttConnectorTests : SmartIOTBaseTests
             return Task.CompletedTask;
         };
 
-        var connector = new MqttClientConnector(new MqttClientConnectorOptions("mqttClient://", false, serializer, Guid.NewGuid().ToString("N"), "localhost", 1883, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", TimeSpan.FromSeconds(5), "", ""));
+        var connector = new MqttClientConnector(new MqttClientConnectorOptions("mqttClient://", false, serializer, Guid.NewGuid().ToString("N"), "localhost", port, "exceptions", "deviceStatus/device${DeviceId}", "tagRead/device${DeviceId}/tag${TagId}", "tagWrite", TimeSpan.FromSeconds(5), "", ""));
 
         SmartIotConnector module = SetupSmartIotConnector(
             SetupConfiguration(
