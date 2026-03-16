@@ -42,4 +42,8 @@
   <Project Path="Devices/SmartIOT.Connector.Plc.S7Net/SmartIOT.Connector.Plc.S7Net.csproj" />
   <Project Path="Devices/SmartIOT.Connector.Plc.Snap7/SmartIOT.Connector.Plc.Snap7.csproj" />
   <Project Path="Devices/SmartIOT.Connector.Plc.SnapModBus/SmartIOT.Connector.Plc.SnapModBus.csproj" />
+  <Project Path="Devices/SmartIOT.Connector.Plc.FakePlc/SmartIOT.Connector.Plc.FakePlc.csproj" />
+  <Folder Name="/Benchmarks/">
+    <Project Path="Benchmarks/SmartIOT.Connector.Benchmarks/SmartIOT.Connector.Benchmarks.csproj" />
+  </Folder>
 </Solution>

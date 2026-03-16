@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Title>Fake PLC device driver for SmartIOT.Connector — testing and benchmarking</Title>
+    <Description>In-memory fake device driver that exposes its data buffers directly, intended for unit tests and benchmarks.</Description>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\SmartIOT.Connector.Core\SmartIOT.Connector.Core.csproj" />
+  </ItemGroup>
+
+</Project>
