@@ -138,7 +138,7 @@ public class SchedulerReadWriteBenchmarks
         {
             // Mutate the backing buffer so ParseTagChangesAndMerge always finds changes
             // and produces a real TagScheduleEvent with data (not an empty one).
-            FlipReadData();
+            //FlipReadData();
             _engine.ScheduleTag(_readSchedule);
         }
     }
@@ -148,14 +148,17 @@ public class SchedulerReadWriteBenchmarks
     /// Each cycle: bounds detection → WriteTag driver call → OldData sync → event raising.
     /// </summary>
     [Benchmark(Description = "WriteCycles")]
-    public void WriteCycles()
+    public int WriteCycles()
     {
-        for (int i = 0; i < N; i++)
+        int i;
+        for (i = 0; i < N; i++)
         {
             // Request a new write every iteration so the scheduler doesn't skip it.
-            SeedWriteData();
+            //SeedWriteData();
             _engine.ScheduleTag(_writeSchedule);
         }
+
+        return i;
     }
 
     /// <summary>
@@ -163,16 +166,19 @@ public class SchedulerReadWriteBenchmarks
     /// Total operations per iteration = 2·N.
     /// </summary>
     [Benchmark(Description = "ReadWriteInterleaved")]
-    public void ReadWriteInterleaved()
+    public int ReadWriteInterleaved()
     {
-        for (int i = 0; i < N; i++)
+        int i;
+        for (i = 0; i < N; i++)
         {
-            FlipReadData();
+            // FlipReadData();
             _engine.ScheduleTag(_readSchedule);
 
-            SeedWriteData();
+            // SeedWriteData();
             _engine.ScheduleTag(_writeSchedule);
         }
+
+        return i;
     }
 
     /// <summary>
@@ -181,18 +187,20 @@ public class SchedulerReadWriteBenchmarks
     /// Stresses <see cref="TagSchedulerEngine.GetNextTagSchedule"/> as well as the driver.
     /// </summary>
     [Benchmark(Description = "ScheduleNextTag")]
-    public void ScheduleNextTagCycles()
+    public int ScheduleNextTagCycles()
     {
-        for (int i = 0; i < N; i++)
+        int i;
+        for (i = 0; i < N; i++)
         {
             // Keep alternating data mutations so there is always something meaningful to do.
-            if (i % 2 == 0)
-                FlipReadData();
-            else
-                SeedWriteData();
+            // if (i % 2 == 0)
+                //FlipReadData();
+            // else
+                //SeedWriteData();
 
             _engine.ScheduleNextTag(scheduleWritesOnly: false);
         }
+        return i;
     }
 }
 

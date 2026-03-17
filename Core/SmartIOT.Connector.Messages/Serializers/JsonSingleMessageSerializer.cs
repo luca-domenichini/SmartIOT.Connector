@@ -30,8 +30,8 @@ public class JsonSingleMessageSerializer : ISingleMessageSerializer
         return JsonSerializer.SerializeToUtf8Bytes(message, _options);
     }
 
-    public T? DeserializeMessage<T>(byte[] bytes)
+    public T? DeserializeMessage<T>(ReadOnlyMemory<byte> bytes)
     {
-        return JsonSerializer.Deserialize<T>(bytes, _options);
+        return JsonSerializer.Deserialize<T>(bytes.Span, _options);
     }
 }

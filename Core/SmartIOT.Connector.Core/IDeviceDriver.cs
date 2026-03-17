@@ -39,19 +39,19 @@ public interface IDeviceDriver
     /// Il metodo deve popolare i dati sull'array data passato in argomento.
     /// Lo startOffset passato in argomento ha un valore assoluto: quindi se un tag inizia al byte 100
     /// e il driver intende leggere i byte dal 110 al 120 passerà come argomenti startOffset = 110, length = 11.
-    /// Attenzione che l'array data contiene direttamente i dati del tag, quindi un tag che inizia al byte 100 di lunghezza 50 byte
-    /// avrà comunque un array di soli 50 bytes!
+    /// Attenzione che il buffer data contiene direttamente i dati del tag, quindi un tag che inizia al byte 100 di lunghezza 50 byte
+    /// avrà comunque un buffer di soli 50 bytes!
     /// </summary>
-    public int ReadTag(Device device, Tag tag, byte[] data, int startOffset, int length);
+    public int ReadTag(Device device, Tag tag, Span<byte> data, int startOffset, int length);
 
     /// <summary>
     /// Questo metodo è usato per scrivere il tag specificato.
     /// Lo startOffset passato in argomento ha un valore assoluto: quindi se un tag inizia al byte 100
     /// e il driver intende scrivere i byte dal 110 al 120 passerà come argomenti startOffset = 110, length = 11.
-    /// Attenzione che l'array data contiene direttamente i dati del tag, quindi un tag che inizia al byte 100 di lunghezza 50 byte
-    /// avrà comunque un array di soli 50 bytes!
+    /// Attenzione che il buffer data contiene direttamente i dati del tag, quindi un tag che inizia al byte 100 di lunghezza 50 byte
+    /// avrà comunque un buffer di soli 50 bytes!
     /// </summary>
-    public int WriteTag(Device device, Tag tag, byte[] data, int startOffset, int length);
+    public int WriteTag(Device device, Tag tag, ReadOnlySpan<byte> data, int startOffset, int length);
 
     /// <summary>
     /// Questo metodo viene utilizzato per ottenere una rappresentaziona stringa del codice di errore riportato dalle chiamate

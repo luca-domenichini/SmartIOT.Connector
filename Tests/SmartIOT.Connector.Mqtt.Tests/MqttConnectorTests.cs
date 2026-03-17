@@ -59,9 +59,9 @@ public class MqttConnectorTests : SmartIOTBaseTests
             lock (client) // lock to do asserts safely
             {
                 if (eventArgs.ApplicationMessage.Topic.StartsWith("tagRead/"))
-                    tagEvents.Add(serializer.DeserializeMessage<TagEvent>(eventArgs.ApplicationMessage.PayloadSegment.Array!)!);
+                    tagEvents.Add(serializer.DeserializeMessage<TagEvent>(eventArgs.ApplicationMessage.PayloadSegment)!);
                 else if (eventArgs.ApplicationMessage.Topic.StartsWith("deviceStatus/"))
-                    deviceStatusEvents.Add(serializer.DeserializeMessage<DeviceEvent>(eventArgs.ApplicationMessage.PayloadSegment.Array!)!);
+                    deviceStatusEvents.Add(serializer.DeserializeMessage<DeviceEvent>(eventArgs.ApplicationMessage.PayloadSegment)!);
                 else
                     otherMessages.Add(eventArgs.ApplicationMessage);
             }
@@ -157,13 +157,13 @@ public class MqttConnectorTests : SmartIOTBaseTests
         }
         finally
         {
-            await module.StopAsync();
-
             await client.DisconnectAsync(new MqttClientDisconnectOptions()
             {
                 Reason = MqttClientDisconnectOptionsReason.NormalDisconnection,
                 ReasonString = string.Empty
             }, CancellationToken.None);
+
+            await module.StopAsync();
         }
     }
 
@@ -278,12 +278,12 @@ public class MqttConnectorTests : SmartIOTBaseTests
             {
                 if (eventArgs.ApplicationMessage.Topic.StartsWith("tagRead/"))
                 {
-                    tagEvents.Add(serializer.DeserializeMessage<TagEvent>(eventArgs.ApplicationMessage.PayloadSegment.Array!)!);
+                    tagEvents.Add(serializer.DeserializeMessage<TagEvent>(eventArgs.ApplicationMessage.PayloadSegment)!);
                     tagEvent.Set();
                 }
                 else if (eventArgs.ApplicationMessage.Topic.StartsWith("deviceStatus/"))
                 {
-                    deviceStatusEvents.Add(serializer.DeserializeMessage<DeviceEvent>(eventArgs.ApplicationMessage.PayloadSegment.Array!)!);
+                    deviceStatusEvents.Add(serializer.DeserializeMessage<DeviceEvent>(eventArgs.ApplicationMessage.PayloadSegment)!);
                     deviceStatusEvent.Set();
                 }
                 else
@@ -352,13 +352,13 @@ public class MqttConnectorTests : SmartIOTBaseTests
         }
         finally
         {
-            await connector.StopAsync();
-
             await client.DisconnectAsync(new MqttClientDisconnectOptions()
             {
                 Reason = MqttClientDisconnectOptionsReason.NormalDisconnection,
                 ReasonString = string.Empty
             }, CancellationToken.None);
+
+            await connector.StopAsync();
         }
     }
 
@@ -397,12 +397,12 @@ public class MqttConnectorTests : SmartIOTBaseTests
             {
                 if (eventArgs.ApplicationMessage.Topic.StartsWith("tagRead/"))
                 {
-                    tagEvents.Add(serializer.DeserializeMessage<TagEvent>(eventArgs.ApplicationMessage.PayloadSegment.Array!)!);
+                    tagEvents.Add(serializer.DeserializeMessage<TagEvent>(eventArgs.ApplicationMessage.PayloadSegment)!);
                     tagEvent.Set();
                 }
                 else if (eventArgs.ApplicationMessage.Topic.StartsWith("deviceStatus/"))
                 {
-                    deviceStatusEvents.Add(serializer.DeserializeMessage<DeviceEvent>(eventArgs.ApplicationMessage.PayloadSegment.Array!)!);
+                    deviceStatusEvents.Add(serializer.DeserializeMessage<DeviceEvent>(eventArgs.ApplicationMessage.PayloadSegment)!);
                     deviceStatusEvent.Set();
                 }
                 else

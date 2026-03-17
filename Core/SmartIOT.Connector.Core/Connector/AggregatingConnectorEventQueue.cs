@@ -42,13 +42,13 @@ public class AggregatingConnectorEventQueue : AggregatingQueue<CompositeConnecto
 
                 if (e1.StartOffset <= e2.StartOffset)
                 {
-                    Array.Copy(e1.Data, 0, data, 0, e1.Data.Length);
-                    Array.Copy(e2.Data, 0, data, e2.StartOffset - e1.StartOffset, e2.Data.Length);
+                    e1.Data.AsSpan().CopyTo(data);
+                    e2.Data.AsSpan().CopyTo(data.AsSpan(e2.StartOffset - e1.StartOffset));
                 }
                 else
                 {
-                    Array.Copy(e1.Data, 0, data, e1.StartOffset - e2.StartOffset, e1.Data.Length);
-                    Array.Copy(e2.Data, 0, data, 0, e2.Data.Length);
+                    e1.Data.AsSpan().CopyTo(data.AsSpan(e1.StartOffset - e2.StartOffset));
+                    e2.Data.AsSpan().CopyTo(data);
                 }
 
                 return CompositeConnectorEvent.TagRead((sender, new TagScheduleEventArgs(item2.DeviceDriver, TagScheduleEvent.BuildTagData(e1.Device, e1.Tag, startOffset, data, e1.IsErrorNumberChanged || e2.IsErrorNumberChanged))));
@@ -76,13 +76,13 @@ public class AggregatingConnectorEventQueue : AggregatingQueue<CompositeConnecto
 
             if (e1.StartOffset <= e2.StartOffset)
             {
-                Array.Copy(e1.Data, 0, data, 0, e1.Data.Length);
-                Array.Copy(e2.Data, 0, data, e2.StartOffset - e1.StartOffset, e2.Data.Length);
+                e1.Data.AsSpan().CopyTo(data);
+                e2.Data.AsSpan().CopyTo(data.AsSpan(e2.StartOffset - e1.StartOffset));
             }
             else
             {
-                Array.Copy(e1.Data, 0, data, e1.StartOffset - e2.StartOffset, e1.Data.Length);
-                Array.Copy(e2.Data, 0, data, 0, e2.Data.Length);
+                e1.Data.AsSpan().CopyTo(data.AsSpan(e1.StartOffset - e2.StartOffset));
+                e2.Data.AsSpan().CopyTo(data);
             }
 
             return CompositeConnectorEvent.TagWrite((sender, new TagScheduleEventArgs(item2.DeviceDriver, TagScheduleEvent.BuildTagData(e1.Device, e1.Tag, startOffset, data, e1.IsErrorNumberChanged || e2.IsErrorNumberChanged))));

@@ -77,7 +77,7 @@ public class MqttServerConnector : AbstractPublisherConnector
     {
         if (e.ApplicationMessage.Topic.StartsWith(Options.TagWriteRequestCommandsTopicRoot, StringComparison.InvariantCultureIgnoreCase))
         {
-            var command = _messageSerializer.DeserializeMessage<TagWriteRequestCommand>(e.ApplicationMessage.PayloadSegment.Array!);
+            var command = _messageSerializer.DeserializeMessage<TagWriteRequestCommand>(e.ApplicationMessage.PayloadSegment);
             if (command != null)
                 ConnectorInterface!.RequestTagWrite(command.DeviceId, command.TagId, command.StartOffset, command.Data);
         }

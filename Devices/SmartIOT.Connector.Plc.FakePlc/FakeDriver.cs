@@ -46,12 +46,12 @@ public class FakeDriver : IDeviceDriver
     /// Copies <paramref name="length"/> bytes starting at absolute offset
     /// <paramref name="startOffset"/> from the tag's backing buffer into <paramref name="data"/>.
     /// </summary>
-    public int ReadTag(Device device, Tag tag, byte[] data, int startOffset, int length)
+    public int ReadTag(Device device, Tag tag, Span<byte> data, int startOffset, int length)
     {
         var buffer = PlcDevice.GetTagBuffer(tag.TagId);
         // buffer index: startOffset - tag.ByteOffset
         int srcIndex = startOffset - tag.ByteOffset;
-        Array.Copy(buffer, srcIndex, data, srcIndex, length);
+        buffer.AsSpan(srcIndex, length).CopyTo(data.Slice(srcIndex, length));
         return 0;
     }
 
@@ -59,11 +59,11 @@ public class FakeDriver : IDeviceDriver
     /// Copies <paramref name="length"/> bytes from <paramref name="data"/> (at absolute offset
     /// <paramref name="startOffset"/>) into the tag's backing buffer so tests can observe writes.
     /// </summary>
-    public int WriteTag(Device device, Tag tag, byte[] data, int startOffset, int length)
+    public int WriteTag(Device device, Tag tag, ReadOnlySpan<byte> data, int startOffset, int length)
     {
         var buffer = PlcDevice.GetTagBuffer(tag.TagId);
         int dstIndex = startOffset - tag.ByteOffset;
-        Array.Copy(data, dstIndex, buffer, dstIndex, length);
+        data.Slice(dstIndex, length).CopyTo(buffer.AsSpan(dstIndex, length));
         return 0;
     }
 

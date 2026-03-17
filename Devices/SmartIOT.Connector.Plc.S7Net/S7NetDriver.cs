@@ -60,7 +60,7 @@ public class S7NetDriver : IDeviceDriver
         }
     }
 
-    public int ReadTag(Device device, Tag tag, byte[] data, int startOffset, int length)
+    public int ReadTag(Device device, Tag tag, Span<byte> data, int startOffset, int length)
     {
         try
         {
@@ -69,7 +69,7 @@ public class S7NetDriver : IDeviceDriver
                 S7NetPlc p = (S7NetPlc)device;
                 byte[] bytes = p.ReadBytes(tag.TagId, startOffset, length);
 
-                Array.Copy(bytes, 0, data, startOffset - tag.ByteOffset, bytes.Length);
+                bytes.AsSpan().CopyTo(data.Slice(startOffset - tag.ByteOffset, bytes.Length));
             }
 
             return 0;
@@ -80,14 +80,14 @@ public class S7NetDriver : IDeviceDriver
         }
     }
 
-    public int WriteTag(Device device, Tag tag, byte[] data, int startOffset, int length)
+    public int WriteTag(Device device, Tag tag, ReadOnlySpan<byte> data, int startOffset, int length)
     {
         try
         {
             lock (device)
             {
                 byte[] bytes = new byte[length];
-                Array.Copy(data, startOffset - tag.ByteOffset, bytes, 0, length);
+                data.Slice(startOffset - tag.ByteOffset, length).CopyTo(bytes);
 
                 S7NetPlc p = (S7NetPlc)device;
                 p.WriteBytes(tag.TagId, startOffset, bytes);

@@ -1,6 +1,7 @@
 ﻿using Sharp7;
 using SmartIOT.Connector.Core;
 using SmartIOT.Connector.Core.Model;
+using System.Buffers;
 using System.Text;
 using static Sharp7.S7Client;
 
@@ -11,13 +12,9 @@ public class Snap7Driver : IDeviceDriver
     public string Name => $"{nameof(Snap7Driver)}.{Device.Name}";
     public Device Device { get; }
 
-    private readonly byte[] _tmp;
-
     public Snap7Driver(Snap7Plc plc)
     {
         Device = plc;
-
-        _tmp = new byte[plc.Tags.Max(x => x.TagConfiguration.Size)];
     }
 
     public int StartInterface()
@@ -48,26 +45,40 @@ public class Snap7Driver : IDeviceDriver
         }
     }
 
-    public int ReadTag(Device device, Tag tag, byte[] data, int startOffset, int length)
+    public int ReadTag(Device device, Tag tag, Span<byte> data, int startOffset, int length)
     {
         Snap7Plc p = (Snap7Plc)device;
 
-        int ret = p.ReadBytes(tag.TagId, startOffset, _tmp, length);
-        if (ret != 0)
-            return ret;
+        byte[] tmp = ArrayPool<byte>.Shared.Rent(length);
+        try
+        {
+            int ret = p.ReadBytes(tag.TagId, startOffset, tmp, length);
+            if (ret != 0)
+                return ret;
 
-        Array.Copy(_tmp, 0, data, startOffset - tag.ByteOffset, length);
-
-        return 0;
+            tmp.AsSpan(0, length).CopyTo(data.Slice(startOffset - tag.ByteOffset, length));
+            return 0;
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(tmp);
+        }
     }
 
-    public int WriteTag(Device device, Tag tag, byte[] data, int startOffset, int length)
+    public int WriteTag(Device device, Tag tag, ReadOnlySpan<byte> data, int startOffset, int length)
     {
-        Array.Copy(data, startOffset - tag.ByteOffset, _tmp, 0, length);
-
         Snap7Plc p = (Snap7Plc)device;
 
-        return p.WriteBytes(tag.TagId, startOffset, _tmp, length);
+        byte[] tmp = ArrayPool<byte>.Shared.Rent(length);
+        try
+        {
+            data.Slice(startOffset - tag.ByteOffset, length).CopyTo(tmp);
+            return p.WriteBytes(tag.TagId, startOffset, tmp, length);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(tmp);
+        }
     }
 
     public string GetErrorMessage(int errorNumber)

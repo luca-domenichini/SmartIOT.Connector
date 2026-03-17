@@ -1,4 +1,3 @@
-using Moq;
 using SmartIOT.Connector.Core.Conf;
 using SmartIOT.Connector.Core.Model;
 using SmartIOT.Connector.Core.Scheduler;
@@ -137,7 +136,7 @@ public class TagSchedulerEngineTests
         Assert.Empty(eventListener.ExceptionEvents);
         eventListener.ClearEvents();
 
-        driver.Verify(x => x.ReadTag(device, tag20, It.IsAny<byte[]>(), tag20.ByteOffset, tag20.Size), Times.Exactly(2)); // read invocata 2 volte perché la DB viene anche inizializzata
+        Assert.Equal(2, driver.CountReadTag(device, tag20, tag20.ByteOffset, tag20.Size)); // read invocata 2 volte perchÃ© la DB viene anche inizializzata
 
         // verifica schedulazione regolare tag21
         var tag2 = engine.GetNextTagSchedule();
@@ -153,7 +152,7 @@ public class TagSchedulerEngineTests
         Assert.Empty(eventListener.ExceptionEvents);
         eventListener.ClearEvents();
 
-        driver.Verify(x => x.ReadTag(device, tag21, It.IsAny<byte[]>(), tag21.ByteOffset, tag21.Size), Times.Exactly(2)); // read invocata 2 volte perché la DB viene anche inizializzata
+        Assert.Equal(2, driver.CountReadTag(device, tag21, tag21.ByteOffset, tag21.Size)); // read invocata 2 volte perchÃ© la DB viene anche inizializzata
 
         // verifica scrittura di tutto il tag22
         tag22.IsWriteSynchronizationRequested = true;
@@ -169,7 +168,7 @@ public class TagSchedulerEngineTests
         Assert.Empty(eventListener.ExceptionEvents);
         eventListener.ClearEvents();
 
-        driver.Verify(x => x.WriteTag(device, tag22, It.IsAny<byte[]>(), 5, 100), Times.Once);
+        Assert.Equal(1, driver.CountWriteTag(device, tag22, 5, 100));
         Assert.False(tag22.IsWriteSynchronizationRequested);
 
         // verifica schedulazione regolare tag20
@@ -186,7 +185,7 @@ public class TagSchedulerEngineTests
         Assert.Empty(eventListener.ExceptionEvents);
         eventListener.ClearEvents();
 
-        driver.Verify(x => x.ReadTag(device, tag20, It.IsAny<byte[]>(), tag20.ByteOffset, tag20.Size), Times.Exactly(3));
+        Assert.Equal(3, driver.CountReadTag(device, tag20, tag20.ByteOffset, tag20.Size));
     }
 
     [Fact]
@@ -238,7 +237,7 @@ public class TagSchedulerEngineTests
         eventListener.ClearEvents();
         driver.ResetInvocations();
 
-        // verifica schedulazione regolare tag20 inviando più eventi di lettura parziale
+        // verifica schedulazione regolare tag20 inviando piÃ¹ eventi di lettura parziale
         var t20 = engine.GetNextTagSchedule();
         Assert.Equal(tag20.TagId, t20!.Tag.TagId);
         engine.ScheduleTag(t20!);
@@ -248,17 +247,17 @@ public class TagSchedulerEngineTests
         Assert.Empty(eventListener.TagWriteEvents);
         Assert.Empty(eventListener.DeviceStatusEvents);
         Assert.Empty(eventListener.ExceptionEvents);
-        driver.Verify(x => x.ReadTag(device, tag20, It.IsAny<byte[]>(), tag20.ByteOffset + 0 * device.SinglePDUReadBytes, device.SinglePDUReadBytes), Times.Exactly(1));
-        driver.Verify(x => x.ReadTag(device, tag20, It.IsAny<byte[]>(), tag20.ByteOffset + 1 * device.SinglePDUReadBytes, device.SinglePDUReadBytes), Times.Exactly(1));
-        driver.Verify(x => x.ReadTag(device, tag20, It.IsAny<byte[]>(), tag20.ByteOffset + 2 * device.SinglePDUReadBytes, device.SinglePDUReadBytes), Times.Exactly(1));
-        driver.Verify(x => x.ReadTag(device, tag20, It.IsAny<byte[]>(), tag20.ByteOffset + 3 * device.SinglePDUReadBytes, device.SinglePDUReadBytes), Times.Exactly(1));
+        Assert.Equal(1, driver.CountReadTag(device, tag20, tag20.ByteOffset + 0 * device.SinglePDUReadBytes, device.SinglePDUReadBytes));
+        Assert.Equal(1, driver.CountReadTag(device, tag20, tag20.ByteOffset + 1 * device.SinglePDUReadBytes, device.SinglePDUReadBytes));
+        Assert.Equal(1, driver.CountReadTag(device, tag20, tag20.ByteOffset + 2 * device.SinglePDUReadBytes, device.SinglePDUReadBytes));
+        Assert.Equal(1, driver.CountReadTag(device, tag20, tag20.ByteOffset + 3 * device.SinglePDUReadBytes, device.SinglePDUReadBytes));
 
         eventListener.ClearEvents();
         driver.ResetInvocations();
 
         // verifica di lettura parziale intervallata da scrittura
         // quando viene letto il tag20, simulo la richiesta di scrittura
-        driver.ReadTagCallback = (data, startOffset, length) =>
+        driver.ReadTagCallback = (_, data, startOffset, length) =>
         {
             Assert.True(tag22.TryMergeData(new byte[] { 100, 101 }, 10));
             driver.ReadTagCallback = null; // autoreset alla prima invocazione
@@ -272,12 +271,12 @@ public class TagSchedulerEngineTests
         Assert.Empty(eventListener.TagWriteEvents);
         Assert.Empty(eventListener.DeviceStatusEvents);
         Assert.Empty(eventListener.ExceptionEvents);
-        driver.Verify(x => x.ReadTag(device, tag20, It.IsAny<byte[]>(), tag20.ByteOffset + 0 * device.SinglePDUReadBytes, device.SinglePDUReadBytes), Times.Exactly(1));
+        Assert.Equal(1, driver.CountReadTag(device, tag20, tag20.ByteOffset + 0 * device.SinglePDUReadBytes, device.SinglePDUReadBytes));
 
         eventListener.ClearEvents();
         driver.ResetInvocations();
 
-        // a questo punto l'engine deve schedulare una scrittura perché è intervenuta nel mentre
+        // a questo punto l'engine deve schedulare una scrittura perchÃ© Ã¨ intervenuta nel mentre
         var t22 = engine.GetNextTagSchedule();
         Assert.Equal(tag22.TagId, t22!.Tag.TagId);
         engine.ScheduleTag(t22!);
@@ -287,7 +286,7 @@ public class TagSchedulerEngineTests
         Assert.Single(eventListener.TagWriteEvents.Where(x => x.Tag.TagId == tag22.TagId));
         Assert.Empty(eventListener.DeviceStatusEvents);
         Assert.Empty(eventListener.ExceptionEvents);
-        driver.Verify(x => x.WriteTag(device, tag22, It.IsAny<byte[]>(), 10, 2), Times.Once);
+        Assert.Equal(1, driver.CountWriteTag(device, tag22, 10, 2));
         Assert.False(tag22.IsWriteSynchronizationRequested);
 
         eventListener.ClearEvents();
@@ -303,9 +302,9 @@ public class TagSchedulerEngineTests
         Assert.Empty(eventListener.TagWriteEvents);
         Assert.Empty(eventListener.DeviceStatusEvents);
         Assert.Empty(eventListener.ExceptionEvents);
-        driver.Verify(x => x.ReadTag(device, tag20, It.IsAny<byte[]>(), tag20.ByteOffset + 1 * device.SinglePDUReadBytes, device.SinglePDUReadBytes), Times.Exactly(1));
-        driver.Verify(x => x.ReadTag(device, tag20, It.IsAny<byte[]>(), tag20.ByteOffset + 2 * device.SinglePDUReadBytes, device.SinglePDUReadBytes), Times.Exactly(1));
-        driver.Verify(x => x.ReadTag(device, tag20, It.IsAny<byte[]>(), tag20.ByteOffset + 3 * device.SinglePDUReadBytes, device.SinglePDUReadBytes), Times.Exactly(1));
+        Assert.Equal(1, driver.CountReadTag(device, tag20, tag20.ByteOffset + 1 * device.SinglePDUReadBytes, device.SinglePDUReadBytes));
+        Assert.Equal(1, driver.CountReadTag(device, tag20, tag20.ByteOffset + 2 * device.SinglePDUReadBytes, device.SinglePDUReadBytes));
+        Assert.Equal(1, driver.CountReadTag(device, tag20, tag20.ByteOffset + 3 * device.SinglePDUReadBytes, device.SinglePDUReadBytes));
 
         eventListener.ClearEvents();
         driver.ResetInvocations();
@@ -367,7 +366,7 @@ public class TagSchedulerEngineTests
 
         driver.StartInterfaceCallback = () => throw new Exception("This is a test");
 
-        // verifica di non procedere a una nuova inizializzazione se non è trascorso abbastanza tempo
+        // verifica di non procedere a una nuova inizializzazione se non Ã¨ trascorso abbastanza tempo
         Assert.False(engine.IsRestartNeeded());
         Assert.Throws<TagSchedulerWaitException>(() => engine.GetNextTagSchedule());
 
@@ -463,7 +462,7 @@ public class TagSchedulerEngineTests
         }
 
         // verifico di inviare un evento di lettura se cambia un bit
-        driver.ReadTagCallback = (data, startOffset, length) =>
+        driver.ReadTagCallback = (_, data, startOffset, length) =>
         {
             data[10] = 99;
         };
@@ -517,7 +516,7 @@ public class TagSchedulerEngineTests
             Assert.Single(eventListener.TagWriteEvents.Where(x => x.Tag.TagId == tag22.TagId && x.ErrorNumber == 1));
             Assert.Empty(eventListener.DeviceStatusEvents);
             Assert.Empty(eventListener.ExceptionEvents);
-            driver.Verify(x => x.WriteTag(device, tag22, It.IsAny<byte[]>(), 10, 1));
+            Assert.Equal(1, driver.CountWriteTag(device, tag22, 10, 1));
             Assert.True(tag22.IsWriteSynchronizationRequested);
 
             eventListener.ClearEvents();
@@ -539,7 +538,7 @@ public class TagSchedulerEngineTests
         Assert.Single(eventListener.TagWriteEvents.Where(x => x.Tag.TagId == tag22.TagId && x.StartOffset == 10 && x.Data!.Length == 1 && x.Data[0] == 33));
         Assert.Empty(eventListener.DeviceStatusEvents);
         Assert.Empty(eventListener.ExceptionEvents);
-        driver.Verify(x => x.WriteTag(device, tag22, It.IsAny<byte[]>(), 10, 1));
+        Assert.Equal(1, driver.CountWriteTag(device, tag22, 10, 1));
 
         eventListener.ClearEvents();
         driver.ResetInvocations();
@@ -580,15 +579,17 @@ public class TagSchedulerEngineTests
 
         if (pduWriteOptimizationEnabled)
         {
-            driver.Verify(x => x.WriteTag(device, tag22, It.IsAny<byte[]>(), 10, 3));
-            driver.Verify(x => x.WriteTag(device, tag22, It.IsAny<byte[]>(), 20, 2));
+            Assert.Equal(1, driver.CountWriteTag(device, tag22, 10, 3));
+            Assert.Equal(1, driver.CountWriteTag(device, tag22, 20, 2));
+            Assert.Equal(2, driver.WriteTagInvocations.Count);
         }
         else
         {
-            driver.Verify(x => x.WriteTag(device, tag22, It.IsAny<byte[]>(), 10, 12));
+            Assert.Equal(1, driver.CountWriteTag(device, tag22, 10, 12));
+            Assert.Equal(1, driver.WriteTagInvocations.Count);
         }
 
-        driver.VerifyNoOtherCalls();
+        Assert.Equal(0, driver.ReadTagInvocations.Count);
 
         eventListener.ClearEvents();
         driver.ResetInvocations();
@@ -617,7 +618,7 @@ public class TagSchedulerEngineTests
         Assert.Equal(0, tag22.ErrorCode);
 
         timeService.Now += configuration.RestartDeviceInErrorTimeout;
-        Assert.False(engine.IsRestartNeeded()); // non devo far ripartire nulla perché non ci sono errori
+        Assert.False(engine.IsRestartNeeded()); // non devo far ripartire nulla perchÃ© non ci sono errori
 
         driver.ReadTagReturns = 1;
 

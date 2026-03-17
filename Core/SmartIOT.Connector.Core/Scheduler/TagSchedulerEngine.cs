@@ -11,6 +11,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
     private readonly ITimeService _timeService;
     private readonly SchedulerConfiguration _configuration;
     private DateTime? _lastRestartInstant;
+    private readonly List<TagChangeBounds> _writeBoundsBuffer = new();
     public IDeviceDriver DeviceDriver { get; }
 
     public event EventHandler<DeviceDriverRestartingEventArgs>? RestartingEvent;
@@ -233,7 +234,9 @@ public class TagSchedulerEngine : ITagSchedulerEngine
             if (!partialRead)
             {
                 device.SetTagSynchronized(tag, _timeService.Now);
-                (err, description) = TryWithDeviceDriver(x => x.ReadTag(device, tag, tag.Data, tag.ByteOffset, tag.Size));
+                (err, description) = TryWithDeviceDriver(
+                    (device: device, tag: tag, startOffset: tag.ByteOffset, length: tag.Size),
+                    static (driver, s) => driver.ReadTag(s.device, s.tag, s.tag.Data, s.startOffset, s.length));
             }
             else
             {
@@ -244,7 +247,9 @@ public class TagSchedulerEngine : ITagSchedulerEngine
                 int index = tag.CurrentReadIndex;
                 int length = Math.Min(tag.Size - index, singlePDUReadBytes);
 
-                (err, description) = TryWithDeviceDriver(x => x.ReadTag(device, tag, tag.Data, tag.ByteOffset + index, length));
+                (err, description) = TryWithDeviceDriver(
+                    (device: device, tag: tag, startOffset: tag.ByteOffset + index, length: length),
+                    static (driver, s) => driver.ReadTag(s.device, s.tag, s.tag.Data, s.startOffset, s.length));
 
                 if (err == 0)
                 {
@@ -342,13 +347,13 @@ public class TagSchedulerEngine : ITagSchedulerEngine
                     start = i;
 
                 end = i;
-
-                tag.OldData[i] = tag.Data[i];
             }
         }
 
         if (end >= 0)
         {
+            // bulk-copy the changed range — faster than byte-by-byte update
+            tag.Data.AsSpan(start, end - start + 1).CopyTo(tag.OldData.AsSpan(start));
             return TagScheduleEvent.BuildTagData(device, tag, start + tag.ByteOffset, end - start + 1, errorStateChanged);
         }
         else
@@ -375,18 +380,17 @@ public class TagSchedulerEngine : ITagSchedulerEngine
             // Pochi istanti dopo, prima anche che il driver abbia scritto quel valore, il controllore richiede la scrittura
             // del valore 0 sempre in DB22.DBX0.0, annullando in pratica la richiesta precedente. Il flag "needsWrite" rimane a true
             // tuttavia non c'è alcun cambiamento sul datablock che deve effettivamente essere scritto.
-            List<TagChangeBounds> listBounds = ParseWriteBounds(device, tag);
-            if (listBounds.Count == 0)
+            ParseWriteBounds(device, tag, _writeBoundsBuffer);
+            if (_writeBoundsBuffer.Count == 0)
             {
                 // se la lista dei bounds è vuota, interpreto la schedule come una scrittura completa
                 // questo è usato anche per gestire il parametro rewritePeriod dei tag in scrittura: ogni tot millisecondi, vengono comunque scritti tutti
                 // anche se non ci sono modifiche.
-                var chg = new TagChangeBounds
+                _writeBoundsBuffer.Add(new TagChangeBounds
                 {
                     StartOffset = tag.ByteOffset,
                     Length = tag.Data.Length
-                };
-                listBounds.Add(chg);
+                });
             }
 
             int err = 0;
@@ -399,9 +403,11 @@ public class TagSchedulerEngine : ITagSchedulerEngine
             int totalStartOffset = int.MaxValue;
             int totalEndOffset = -1;
 
-            foreach (TagChangeBounds bounds in listBounds)
+            foreach (TagChangeBounds bounds in _writeBoundsBuffer)
             {
-                (err, description) = TryWithDeviceDriver(x => x.WriteTag(device, tag, tag.Data, bounds.StartOffset, bounds.Length));
+                (err, description) = TryWithDeviceDriver(
+                    (device: device, tag: tag, startOffset: bounds.StartOffset, length: bounds.Length),
+                    static (driver, s) => driver.WriteTag(s.device, s.tag, s.tag.Data, s.startOffset, s.length));
                 if (err != 0)
                     break;
 
@@ -419,7 +425,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
             if (err == 0)
             {
                 // 2022-04-29 se la scrittura è andata a buon fine, copio in olddata i dati appena scritti; altrimenti, lo scheduler schedulerà di nuovo la scrittura
-                Array.Copy(tag.Data, 0, tag.OldData, 0, tag.Data.Length);
+                tag.Data.AsSpan().CopyTo(tag.OldData);
                 tag.IsWriteSynchronizationRequested = false;
                 tag.ErrorCount = 0;
 
@@ -432,7 +438,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
                         count = 99;
 
                     tag.SynchronizationAvgTime = (tag.SynchronizationAvgTime * count + time) / (count + 1);
-                    tag.WritesCount += listBounds.Count;
+                    tag.WritesCount += _writeBoundsBuffer.Count;
                 }
 
                 evt = TagScheduleEvent.BuildTagData(device, tag, totalStartOffset, totalEndOffset - totalStartOffset + 1, errorStateChanged);
@@ -449,10 +455,11 @@ public class TagSchedulerEngine : ITagSchedulerEngine
         return evt;
     }
 
-    private static List<TagChangeBounds> ParseWriteBounds(Device device, Tag tag)
+    private static void ParseWriteBounds(Device device, Tag tag, List<TagChangeBounds> list)
     {
-        var list = new List<TagChangeBounds>();
-        TagChangeBounds? current = null;
+        list.Clear();
+        bool hasCurrent = false;
+        TagChangeBounds current = default;
 
         int singlePDUBytes = device.IsWriteOptimizationEnabled ? device.SinglePDUWriteBytes : 0;
 
@@ -460,7 +467,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
         {
             if (tag.Data[i] != tag.OldData[i])
             {
-                if (current == null || (singlePDUBytes > 0 && i - current.StartOffset + 1 > singlePDUBytes))
+                if (!hasCurrent || (singlePDUBytes > 0 && i - current.StartOffset + 1 > singlePDUBytes))
                 {
                     // nessun change corrente: lo creo
                     // oppure variazione fuori dalla pdu corrente: creo una nuova pdu
@@ -471,17 +478,17 @@ public class TagSchedulerEngine : ITagSchedulerEngine
                     };
 
                     list.Add(current);
+                    hasCurrent = true;
                 }
                 else
                 {
                     // variazione all'interno della PDU corrente: aggiorno la pdu
                     // se singlePDUBytes <= 0, cado sempre qua dopo aver creato il primo change
                     current.Length = tag.ByteOffset + i + 1 - current.StartOffset;
+                    list[list.Count - 1] = current;
                 }
             }
         }
-
-        return list;
     }
 
     private void OnTagRead(TagScheduleEvent evt)
@@ -730,6 +737,25 @@ public class TagSchedulerEngine : ITagSchedulerEngine
         try
         {
             err = action.Invoke(DeviceDriver);
+            if (err != 0)
+                description = DeviceDriver.GetErrorMessage(err);
+        }
+        catch (Exception ex)
+        {
+            err = -100;
+            description = ex.GetFirstNonBlankMessageOrDefault() ?? ex.ToString();
+        }
+
+        return (err, description ?? "Unknown error");
+    }
+
+    private (int, string) TryWithDeviceDriver<TState>(TState state, Func<IDeviceDriver, TState, int> action)
+    {
+        int err;
+        string description = string.Empty;
+        try
+        {
+            err = action(DeviceDriver, state);
             if (err != 0)
                 description = DeviceDriver.GetErrorMessage(err);
         }

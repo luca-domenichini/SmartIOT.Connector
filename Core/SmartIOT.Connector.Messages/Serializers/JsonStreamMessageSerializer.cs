@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Buffers;
+using System.Text;
 using System.Text.Json;
 
 namespace SmartIOT.Connector.Messages.Serializers;
@@ -89,17 +90,32 @@ public class JsonStreamMessageSerializer : IStreamMessageSerializer
 
     private string? ReadLine(Stream stream)
     {
-        var bytes = new List<byte>();
-        int current;
-
-        while ((current = stream.ReadByte()) != -1 && current != 0x0A)
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(4096);
+        try
         {
-            bytes.Add((byte)current);
+            int count = 0;
+            int current;
+
+            while ((current = stream.ReadByte()) != -1 && current != 0x0A)
+            {
+                if (count == buffer.Length)
+                {
+                    var larger = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
+                    buffer.AsSpan(0, count).CopyTo(larger);
+                    ArrayPool<byte>.Shared.Return(buffer);
+                    buffer = larger;
+                }
+                buffer[count++] = (byte)current;
+            }
+
+            if (count == 0)
+                return null;
+
+            return Encoding.UTF8.GetString(buffer.AsSpan(0, count));
         }
-
-        if (bytes.Count > 0)
-            return Encoding.UTF8.GetString(bytes.ToArray());
-
-        return null;
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
     }
 }
