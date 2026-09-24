@@ -13,7 +13,7 @@ public interface ITagScheduler
 
     public event EventHandler<DeviceDriverRestartedEventArgs>? EngineRestartedEvent;
 
-    public event EventHandler<TagSchedulerWaitExceptionEventArgs>? TagSchedulerWaitExceptionEvent;
+    public event EventHandler<TagSchedulerWaitingEventArgs>? TagSchedulerWaitingEvent;
 
     public event EventHandler<TagScheduleEventArgs>? TagReadEvent;
 

@@ -25,6 +25,13 @@ public class Device
     private int _weightMCMRead;
     private int _weightMCMWrite;
 
+    /// <summary>
+    /// Number of READ tags currently configured. Read on every READ tag synchronisation to take a
+    /// cheap fast path when there is nothing to rebalance, so it must be kept in sync with
+    /// <see cref="_tags"/> by <see cref="RecalculateDerivedValues"/>.
+    /// </summary>
+    private int _readTagCount;
+
     public Device(DeviceConfiguration deviceConfiguration)
     {
         Configuration = deviceConfiguration;
@@ -32,8 +39,11 @@ public class Device
 
         foreach (var tagConfiguration in deviceConfiguration.Tags)
         {
-            InternalAddTag(tagConfiguration);
+            _tags.Add(new Tag(tagConfiguration));
         }
+
+        // derived values are computed once, after the whole tag list has been built.
+        RecalculateDerivedValues();
     }
 
     public bool IsEnabled()
@@ -62,19 +72,31 @@ public class Device
 
     private void InternalAddTag(TagConfiguration tagConfiguration)
     {
-        var tag = new Tag(tagConfiguration);
-        _tags.Add(tag);
+        _tags.Add(new Tag(tagConfiguration));
+        RecalculateDerivedValues();
+    }
 
-        switch (tag.TagType)
+    /// <summary>
+    /// Recomputes the values derived from the tag list (the READ tag count and the least common
+    /// multiple of the tag weights, per tag type). Must be called after every structural change
+    /// of the tag list. Configuration-time only: never called from the scheduling hot path.
+    /// </summary>
+    private void RecalculateDerivedValues()
+    {
+        Tag[] tags = _tags.GetSnapshot();
+
+        int readCount = 0;
+        foreach (Tag tag in tags)
         {
-            case TagType.READ:
-                _weightMCMRead = CalculateMCM(TagType.READ);
-                break;
-
-            case TagType.WRITE:
-                _weightMCMWrite = CalculateMCM(TagType.WRITE);
-                break;
+            if (tag.TagType == TagType.READ)
+                readCount++;
         }
+
+        _readTagCount = readCount;
+        // recomputed for both types: a tag update may change the tag type, leaving the
+        // weight of the previous type stale if only one of the two were recalculated
+        _weightMCMRead = CalculateMCM(TagType.READ);
+        _weightMCMWrite = CalculateMCM(TagType.WRITE);
     }
 
     public void AddTag(TagConfiguration tagConfiguration)
@@ -96,16 +118,7 @@ public class Device
 
             _tags.Remove(tag);
 
-            switch (tag.TagType)
-            {
-                case TagType.READ:
-                    _weightMCMRead = CalculateMCM(TagType.READ);
-                    break;
-
-                case TagType.WRITE:
-                    _weightMCMWrite = CalculateMCM(TagType.WRITE);
-                    break;
-            }
+            RecalculateDerivedValues();
         }
     }
 
@@ -127,16 +140,7 @@ public class Device
             var tag = new Tag(tagConfiguration);
             _tags.Replace(old, tag);
 
-            switch (tag.TagType)
-            {
-                case TagType.READ:
-                    _weightMCMRead = CalculateMCM(TagType.READ);
-                    break;
-
-                case TagType.WRITE:
-                    _weightMCMWrite = CalculateMCM(TagType.WRITE);
-                    break;
-            }
+            RecalculateDerivedValues();
 
             return true;
         }
@@ -157,100 +161,114 @@ public class Device
         }
     }
 
-    internal void SetTagSynchronized(Tag tag, DateTime instant)
+    internal void SetTagSynchronized(Tag tag, long instant)
     {
         tag.LastDeviceSynchronization = instant;
 
-        TagType type = tag.TagType;
+        if (tag.TagType != TagType.READ)
+            return;
 
-        if (type == TagType.READ)
+        tag.Points += tag.Weight;
+
+        // Fast path: with at most one READ tag there is nothing to rebalance. Points only ever
+        // change by +/- weightMCM starting from 0, so the loops below would just walk the only
+        // READ tag back to 0 anyway - skip the whole O(number of tags) redistribution.
+        if (_readTagCount <= 1)
         {
-            tag.Points += tag.Weight;
+            tag.Points = 0;
+            return;
+        }
 
-            int minPunti = GetMinPoints(type);
-            while (minPunti > 0 && minPunti % GetWeightMCM(type) == 0)
+        // snapshot of the tag list: iterated by index, so no enumerator is allocated per pass
+        Tag[] tags = _tags.GetSnapshot();
+        TagType type = TagType.READ;
+        int weightMCM = GetWeightMCM(type);
+
+        int minPunti = GetMinPoints(tags, type);
+        while (minPunti > 0 && minPunti % weightMCM == 0)
+        {
+            for (int i = 0; i < tags.Length; i++)
             {
-                foreach (Tag t in _tags)
+                Tag t = tags[i];
+                if (t.TagType == type)
                 {
-                    if (t.TagType == type)
-                    {
-                        t.Points -= GetWeightMCM(type);
-                        if (t.Points < 0)
-                            t.Points = 0;
-                    }
+                    t.Points -= weightMCM;
+                    if (t.Points < 0)
+                        t.Points = 0;
                 }
-                minPunti = GetMinPoints(type);
+            }
+            minPunti = GetMinPoints(tags, type);
+        }
+
+        bool riscalaturaPossibile = true;
+        int maxPunti = int.MaxValue;
+
+        while (riscalaturaPossibile && maxPunti > 0)
+        {
+            maxPunti = GetMaxPoints(tags, type);
+
+            // minimum points among the tags sitting in [maxPunti - weightMCM, maxPunti],
+            // computed in place instead of materialising a filtered list per iteration
+            int min = int.MaxValue;
+            for (int i = 0; i < tags.Length; i++)
+            {
+                Tag t = tags[i];
+                if (t.TagType == type && t.Points >= maxPunti - weightMCM && t.Points <= maxPunti && t.Points < min)
+                    min = t.Points;
             }
 
-            bool riscalaturaPossibile = true;
-            int maxPunti = int.MaxValue;
-
-            while (riscalaturaPossibile && maxPunti > 0)
+            if (min - weightMCM < 0)
             {
-                maxPunti = GetMaxPoints(type);
-                List<Tag> list = GetTagsInRange(type, maxPunti - GetWeightMCM(type), maxPunti);
+                riscalaturaPossibile = false;
+                continue;
+            }
 
-                int min = list.Count > 0 ? list.Min(x => x.Points) : int.MaxValue;
-                if (min - GetWeightMCM(type) < 0)
+            // rebalance is possible only if every tag in [min - weightMCM, min] sits exactly on "min"
+            riscalaturaPossibile = true;
+            for (int i = 0; i < tags.Length; i++)
+            {
+                Tag t = tags[i];
+                if (t.TagType == type && t.Points >= min - weightMCM && t.Points < min)
                 {
                     riscalaturaPossibile = false;
-                    continue;
+                    break;
                 }
+            }
 
-                list = GetTagsInRange(type, min - GetWeightMCM(type), min);
-
-                foreach (Tag t in list)
+            if (riscalaturaPossibile)
+            {
+                // note: as in the original implementation this correction is applied to every tag,
+                // regardless of its type
+                for (int i = 0; i < tags.Length; i++)
                 {
-                    if (t.Points != min)
-                    {
-                        riscalaturaPossibile = false;
-                        break;
-                    }
-                }
-
-                if (riscalaturaPossibile)
-                {
-                    foreach (Tag t in _tags)
-                    {
-                        if (t.Points >= min)
-                        {
-                            t.Points -= GetWeightMCM(type);
-                        }
-                        if (t.Points < 0)
-                            t.Points = 0;
-                    }
+                    Tag t = tags[i];
+                    if (t.Points >= min)
+                        t.Points -= weightMCM;
+                    if (t.Points < 0)
+                        t.Points = 0;
                 }
             }
         }
     }
 
-    private List<Tag> GetTagsInRange(TagType type, int minPoints, int maxPoints)
-    {
-        var list = new List<Tag>();
-        foreach (Tag t in _tags)
-        {
-            if (t.TagType == type && t.Points >= minPoints && t.Points <= maxPoints)
-                list.Add(t);
-        }
-        return list;
-    }
-
-    private int GetMaxPoints(TagType type)
+    private static int GetMaxPoints(Tag[] tags, TagType type)
     {
         int max = int.MinValue;
-        foreach (Tag t in _tags)
+        for (int i = 0; i < tags.Length; i++)
         {
+            Tag t = tags[i];
             if (t.TagType == type && t.Points > max)
                 max = t.Points;
         }
         return max;
     }
 
-    private int GetMinPoints(TagType type)
+    private static int GetMinPoints(Tag[] tags, TagType type)
     {
         int min = int.MaxValue;
-        foreach (Tag t in _tags)
+        for (int i = 0; i < tags.Length; i++)
         {
+            Tag t = tags[i];
             if (t.TagType == type && t.Points < min)
                 min = t.Points;
         }

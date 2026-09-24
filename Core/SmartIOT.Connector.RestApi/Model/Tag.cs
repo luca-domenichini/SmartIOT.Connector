@@ -20,7 +20,7 @@ public class Tag
     public TimeSpan SynchronizationAvgTime { get; }
     public int WritesCount { get; }
 
-    public Tag(string tagId, TagType tagType, int byteOffset, int size, int weight, bool isInitialized, int errorCode, int errorCount, DateTime lastErrorDateTime, TimeSpan partialReadTotalTime, TimeSpan partialReadMeanTime, long partialReadCount, long synchronizationCount, TimeSpan synchronizationAvgTime, int writesCount)
+    public Tag(string tagId, TagType tagType, int byteOffset, int size, int weight, bool isInitialized, int errorCode, int errorCount, long lastErrorTicks, TimeSpan partialReadTotalTime, TimeSpan partialReadMeanTime, long partialReadCount, long synchronizationCount, TimeSpan synchronizationAvgTime, int writesCount)
     {
         TagId = tagId;
         TagType = tagType;
@@ -30,7 +30,7 @@ public class Tag
         IsInitialized = isInitialized;
         ErrorCode = errorCode;
         ErrorCount = errorCount;
-        LastErrorDateTime = lastErrorDateTime == DateTime.MinValue ? null : lastErrorDateTime;
+        LastErrorDateTime = ToLocalDateTime(lastErrorTicks);
         PartialReadTotalTime = partialReadTotalTime;
         PartialReadMeanTime = partialReadMeanTime;
         PartialReadCount = partialReadCount;
@@ -49,12 +49,21 @@ public class Tag
         IsInitialized = tag.IsInitialized;
         ErrorCode = tag.ErrorCode;
         ErrorCount = tag.ErrorCount;
-        LastErrorDateTime = tag.LastErrorDateTime == DateTime.MinValue ? null : tag.LastErrorDateTime;
+        LastErrorDateTime = ToLocalDateTime(tag.LastErrorTicks);
         PartialReadTotalTime = tag.PartialReadTotalTime;
         PartialReadMeanTime = tag.PartialReadMeanTime;
         PartialReadCount = tag.PartialReadCount;
         SynchronizationCount = tag.SynchronizationCount;
         SynchronizationAvgTime = tag.SynchronizationAvgTime;
         WritesCount = tag.WritesCount;
+    }
+
+    /// <summary>
+    /// The core model stores instants as local wall-clock ticks, so they are converted back to a
+    /// local DateTime here: 0 means "never errored" and maps to null.
+    /// </summary>
+    private static DateTime? ToLocalDateTime(long ticks)
+    {
+        return ticks == 0 ? null : new DateTime(ticks, DateTimeKind.Local);
     }
 }

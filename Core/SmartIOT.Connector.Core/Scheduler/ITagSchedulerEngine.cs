@@ -16,12 +16,10 @@ public interface ITagSchedulerEngine
     Device Device => DeviceDriver.Device;
 
     /// <summary>
-    /// Questo metodo ritorna il prossimo tag da schedulare, oppure tira TagSchedulerWaitException se non c'è nulla da schedulare.
-    /// Il metodo esegue la schedulazione del tag che ha ritornato.
-    /// Il parametro scheduleWritesOnly indica se schedulare solo tag in scrittura e non procedere oltre con nuove letture. Questo parametro
-    /// è usato per terminare l'engine e evitare di leggere nuovi dati.
+    /// Questo metodo ritorna true se un tag è stato schedulato, altrimenti ritorna false valorizzando in <paramref name="waitTime"/>
+    /// il tempo di attesa da applicare prima della prossima interrogazione.
     /// </summary>
-    TagSchedule ScheduleNextTag(bool scheduleWritesOnly);
+    bool TryScheduleNextTag(bool scheduleWritesOnly, out TagSchedule schedule, out TimeSpan waitTime);
 
     /// <summary>
     /// Questo metodo effettua la ripartenza del driver se deve essere fatto ripartire perché è stato superato il numero massimo

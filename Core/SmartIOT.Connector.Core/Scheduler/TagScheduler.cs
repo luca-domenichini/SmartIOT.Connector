@@ -15,15 +15,25 @@ public class TagScheduler : ITagScheduler
     private readonly SemaphoreSlim _schedulerTerminated = new SemaphoreSlim(0, 1);
     private readonly Thread _monitorThread;
     private readonly SemaphoreSlim _monitorThreadTerminated = new SemaphoreSlim(0, 1);
-    private DateTime _terminatingInstant;
-    private DateTime _lastWriteOnDevice;
+
+    /// <summary>
+    /// Set while the scheduler is allowed to run, cleared while it is paused. It is also set when a
+    /// stop is requested, so that a paused scheduler wakes up and can observe the termination
+    /// request instead of sleeping through it.
+    /// </summary>
+    private readonly ManualResetEventSlim _runningSignal = new ManualResetEventSlim(true);
+
+    private long _terminatingInstant;   // written by StopAsync, read by the scheduler thread
+    private long _lastWriteOnDevice;    // read/written by the scheduler thread
+    private readonly object _pauseLock = new();
+    private bool _isPaused;
     private readonly ConcurrentDictionary<Device, DeviceStatusEvent> _lastDeviceStatusEvents = new ConcurrentDictionary<Device, DeviceStatusEvent>();
 
     public event EventHandler<SchedulerStartingEventArgs>? SchedulerStarting;
 
     public event EventHandler<SchedulerStoppingEventArgs>? SchedulerStopping;
 
-    public event EventHandler<TagSchedulerWaitExceptionEventArgs>? TagSchedulerWaitExceptionEvent;
+    public event EventHandler<TagSchedulerWaitingEventArgs>? TagSchedulerWaitingEvent;
 
     public event EventHandler<DeviceDriverRestartingEventArgs>? EngineRestartingEvent;
 
@@ -37,7 +47,26 @@ public class TagScheduler : ITagScheduler
 
     public event EventHandler<ExceptionEventArgs>? ExceptionHandler;
 
-    public bool IsPaused { get; set; }
+    public bool IsPaused
+    {
+        get
+        {
+            lock (_pauseLock)
+                return _isPaused;
+        }
+        set
+        {
+            lock (_pauseLock)
+            {
+                _isPaused = value;
+                if (value)
+                    _runningSignal.Reset();
+                else
+                    _runningSignal.Set();
+            }
+        }
+    }
+
     public IDeviceDriver DeviceDriver => _tagSchedulerEngine.DeviceDriver;
     public Device Device => DeviceDriver.Device;
 
@@ -106,7 +135,9 @@ public class TagScheduler : ITagScheduler
                 {
                     try
                     {
-                        _terminatingToken.Token.WaitHandle.WaitOne(1000);
+                        // blocks until IsPaused goes back to false, instead of waking up once a
+                        // second to poll for a change that never comes
+                        _runningSignal.Wait(_terminatingToken.Token);
                     }
                     catch (OperationCanceledException)
                     {
@@ -118,34 +149,42 @@ public class TagScheduler : ITagScheduler
 
                 if (_terminatingToken.IsCancellationRequested)
                 {
-                    var lastWriteOrTerminateInstant = _terminatingInstant < _lastWriteOnDevice ? _lastWriteOnDevice : _terminatingInstant;
-                    var now = _timeService.Now;
+                    // long is not a volatile-able type in C#, so the cross-thread hand-off is made
+                    // explicit: reading 0 here would make the drain timeouts look already elapsed
+                    long terminatingInstant = Volatile.Read(ref _terminatingInstant);
+                    long lastWriteOnDevice = Volatile.Read(ref _lastWriteOnDevice);
+
+                    var lastWriteOrTerminateInstant = terminatingInstant < lastWriteOnDevice ? lastWriteOnDevice : terminatingInstant;
+                    var now = _timeService.NowTicks;
 
                     if (_timeService.IsTimeoutElapsed(lastWriteOrTerminateInstant, now, _configuration.TerminateAfterNoWriteRequestsDelay)
-                        && _timeService.IsTimeoutElapsed(_terminatingInstant, now, _configuration.TerminateMinimumDelay))
+                        && _timeService.IsTimeoutElapsed(terminatingInstant, now, _configuration.TerminateMinimumDelay))
                         break;
                 }
 
                 try
                 {
-                    try
+                    if (_tagSchedulerEngine.TryScheduleNextTag(_terminatingToken.IsCancellationRequested, out var schedule, out var waitTime))
                     {
-                        var schedule = _tagSchedulerEngine.ScheduleNextTag(_terminatingToken.IsCancellationRequested);
-                        if (schedule != null)
+                        if (schedule.Type == TagScheduleType.WRITE)
+                            Volatile.Write(ref _lastWriteOnDevice, _timeService.NowTicks);
+                    }
+                    else
+                    {
+                        NotifySchedulerWaiting(waitTime);
+
+                        if (_terminatingToken.IsCancellationRequested)
                         {
-                            if (schedule.Type == TagScheduleType.WRITE)
-                                _lastWriteOnDevice = _timeService.Now;
+                            // already stopping: sleeping without waiting on the termination token,
+                            // otherwise WaitOne would return immediately and the loop would spin
+                            Thread.Sleep(waitTime);
                         }
                         else
                         {
-                            Thread.Sleep(1000);
+                            // sleep exactly the wait time the engine asked for, waking up early if
+                            // a stop request arrives in the meantime
+                            _terminatingToken.Token.WaitHandle.WaitOne(waitTime);
                         }
-                    }
-                    catch (TagSchedulerWaitException ex)
-                    {
-                        TagSchedulerWaitExceptionEvent?.Invoke(this, new TagSchedulerWaitExceptionEventArgs(ex));
-
-                        Thread.Sleep(ex.WaitTime);
                     }
                 }
                 catch (Exception ex)
@@ -165,6 +204,15 @@ public class TagScheduler : ITagScheduler
         {
             _schedulerTerminated.Release();
         }
+    }
+
+    /// <summary>
+    /// Raises the waiting event only when subscribed, avoiding idle-path event-args allocations.
+    /// </summary>
+    private void NotifySchedulerWaiting(TimeSpan waitTime)
+    {
+        if (TagSchedulerWaitingEvent is { } handler)
+            handler.Invoke(this, new TagSchedulerWaitingEventArgs(waitTime));
     }
 
     private void MonitorThreadRun()
@@ -219,8 +267,14 @@ public class TagScheduler : ITagScheduler
     {
         SchedulerStopping?.Invoke(this, new SchedulerStoppingEventArgs(this));
 
+        // the stop instant is published before the cancellation, so the scheduler thread is
+        // guaranteed to read a valid value as soon as it observes the cancellation
+        Volatile.Write(ref _terminatingInstant, _timeService.NowTicks);
+
+        // wake up a paused scheduler so it can observe the stop request too
+        _runningSignal.Set();
+
         _terminatingToken.Cancel();
-        _terminatingInstant = _timeService.Now;
 
         await _schedulerTerminated.WaitAsync();
         await _monitorThreadTerminated.WaitAsync();

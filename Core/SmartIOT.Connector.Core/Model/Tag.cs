@@ -16,7 +16,10 @@ public class Tag
     public bool IsInitialized { get; internal set; }
     public int ErrorCode { get; internal set; }
     public int ErrorCount { get; internal set; }
-    public DateTime LastErrorDateTime { get; internal set; }
+    /// <summary>
+    /// Tick instant of the last error, or 0 when the tag never failed.
+    /// </summary>
+    public long LastErrorTicks { get; internal set; }
     public TimeSpan PartialReadTotalTime { get; internal set; }
     public TimeSpan PartialReadMeanTime { get; internal set; }
     public long PartialReadCount { get; internal set; }
@@ -27,7 +30,10 @@ public class Tag
     internal byte[] Data { get; }
     internal byte[] OldData { get; }
     internal int CurrentReadIndex { get; set; }
-    internal DateTime LastDeviceSynchronization { get; set; }
+    /// <summary>
+    /// Tick instant of the last synchronisation with the device, or 0 when never synchronised.
+    /// </summary>
+    internal long LastDeviceSynchronization { get; set; }
     internal int Points { get; set; }
 
     public Tag(TagConfiguration tagConfiguration)

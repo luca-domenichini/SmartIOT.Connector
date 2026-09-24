@@ -5,12 +5,19 @@ using SmartIOT.Connector.Mocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Xunit;
 
 namespace SmartIOT.Connector.Core.Tests;
 
 public class TagSchedulerEngineTests
 {
+    private static TagSchedule GetScheduledTag(TagSchedulerEngine engine)
+    {
+        Assert.True(engine.TryGetNextTagSchedule(false, out var schedule, out _));
+        return schedule;
+    }
+
     private static (TagSchedulerEngine engine, Model.Device device, Tag tag20, Tag? tag21, Tag tag22) SetupSystem(Func<Model.Device, IDeviceDriver> driverFunc, ITimeService timeService, SchedulerConfiguration schedulerConfiguration, bool addTag21ForRead, bool pduWriteOptimizationEnabled, int singlePduReadBytes)
     {
         TagConfiguration db20 = new TagConfiguration("DB20", TagType.READ, 5, 100, 1);
@@ -41,7 +48,7 @@ public class TagSchedulerEngineTests
     {
         var timeService = new FakeTimeService
         {
-            Now = DateTime.Now
+            NowTicks = DateTime.Now.Ticks
         };
 
         SchedulerConfiguration schedulerConfiguration = new SchedulerConfiguration();
@@ -68,7 +75,7 @@ public class TagSchedulerEngineTests
         // check driver restart
         Assert.False(engine.IsRestartNeeded());
 
-        Assert.Throws<TagSchedulerWaitException>(() => engine.GetNextTagSchedule());
+        Assert.False(engine.TryGetNextTagSchedule(false, out _, out _));
     }
 
     [Fact]
@@ -76,7 +83,7 @@ public class TagSchedulerEngineTests
     {
         var timeService = new FakeTimeService
         {
-            Now = DateTime.Now
+            NowTicks = DateTime.Now.Ticks
         };
 
         SchedulerConfiguration schedulerConfiguration = new SchedulerConfiguration();
@@ -123,7 +130,7 @@ public class TagSchedulerEngineTests
         eventListener.ClearEvents();
 
         // verifica schedulazione regolare tag20
-        var tag1 = engine.GetNextTagSchedule();
+        var tag1 = GetScheduledTag(engine);
         Assert.Equal(tag20.TagId, tag1!.Tag.TagId);
         engine.ScheduleTag(tag1!);
 
@@ -139,7 +146,7 @@ public class TagSchedulerEngineTests
         Assert.Equal(2, driver.CountReadTag(device, tag20, tag20.ByteOffset, tag20.Size)); // read invocata 2 volte perché la DB viene anche inizializzata
 
         // verifica schedulazione regolare tag21
-        var tag2 = engine.GetNextTagSchedule();
+        var tag2 = GetScheduledTag(engine);
         Assert.Equal(tag21.TagId, tag2!.Tag.TagId);
         engine.ScheduleTag(tag2!);
 
@@ -157,7 +164,7 @@ public class TagSchedulerEngineTests
         // verifica scrittura di tutto il tag22
         tag22.IsWriteSynchronizationRequested = true;
 
-        var tag3 = engine.GetNextTagSchedule();
+        var tag3 = GetScheduledTag(engine);
         Assert.Equal(tag22.TagId, tag3!.Tag.TagId);
         engine.ScheduleTag(tag3!);
 
@@ -172,7 +179,7 @@ public class TagSchedulerEngineTests
         Assert.False(tag22.IsWriteSynchronizationRequested);
 
         // verifica schedulazione regolare tag20
-        var tag4 = engine.GetNextTagSchedule();
+        var tag4 = GetScheduledTag(engine);
         Assert.Equal(tag20.TagId, tag4!.Tag.TagId);
         engine.ScheduleTag(tag4!);
 
@@ -193,7 +200,7 @@ public class TagSchedulerEngineTests
     {
         var timeService = new FakeTimeService
         {
-            Now = DateTime.Now
+            NowTicks = DateTime.Now.Ticks
         };
 
         SchedulerConfiguration schedulerConfiguration = new SchedulerConfiguration();
@@ -238,7 +245,7 @@ public class TagSchedulerEngineTests
         driver.ResetInvocations();
 
         // verifica schedulazione regolare tag20 inviando più eventi di lettura parziale
-        var t20 = engine.GetNextTagSchedule();
+        var t20 = GetScheduledTag(engine);
         Assert.Equal(tag20.TagId, t20!.Tag.TagId);
         engine.ScheduleTag(t20!);
 
@@ -263,7 +270,7 @@ public class TagSchedulerEngineTests
             driver.ReadTagCallback = null; // autoreset alla prima invocazione
         };
 
-        t20 = engine.GetNextTagSchedule();
+        t20 = GetScheduledTag(engine);
         Assert.Equal(tag20.TagId, t20!.Tag.TagId);
         engine.ScheduleTag(t20!);
 
@@ -277,7 +284,7 @@ public class TagSchedulerEngineTests
         driver.ResetInvocations();
 
         // a questo punto l'engine deve schedulare una scrittura perché è intervenuta nel mentre
-        var t22 = engine.GetNextTagSchedule();
+        var t22 = GetScheduledTag(engine);
         Assert.Equal(tag22.TagId, t22!.Tag.TagId);
         engine.ScheduleTag(t22!);
 
@@ -293,7 +300,7 @@ public class TagSchedulerEngineTests
         driver.ResetInvocations();
 
         // ripresa della schedulazione regolare tag20 da dove si era interrotta prima
-        t20 = engine.GetNextTagSchedule();
+        t20 = GetScheduledTag(engine);
         Assert.Equal(tag20.TagId, t20!.Tag.TagId);
         engine.ScheduleTag(t20!);
 
@@ -317,7 +324,7 @@ public class TagSchedulerEngineTests
     {
         var timeService = new FakeTimeService
         {
-            Now = DateTime.Now
+            NowTicks = DateTime.Now.Ticks
         };
 
         SchedulerConfiguration schedulerConfiguration = new SchedulerConfiguration()
@@ -368,10 +375,10 @@ public class TagSchedulerEngineTests
 
         // verifica di non procedere a una nuova inizializzazione se non è trascorso abbastanza tempo
         Assert.False(engine.IsRestartNeeded());
-        Assert.Throws<TagSchedulerWaitException>(() => engine.GetNextTagSchedule());
+        Assert.False(engine.TryGetNextTagSchedule(false, out _, out _));
 
         // verifica inizializzazione ok
-        timeService.Now += schedulerConfiguration.RestartDeviceInErrorTimeout;
+        timeService.NowTicks += schedulerConfiguration.RestartDeviceInErrorTimeout.Ticks;
         Assert.True(engine.IsRestartNeeded());
         engine.RestartDriver();
 
@@ -394,11 +401,11 @@ public class TagSchedulerEngineTests
         driver.StartInterfaceReturns = 0;
         driver.ReadTagReturns = 1;
 
-        timeService.Now += schedulerConfiguration.RestartDeviceInErrorTimeout;
+        timeService.NowTicks += schedulerConfiguration.RestartDeviceInErrorTimeout.Ticks;
         Assert.True(engine.IsRestartNeeded());
         engine.RestartDriver();
 
-        Assert.Throws<TagSchedulerWaitException>(() => engine.GetNextTagSchedule()); // nessun tag schedulabile
+        Assert.False(engine.TryGetNextTagSchedule(false, out _, out _)); // nessun tag schedulabile
 
         Assert.Equal(DeviceStatus.OK, device.DeviceStatus);
         Assert.False(tag20.IsInitialized);
@@ -417,7 +424,7 @@ public class TagSchedulerEngineTests
 
         // verifica inizializzazione ok
         driver.ReadTagReturns = 0;
-        timeService.Now += schedulerConfiguration.RestartDeviceInErrorTimeout;
+        timeService.NowTicks += schedulerConfiguration.RestartDeviceInErrorTimeout.Ticks;
         Assert.True(engine.IsRestartNeeded());
 
         engine.RestartDriver();
@@ -438,17 +445,17 @@ public class TagSchedulerEngineTests
         eventListener.ClearEvents();
 
         // verifica di non schedulare nulla se non passa abbastanza tempo
-        Assert.Throws<TagSchedulerWaitException>(() => engine.GetNextTagSchedule());
-        timeService.Now += schedulerConfiguration.WaitTimeBetweenEverySchedule;
-        Assert.Throws<TagSchedulerWaitException>(() => engine.GetNextTagSchedule());
-        timeService.Now += schedulerConfiguration.WaitTimeBetweenReadSchedules;
+        Assert.False(engine.TryGetNextTagSchedule(false, out _, out _));
+        timeService.NowTicks += schedulerConfiguration.WaitTimeBetweenEverySchedule.Ticks;
+        Assert.False(engine.TryGetNextTagSchedule(false, out _, out _));
+        timeService.NowTicks += schedulerConfiguration.WaitTimeBetweenReadSchedules.Ticks;
 
         // una volta che i tag sono inizializzati, verifica di non inviare nessun evento se non cambia nessun bit
         for (int i = 0; i < 10; i++)
         {
-            timeService.Now += schedulerConfiguration.WaitTimeBetweenReadSchedules;
+            timeService.NowTicks += schedulerConfiguration.WaitTimeBetweenReadSchedules.Ticks;
 
-            var t = engine.GetNextTagSchedule();
+            var t = GetScheduledTag(engine);
             Assert.Equal(tag20, t.Tag);
 
             engine.ScheduleTag(t);
@@ -467,8 +474,8 @@ public class TagSchedulerEngineTests
             data[10] = 99;
         };
 
-        timeService.Now += schedulerConfiguration.WaitTimeBetweenReadSchedules;
-        var t20 = engine.GetNextTagSchedule();
+        timeService.NowTicks += schedulerConfiguration.WaitTimeBetweenReadSchedules.Ticks;
+        var t20 = GetScheduledTag(engine);
         Assert.Equal(tag20, t20.Tag);
 
         engine.ScheduleTag(t20);
@@ -485,8 +492,8 @@ public class TagSchedulerEngineTests
         // verifica che le letture successive non inviano eventi
         for (int i = 0; i < 10; i++)
         {
-            timeService.Now += schedulerConfiguration.WaitTimeBetweenReadSchedules;
-            var t = engine.GetNextTagSchedule();
+            timeService.NowTicks += schedulerConfiguration.WaitTimeBetweenReadSchedules.Ticks;
+            var t = GetScheduledTag(engine);
             Assert.Equal(tag20, t.Tag);
 
             engine.ScheduleTag(t);
@@ -506,7 +513,7 @@ public class TagSchedulerEngineTests
 
         for (int i = 0; i < 10; i++)
         {
-            var t = engine.GetNextTagSchedule();
+            var t = GetScheduledTag(engine);
             Assert.Equal(tag22, t.Tag);
 
             engine.ScheduleTag(t);
@@ -522,13 +529,13 @@ public class TagSchedulerEngineTests
             eventListener.ClearEvents();
             driver.ResetInvocations();
 
-            timeService.Now += schedulerConfiguration.WaitTimeAfterError;
+            timeService.NowTicks += schedulerConfiguration.WaitTimeAfterError.Ticks;
         }
 
         // verifica di scrittura tag22 con i bounds attesi
         driver.WriteReturns = 0;
 
-        var t22 = engine.GetNextTagSchedule();
+        var t22 = GetScheduledTag(engine);
         Assert.Equal(tag22, t22.Tag);
 
         engine.ScheduleTag(t22);
@@ -546,8 +553,8 @@ public class TagSchedulerEngineTests
         // verifica che le letture successive non inviano eventi
         for (int i = 0; i < 10; i++)
         {
-            timeService.Now += schedulerConfiguration.WaitTimeBetweenReadSchedules;
-            var t = engine.GetNextTagSchedule();
+            timeService.NowTicks += schedulerConfiguration.WaitTimeBetweenReadSchedules.Ticks;
+            var t = GetScheduledTag(engine);
             Assert.Equal(tag20, t.Tag);
 
             engine.ScheduleTag(t);
@@ -566,7 +573,7 @@ public class TagSchedulerEngineTests
         Assert.True(tag22.TryMergeData(new byte[] { 100, 101, 102 }, 10));
         Assert.True(tag22.TryMergeData(new byte[] { 200, 201 }, 20));
 
-        t22 = engine.GetNextTagSchedule();
+        t22 = GetScheduledTag(engine);
         Assert.Equal(tag22, t22.Tag);
 
         engine.ScheduleTag(t22);
@@ -600,7 +607,7 @@ public class TagSchedulerEngineTests
     {
         var timeService = new FakeTimeService
         {
-            Now = DateTime.Now
+            NowTicks = DateTime.Now.Ticks
         };
 
         SchedulerConfiguration configuration = new SchedulerConfiguration();
@@ -617,22 +624,22 @@ public class TagSchedulerEngineTests
         Assert.True(tag22.IsInitialized);
         Assert.Equal(0, tag22.ErrorCode);
 
-        timeService.Now += configuration.RestartDeviceInErrorTimeout;
+        timeService.NowTicks += configuration.RestartDeviceInErrorTimeout.Ticks;
         Assert.False(engine.IsRestartNeeded()); // non devo far ripartire nulla perché non ci sono errori
 
         driver.ReadTagReturns = 1;
 
         for (int i = 0; i < configuration.MaxErrorsBeforeReconnection; i++)
         {
-            var tag = engine.GetNextTagSchedule();
+            var tag = GetScheduledTag(engine);
             Assert.NotNull(tag);
 
             engine.ScheduleTag(tag!);
             Assert.NotEqual(0, tag!.Tag.ErrorCode);
             Assert.Equal(i + 1, tag.Tag.ErrorCount);
 
-            Assert.Throws<TagSchedulerWaitException>(() => engine.GetNextTagSchedule());
-            timeService.Now += configuration.WaitTimeAfterError;
+            Assert.False(engine.TryGetNextTagSchedule(false, out _, out _));
+            timeService.NowTicks += configuration.WaitTimeAfterError.Ticks;
         }
 
         Assert.NotEqual(0, tag20.ErrorCode);
@@ -648,5 +655,83 @@ public class TagSchedulerEngineTests
         Assert.Equal(0, tag20.ErrorCode);
         Assert.True(tag22.IsInitialized);
         Assert.Equal(0, tag22.ErrorCode);
+    }
+
+    [Fact]
+    public void Write_bounds_respect_pdu_limit_for_nonzero_tag_offset()
+    {
+        var configuration = new DeviceConfiguration
+        {
+            Enabled = true,
+            Name = "device",
+            IsWriteOptimizationEnabled = true,
+            Tags = [new TagConfiguration("write", TagType.WRITE, 100, 16, 1)]
+        };
+        var device = new Device(configuration) { SinglePDUWriteBytes = 4 };
+        var tag = device.Tags[0];
+        var driver = new MockDeviceDriver(device);
+        var engine = new TagSchedulerEngine(driver, new FakeTimeService { NowTicks = DateTime.Now.Ticks }, new SchedulerConfiguration());
+
+        tag.TryMergeData(new byte[] { 1 }, 100);
+        tag.TryMergeData(new byte[] { 2, 3 }, 105);
+        engine.ScheduleTag(new TagSchedule(device, tag, TagScheduleType.WRITE));
+
+        Assert.Collection(driver.WriteTagInvocations,
+            call =>
+            {
+                Assert.Equal(100, call.StartOffset);
+                Assert.Equal(1, call.Length);
+            },
+            call =>
+            {
+                Assert.Equal(105, call.StartOffset);
+                Assert.Equal(2, call.Length);
+            });
+    }
+
+    [Fact]
+    public async Task Concurrent_pause_and_resume_does_not_leave_paused_signal_set()
+    {
+        var device = new Device(new DeviceConfiguration { Enabled = true, Name = "device" });
+        var scheduler = new TagScheduler("pause-race", new TagSchedulerEngine(
+            new MockDeviceDriver(device), new TimeService(), new SchedulerConfiguration()),
+            new TimeService(), new SchedulerConfiguration());
+        var runningSignal = (ManualResetEventSlim)typeof(TagScheduler)
+            .GetField("_runningSignal", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .GetValue(scheduler)!;
+        const int iterations = 20_000;
+        using var barrier = new Barrier(3);
+
+        Task SetPaused() => Task.Run(() =>
+        {
+            for (int i = 0; i < iterations; i++)
+            {
+                barrier.SignalAndWait();
+                scheduler.IsPaused = true;
+                barrier.SignalAndWait();
+            }
+        });
+        Task SetResumed() => Task.Run(() =>
+        {
+            for (int i = 0; i < iterations; i++)
+            {
+                barrier.SignalAndWait();
+                scheduler.IsPaused = false;
+                barrier.SignalAndWait();
+            }
+        });
+
+        Task paused = SetPaused();
+        Task resumed = SetResumed();
+        bool leftSignaledWhilePaused = false;
+        for (int i = 0; i < iterations; i++)
+        {
+            barrier.SignalAndWait();
+            barrier.SignalAndWait();
+            leftSignaledWhilePaused |= scheduler.IsPaused && runningSignal.IsSet;
+        }
+        await Task.WhenAll(paused, resumed);
+
+        Assert.False(leftSignaledWhilePaused, "A concurrent resume must not leave the scheduler signaled after pause wins.");
     }
 }

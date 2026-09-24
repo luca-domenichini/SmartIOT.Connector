@@ -22,7 +22,8 @@ public abstract class AbstractBufferedAggregatingConnector : AbstractConnector
     protected abstract Task HandleOnExceptionAsync(object? sender, ExceptionEventArgs args);
 
     /// <summary>
-    /// Meaningful events are all data events that contains some data and tag-status events when the error changed
+    /// Meaningful events are all data events that contains some data and tag-status events when the error changed.
+    /// Applied when pushing onto the queue, so that events failing this test never enter it.
     /// </summary>
     private bool IsTagReadEventMeaningful(TagScheduleEventArgs tagScheduleEvent)
     {
@@ -48,7 +49,7 @@ public abstract class AbstractBufferedAggregatingConnector : AbstractConnector
                             await HandleOnExceptionAsync(e.ExceptionEvent.Value.sender, e.ExceptionEvent.Value.args);
                         if (e.DeviceStatusEvent.HasValue)
                             await HandleOnDeviceStatusEventAsync(e.DeviceStatusEvent.Value.sender, e.DeviceStatusEvent.Value.args);
-                        if (e.TagReadScheduleEvent.HasValue && IsTagReadEventMeaningful(e.TagReadScheduleEvent.Value.args))
+                        if (e.TagReadScheduleEvent.HasValue)
                             await HandleOnTagReadEventAsync(e.TagReadScheduleEvent.Value.sender, e.TagReadScheduleEvent.Value.args);
                         if (e.TagWriteScheduleEvent.HasValue)
                             await HandleOnTagWriteEventAsync(e.TagWriteScheduleEvent.Value.sender, e.TagWriteScheduleEvent.Value.args);
@@ -98,7 +99,10 @@ public abstract class AbstractBufferedAggregatingConnector : AbstractConnector
 
     public override void OnTagReadEvent(object? sender, TagScheduleEventArgs args)
     {
-        _eventQueue.Push(CompositeConnectorEvent.TagRead((sender, args)));
+        // Filtered on the producer side: a read that changed nothing is the common case when the
+        // device data is static, and it must not be enqueued only to be dropped by the consumer.
+        if (IsTagReadEventMeaningful(args))
+            _eventQueue.Push(CompositeConnectorEvent.TagRead((sender, args)));
     }
 
     public override void OnTagWriteEvent(object? sender, TagScheduleEventArgs args)

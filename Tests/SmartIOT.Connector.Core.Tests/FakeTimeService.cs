@@ -4,15 +4,15 @@ namespace SmartIOT.Connector.Core.Tests;
 
 internal class FakeTimeService : ITimeService
 {
-    public DateTime Now { get; set; }
+    public long NowTicks { get; set; }
 
-    public bool IsTimeoutElapsed(DateTime instant, TimeSpan timeout)
+    public bool IsTimeoutElapsed(long instant, TimeSpan timeout)
     {
-        return IsTimeoutElapsed(instant, Now, timeout);
+        return IsTimeoutElapsed(instant, NowTicks, timeout);
     }
 
-    public bool IsTimeoutElapsed(DateTime from, DateTime to, TimeSpan timeout)
+    public bool IsTimeoutElapsed(long from, long to, TimeSpan timeout)
     {
-        return to - from >= timeout || to < from;
+        return to - from >= timeout.Ticks || to < from;
     }
 }

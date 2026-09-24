@@ -46,6 +46,14 @@ internal class CopyOnWriteArrayList<T> : IList<T>, IReadOnlyList<T>, IList
 
     public int Count => _data.Length;
 
+    /// <summary>
+    /// Returns the current underlying array. Every mutation of this list replaces the array,
+    /// so the returned reference is a stable snapshot: it can be iterated without locking and
+    /// without allocating an enumerator, and it stays valid even if the list changes meanwhile.
+    /// Callers must never modify the returned array.
+    /// </summary>
+    public T[] GetSnapshot() => _data;
+
     public bool IsReadOnly => false;
 
     public bool IsFixedSize => false;

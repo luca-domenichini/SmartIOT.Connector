@@ -43,7 +43,7 @@ public class SmartIotConnector : ISmartIOTConnectorInterface
 
     public event EventHandler<DeviceDriverRestartedEventArgs>? SchedulerRestarted;
 
-    public event EventHandler<TagSchedulerWaitExceptionEventArgs>? TagSchedulerWaitExceptionEvent;
+    public event EventHandler<TagSchedulerWaitingEventArgs>? TagSchedulerWaitingEvent;
 
     public event EventHandler<TagScheduleEventArgs>? TagReadEvent;
 
@@ -192,7 +192,7 @@ public class SmartIotConnector : ISmartIOTConnectorInterface
 
         scheduler.EngineRestartingEvent += OnSchedulerRestartingEvent;
         scheduler.EngineRestartedEvent += OnSchedulerRestartedEvent;
-        scheduler.TagSchedulerWaitExceptionEvent += OnSchedulerWaitExceptionEvent;
+        scheduler.TagSchedulerWaitingEvent += OnSchedulerWaitingEvent;
 
         scheduler.SchedulerStarting += OnSchedulerStarting;
         scheduler.SchedulerStopping += OnSchedulerStopping;
@@ -209,7 +209,7 @@ public class SmartIotConnector : ISmartIOTConnectorInterface
 
         scheduler.EngineRestartingEvent += OnSchedulerRestartingEvent;
         scheduler.EngineRestartedEvent += OnSchedulerRestartedEvent;
-        scheduler.TagSchedulerWaitExceptionEvent += OnSchedulerWaitExceptionEvent;
+        scheduler.TagSchedulerWaitingEvent += OnSchedulerWaitingEvent;
 
         scheduler.SchedulerStarting += OnSchedulerStarting;
         scheduler.SchedulerStopping += OnSchedulerStopping;
@@ -230,9 +230,12 @@ public class SmartIotConnector : ISmartIOTConnectorInterface
         scheduler.DeviceStatusEvent -= OnSchedulerDeviceStatusEvent;
         scheduler.ExceptionHandler -= OnSchedulerException;
 
-        scheduler.EngineRestartingEvent += OnSchedulerRestartingEvent;
-        scheduler.EngineRestartedEvent += OnSchedulerRestartedEvent;
-        scheduler.TagSchedulerWaitExceptionEvent += OnSchedulerWaitExceptionEvent;
+        scheduler.EngineRestartingEvent -= OnSchedulerRestartingEvent;
+        scheduler.EngineRestartedEvent -= OnSchedulerRestartedEvent;
+        scheduler.TagSchedulerWaitingEvent -= OnSchedulerWaitingEvent;
+
+        scheduler.SchedulerStarting -= OnSchedulerStarting;
+        scheduler.SchedulerStopping -= OnSchedulerStopping;
     }
 
     private void OnSchedulerStopping(object? sender, SchedulerStoppingEventArgs e)
@@ -255,9 +258,9 @@ public class SmartIotConnector : ISmartIOTConnectorInterface
         SchedulerRestarted?.Invoke(this, e);
     }
 
-    private void OnSchedulerWaitExceptionEvent(object? sender, TagSchedulerWaitExceptionEventArgs e)
+    private void OnSchedulerWaitingEvent(object? sender, TagSchedulerWaitingEventArgs e)
     {
-        TagSchedulerWaitExceptionEvent?.Invoke(this, e);
+        TagSchedulerWaitingEvent?.Invoke(this, e);
     }
 
     private void OnSchedulerTagReadEvent(object? sender, TagScheduleEventArgs e)

@@ -10,7 +10,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
 {
     private readonly ITimeService _timeService;
     private readonly SchedulerConfiguration _configuration;
-    private DateTime? _lastRestartInstant;
+    private long? _lastRestartTicks;
     private readonly List<TagChangeBounds> _writeBoundsBuffer = new();
     public IDeviceDriver DeviceDriver { get; }
 
@@ -33,30 +33,40 @@ public class TagSchedulerEngine : ITagSchedulerEngine
         _configuration = configuration;
     }
 
-    public TagSchedule ScheduleNextTag(bool scheduleWritesOnly)
+    public bool TryScheduleNextTag(bool scheduleWritesOnly, out TagSchedule schedule, out TimeSpan waitTime)
     {
         lock (DeviceDriver)
         {
-            var schedule = GetNextTagSchedule(scheduleWritesOnly);
-            ScheduleTag(schedule);
+            if (!TryGetNextTagSchedule(scheduleWritesOnly, out schedule, out waitTime))
+                return false;
 
-            return schedule;
+            ScheduleTag(schedule);
+            return true;
         }
     }
 
-    public TagSchedule GetNextTagSchedule(bool scheduleWritesOnly = false)
+    /// <summary>
+    /// Picks the next tag to schedule, if any. When a tag is found the schedule is returned and
+    /// the method returns true. Otherwise the method returns false and <paramref name="waitTime"/>
+    /// holds how long the caller should wait before polling again.
+    /// This keeps the scheduler idle path free of exception allocation and throwing.
+    /// </summary>
+    public bool TryGetNextTagSchedule(bool scheduleWritesOnly, out TagSchedule schedule, out TimeSpan waitTime)
     {
         Tag? tagToSchedule = null;
-        TimeSpan waitTime = TimeSpan.FromSeconds(1);
+        waitTime = TimeSpan.FromSeconds(1);
 
         var device = DeviceDriver.Device;
+
+        // one clock read for the whole scan: it used to be read once per candidate tag
+        long now = _timeService.NowTicks;
 
         foreach (Tag tag in device.Tags)
         {
             if (scheduleWritesOnly && tag.TagType != TagType.WRITE)
                 continue;
 
-            var time = GetRemainingTimeForTagSchedule(device, tag);
+            var time = GetRemainingTimeForTagSchedule(device, tag, now);
             if (time <= TimeSpan.Zero)
             {
                 // tag schedulabile! verifico se posso assegnarlo
@@ -94,10 +104,14 @@ public class TagSchedulerEngine : ITagSchedulerEngine
         }
 
         if (tagToSchedule != null)
-            return new TagSchedule(device, tagToSchedule, tagToSchedule.TagType == TagType.READ ? TagScheduleType.READ : TagScheduleType.WRITE);
+        {
+            schedule = new TagSchedule(device, tagToSchedule, tagToSchedule.TagType == TagType.READ ? TagScheduleType.READ : TagScheduleType.WRITE);
+            return true;
+        }
 
-        // se non ho trovato nessun tag da schedulare, rilancio una eccezione indicando il tempo di attesa
-        throw new TagSchedulerWaitException(waitTime);
+        // no tag schedulable: report how long the caller should wait
+        schedule = null!;
+        return false;
     }
 
     public void ScheduleTag(TagSchedule schedule)
@@ -147,7 +161,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
                         {
                             if (tag.IsWriteSynchronizationRequested)
                             {
-                                var timeToWait = GetRemainingTimeForTagSchedule(DeviceDriver.Device, tag);
+                                var timeToWait = GetRemainingTimeForTagSchedule(DeviceDriver.Device, tag, _timeService.NowTicks);
                                 if (timeToWait <= TimeSpan.Zero)
                                 {
                                     somethingToWrite = true;
@@ -167,7 +181,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
         }
     }
 
-    private TimeSpan GetRemainingTimeForTagSchedule(Device device, Tag tag)
+    private TimeSpan GetRemainingTimeForTagSchedule(Device device, Tag tag, long now)
     {
         if (device.DeviceStatus == DeviceStatus.OK
             && tag.IsInitialized
@@ -175,10 +189,10 @@ public class TagSchedulerEngine : ITagSchedulerEngine
         {
             if (tag.ErrorCode == 0)
             {
-                var timePassedFromLastSync = _timeService.Now - tag.LastDeviceSynchronization;
+                var timePassedFromLastSync = TimeSpan.FromTicks(now - tag.LastDeviceSynchronization);
                 if (timePassedFromLastSync < TimeSpan.Zero)
                 {
-                    tag.LastDeviceSynchronization = new DateTime(0, DateTimeKind.Unspecified);
+                    tag.LastDeviceSynchronization = 0;
                     timePassedFromLastSync = _configuration.WaitTimeBetweenEverySchedule;
                 }
 
@@ -195,10 +209,10 @@ public class TagSchedulerEngine : ITagSchedulerEngine
             }
             else
             {
-                var timePassedFromLastError = _timeService.Now - tag.LastErrorDateTime;
+                var timePassedFromLastError = TimeSpan.FromTicks(now - tag.LastErrorTicks);
                 if (timePassedFromLastError < TimeSpan.Zero)
                 {
-                    tag.LastErrorDateTime = new DateTime(0, DateTimeKind.Unspecified);
+                    tag.LastErrorTicks = 0;
                     timePassedFromLastError = _configuration.WaitTimeAfterError;
                 }
 
@@ -233,7 +247,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
             string description = string.Empty;
             if (!partialRead)
             {
-                device.SetTagSynchronized(tag, _timeService.Now);
+                device.SetTagSynchronized(tag, _timeService.NowTicks);
                 (err, description) = TryWithDeviceDriver(
                     (device: device, tag: tag, startOffset: tag.ByteOffset, length: tag.Size),
                     static (driver, s) => driver.ReadTag(s.device, s.tag, s.tag.Data, s.startOffset, s.length));
@@ -288,7 +302,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
                         evt = ParseTagChangesAndMerge(device, tag, errorStateChanged);
 
                         // quando index == 0 significa che il tag è stato letto tutto con lettura parziali consecutive
-                        device.SetTagSynchronized(tag, _timeService.Now);
+                        device.SetTagSynchronized(tag, _timeService.NowTicks);
 
                         time = tag.PartialReadTotalTime;
                         tag.PartialReadTotalTime = TimeSpan.Zero;
@@ -325,7 +339,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
             {
                 // in caso di errore segnalo semplicemente la cosa
                 tag.ErrorCount++;
-                tag.LastErrorDateTime = _timeService.Now;
+                tag.LastErrorTicks = _timeService.NowTicks;
 
                 evt = TagScheduleEvent.BuildTagStatus(device, tag, err, description, errorStateChanged);
             }
@@ -336,30 +350,26 @@ public class TagSchedulerEngine : ITagSchedulerEngine
 
     private static TagScheduleEvent ParseTagChangesAndMerge(Device device, Tag tag, bool errorStateChanged)
     {
-        int start = int.MaxValue;
-        int end = -1;
+        ReadOnlySpan<byte> data = tag.Data;
+        Span<byte> oldData = tag.OldData;
 
-        for (int i = 0; i < tag.Size; i++)
-        {
-            if (tag.Data[i] != tag.OldData[i])
-            {
-                if (i < start)
-                    start = i;
-
-                end = i;
-            }
-        }
-
-        if (end >= 0)
-        {
-            // bulk-copy the changed range — faster than byte-by-byte update
-            tag.Data.AsSpan(start, end - start + 1).CopyTo(tag.OldData.AsSpan(start));
-            return TagScheduleEvent.BuildTagData(device, tag, start + tag.ByteOffset, end - start + 1, errorStateChanged);
-        }
-        else
-        {
+        // fast path: SIMD-accelerated comparison. The overwhelmingly common case on a static
+        // device is "nothing changed", and it no longer costs a byte-by-byte sweep.
+        if (data.SequenceEqual(oldData))
             return TagScheduleEvent.BuildEmptyTagData(device, tag, errorStateChanged);
-        }
+
+        // something changed: trim the equal prefix and the equal suffix, so only those two are
+        // actually scanned - the region in between is known to hold the first and last difference.
+        int start = 0;
+        int end = data.Length - 1;
+        while (start < end && data[start] == oldData[start])
+            start++;
+        while (end > start && data[end] == oldData[end])
+            end--;
+
+        // bulk-copy the changed range - faster than byte-by-byte update
+        data.Slice(start, end - start + 1).CopyTo(oldData.Slice(start));
+        return TagScheduleEvent.BuildTagData(device, tag, start + tag.ByteOffset, end - start + 1, errorStateChanged);
     }
 
     private TagScheduleEvent WriteTag(TagSchedule schedule)
@@ -397,7 +407,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
             string description = string.Empty;
             TimeSpan time;
 
-            device.SetTagSynchronized(tag, _timeService.Now);
+            device.SetTagSynchronized(tag, _timeService.NowTicks);
             var stopWatch = Stopwatch.StartNew();
 
             int totalStartOffset = int.MaxValue;
@@ -446,7 +456,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
             else
             {
                 tag.ErrorCount++;
-                tag.LastErrorDateTime = _timeService.Now;
+                tag.LastErrorTicks = _timeService.NowTicks;
 
                 evt = TagScheduleEvent.BuildTagStatus(device, tag, err, description, errorStateChanged);
             }
@@ -458,16 +468,43 @@ public class TagSchedulerEngine : ITagSchedulerEngine
     private static void ParseWriteBounds(Device device, Tag tag, List<TagChangeBounds> list)
     {
         list.Clear();
-        bool hasCurrent = false;
-        TagChangeBounds current = default;
+
+        ReadOnlySpan<byte> data = tag.Data;
+        ReadOnlySpan<byte> oldData = tag.OldData;
+
+        // fast path: nothing changed, so there is nothing to write
+        if (data.SequenceEqual(oldData))
+            return;
 
         int singlePDUBytes = device.IsWriteOptimizationEnabled ? device.SinglePDUWriteBytes : 0;
 
+        if (singlePDUBytes <= 0)
+        {
+            // without PDU splitting compute single bounds spanning from the first to the last differing byte
+            int start = 0;
+            int end = data.Length - 1;
+            while (start < end && data[start] == oldData[start])
+                start++;
+            while (end > start && data[end] == oldData[end])
+                end--;
+
+            list.Add(new TagChangeBounds
+            {
+                StartOffset = tag.ByteOffset + start,
+                Length = end - start + 1
+            });
+            return;
+        }
+
+        // PDU splitting: every run boundary is needed, so the changed range has to be walked
+        bool hasCurrent = false;
+        TagChangeBounds current = default;
+
         for (int i = 0; i < tag.Size; i++)
         {
-            if (tag.Data[i] != tag.OldData[i])
+            if (data[i] != oldData[i])
             {
-                if (!hasCurrent || (singlePDUBytes > 0 && i - current.StartOffset + 1 > singlePDUBytes))
+                if (!hasCurrent || (tag.ByteOffset + i - current.StartOffset + 1 > singlePDUBytes))
                 {
                     // nessun change corrente: lo creo
                     // oppure variazione fuori dalla pdu corrente: creo una nuova pdu
@@ -483,7 +520,6 @@ public class TagSchedulerEngine : ITagSchedulerEngine
                 else
                 {
                     // variazione all'interno della PDU corrente: aggiorno la pdu
-                    // se singlePDUBytes <= 0, cado sempre qua dopo aver creato il primo change
                     current.Length = tag.ByteOffset + i + 1 - current.StartOffset;
                     list[list.Count - 1] = current;
                 }
@@ -534,9 +570,9 @@ public class TagSchedulerEngine : ITagSchedulerEngine
         if (DeviceDriver.Device.DeviceStatus == DeviceStatus.DISABLED)
             return false;
 
-        bool restart = _lastRestartInstant == null;
+        bool restart = _lastRestartTicks == null;
         if (!restart
-            && _timeService.IsTimeoutElapsed(_lastRestartInstant!.Value, _configuration.RestartDeviceInErrorTimeout))
+            && _timeService.IsTimeoutElapsed(_lastRestartTicks!.Value, _configuration.RestartDeviceInErrorTimeout))
         {
             var device = DeviceDriver.Device;
 
@@ -578,7 +614,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
         {
             var device = DeviceDriver.Device;
 
-            if (_lastRestartInstant != null)
+            if (_lastRestartTicks != null)
             {
                 TryWithDeviceDriver(x => x.StopInterface());
                 TryWithDeviceDriver(x => x.Disconnect(device));
@@ -667,7 +703,7 @@ public class TagSchedulerEngine : ITagSchedulerEngine
                 }
             }
 
-            _lastRestartInstant = _timeService.Now;
+            _lastRestartTicks = _timeService.NowTicks;
         }
 
         OnRestartedDeviceDriverEvent(new DeviceDriverRestartedEventArgs(DeviceDriver, success, message));

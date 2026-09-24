@@ -184,7 +184,7 @@ public class SchedulerReadWriteBenchmarks
     /// <summary>
     /// Full scheduler selection path: uses <see cref="TagSchedulerEngine.ScheduleNextTag"/>
     /// for N iterations, letting the engine pick which tag to schedule.
-    /// Stresses <see cref="TagSchedulerEngine.GetNextTagSchedule"/> as well as the driver.
+    /// Stresses <see cref="TagSchedulerEngine.TryGetNextTagSchedule"/> as well as the driver.
     /// </summary>
     [Benchmark(Description = "ScheduleNextTag")]
     public int ScheduleNextTagCycles()
@@ -198,7 +198,7 @@ public class SchedulerReadWriteBenchmarks
             // else
                 //SeedWriteData();
 
-            _engine.ScheduleNextTag(scheduleWritesOnly: false);
+            _engine.TryScheduleNextTag(scheduleWritesOnly: false, out _, out _);
         }
         return i;
     }

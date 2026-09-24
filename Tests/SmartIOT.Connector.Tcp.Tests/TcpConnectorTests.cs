@@ -83,7 +83,7 @@ public class TcpConnectorTests : SmartIOTBaseTests
         Assert.False(engine.IsRestartNeeded());
 
         lastTagScheduleEvent = null;
-        engine.ScheduleNextTag(false);
+        Assert.True(engine.TryScheduleNextTag(false, out _, out _));
 
         Assert.NotNull(lastTagScheduleEvent);
         Assert.Empty(otherMessages);
@@ -161,7 +161,7 @@ public class TcpConnectorTests : SmartIOTBaseTests
 
             tagEvent.Reset();
 
-            engine.ScheduleNextTag(false);
+            Assert.True(engine.TryScheduleNextTag(false, out _, out _));
 
             Assert.True(tagEvent.Wait(1000));
 
@@ -250,7 +250,7 @@ public class TcpConnectorTests : SmartIOTBaseTests
         Assert.False(engine.IsRestartNeeded());
 
         lastTagScheduleEvent = null;
-        engine.ScheduleNextTag(false);
+        Assert.True(engine.TryScheduleNextTag(false, out _, out _));
 
         Assert.NotNull(lastTagScheduleEvent);
         Assert.Empty(otherMessages);
@@ -326,7 +326,7 @@ public class TcpConnectorTests : SmartIOTBaseTests
 
             tagEvent.Reset();
 
-            engine.ScheduleNextTag(false);
+            Assert.True(engine.TryScheduleNextTag(false, out _, out _));
 
             Assert.True(tagEvent.Wait(1000));
 
